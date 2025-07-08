@@ -1,4 +1,6 @@
 .vs
 .log
 docker
-__cache__
+__pycache__
+
+*.prompt

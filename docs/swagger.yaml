@@ -1,0 +1,323 @@
+openapi: 3.0.3
+info:
+  title: GigaOffice AI Service API
+  version: "1.0.0"
+  description: |
+    Промежуточный сервер для интеграции плагинов Р7-Офис с AI-моделью GigaChat.
+    • Хранит заявки и метаданные в PostgreSQL  
+    • Обменивается заданиями и ответами через Kafka (топики *gigaoffice-requests*, *gigaoffice-responses*, *gigaoffice-dlq*)
+
+servers:
+  - url: https://example.com        # заменить на фактический URL
+    description: Production
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # --- ENUMы --------------------------------------------------------------
+    RequestStatus:
+      type: string
+      description: |
+        Текущее состояние запроса к AI.
+        • **pending** — запрос сохранён в БД и ожидает обработки  
+        • **processing** — запрос обрабатывается; сообщение отправлено в Kafka и/или выполняется фоновая задача  
+        • **completed** — ответ от GigaChat сохранён в БД; результат готов к выдаче  
+        • **failed** — при обработке возникла ошибка (см. *error_message*)  
+        • **cancelled** — запрос отменён пользователем или администратором
+      enum: [pending, processing, completed, failed, cancelled]
+
+    ServiceHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          example: "1.0.0"
+        uptime:
+          type: number
+          format: float
+          description: Seconds since service start
+        database:
+          type: boolean
+        gigachat:
+          type: boolean
+        kafka:
+          type: boolean
+        redis:
+          type: boolean
+        active_requests:
+          type: integer
+        queue_size:
+          type: integer
+        memory_usage:
+          type: number
+          format: float
+        cpu_usage:
+          type: number
+          format: float
+
+    AIRequestCreate:
+      type: object
+      required: [output_range, query_text]
+      properties:
+        input_range:
+          type: string
+          maxLength: 50
+        output_range:
+          type: string
+          maxLength: 50
+        query_text:
+          type: string
+        preset_prompt:
+          type: string
+        input_data:
+          description: Табличные данные из листа Р7-Офис (если есть)
+          type: array
+          items:
+            type: object
+
+    AIProcessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        request_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          example: queued
+        message:
+          type: string
+
+    ProcessingStatus:
+      type: object
+      properties:
+        request_id:
+          type: integer
+        status:
+          $ref: '#/components/schemas/RequestStatus'
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        message:
+          type: string
+        estimated_time:
+          type: integer
+          description: Оставшееся время (сек)
+
+    AIResultResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/RequestStatus'
+        message:
+          type: string
+        result:
+          description: Табличный результат от GigaChat
+          type: array
+          items:
+            type: array
+            items: {}
+        tokens_used:
+          type: integer
+        processing_time:
+          type: number
+          format: float
+
+    PresetPromptsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        prompts:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              name: { type: string }
+              template: { type: string }
+              category: { type: string }
+
+    PopularPromptsResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          query:        { type: string }
+          usage_count:  { type: integer }
+          category:     { type: string }
+          success_rate: { type: number, format: float }
+
+    MetricsResponse:
+      type: object
+      properties:
+        period:               { type: string, enum: [hour, day, week, month] }
+        total_requests:       { type: integer }
+        successful_requests:  { type: integer }
+        failed_requests:      { type: integer }
+        avg_processing_time:  { type: number, format: float }
+        total_tokens_used:    { type: integer }
+        popular_queries:
+          $ref: '#/components/schemas/PopularPromptsResponse'
+
+paths:
+  /api/health:
+    get:
+      summary: Проверка состояния сервиса
+      description: |
+        Пинг-эндпоинт. Собирает внутренние статусы БД, Kafka и клиента GigaChat (без обращения во внешние сервисы).
+      tags: [Service]
+      responses:
+        '200':
+          description: Текущие показатели здоровья сервиса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ServiceHealth' }
+
+  /api/ai/process:
+    post:
+      summary: Поставить запрос в очередь обработки
+      description: |
+        • Создаёт запись **AIRequest** в PostgreSQL  
+        • Отправляет сообщение в Kafka topic **gigaoffice-requests**  
+        • В фоне может сразу вызвать GigaChat, если сервис запущен без воркеров  
+        Лимит: **10 запросов в минуту** с одного IP (см. декоратор `@limiter.limit`).
+      tags: [AI]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AIRequestCreate' }
+      responses:
+        '200':
+          description: Запрос успешно поставлен в очередь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AIProcessResponse' }
+        '500':
+          description: Ошибка сервера (например, Kafka недоступна)
+
+  /api/ai/status/{request_id}:
+    get:
+      summary: Проверить статус обработки
+      description: |
+        Читает запись **AIRequest** из PostgreSQL.  
+        Не взаимодействует с Kafka.
+      tags: [AI]
+      parameters:
+        - in: path
+          name: request_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Текущий статус запроса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProcessingStatus' }
+        '404':
+          description: Запрос с таким ID не найден
+        '500':
+          description: Неожиданная ошибка сервера
+
+  /api/ai/result/{request_id}:
+    get:
+      summary: Получить результат запроса
+      description: |
+        Возвращает готовый результат, если `status == completed`,  
+        либо сообщение о том, что обработка ещё не завершена.  
+        Чтение из таблицы **AIRequest**; Kafka не используется.
+      tags: [AI]
+      parameters:
+        - in: path
+          name: request_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Результат или промежуточная информация
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AIResultResponse' }
+        '404':
+          description: Запрос не найден
+        '500':
+          description: Неожиданная ошибка сервера
+
+  /api/prompts/presets:
+    get:
+      summary: Список предустановленных промптов
+      description: |
+        Читает актуальные промпты из PostgreSQL (таблица **prompts**).  
+        Кеширует результат на 5 минут в памяти процесса.
+      tags: [Prompts]
+      parameters:
+        - in: query
+          name: language
+          schema: { type: string, default: "ru" }
+      responses:
+        '200':
+          description: Список промптов
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PresetPromptsResponse' }
+        '500':
+          description: Ошибка сервера
+
+  /api/prompts/popular:
+    get:
+      summary: Топ популярных запросов
+      description: |
+        Берёт статистику из таблицы **popular_queries**.
+      tags: [Prompts]
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 10 }
+      responses:
+        '200':
+          description: Список популярных запросов
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PopularPromptsResponse' }
+        '500':
+          description: Ошибка сервера
+
+  /api/metrics:
+    get:
+      summary: Метрики использования сервиса
+      description: |
+        Доступно только **admin/premium** пользователям (проверка роли через Bearer-токен).  
+        Возвращает статистику Kafka + счётчики токенов GigaChat.
+      tags: [Service]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: period
+          schema: { type: string, default: day, enum: [hour, day, week, month] }
+      responses:
+        '200':
+          description: Метрики за выбранный период
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MetricsResponse' }
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+        '500':
+          description: Ошибка сервера
