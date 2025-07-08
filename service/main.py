@@ -438,12 +438,13 @@ if __name__ == "__main__":
     log_file = os.getenv("LOG_FILE", "logs/gigaoffice.log")
     log_level = os.getenv("LOG_LEVEL", "info")
     logger.add(log_file, rotation="1 day", retention="30 days")
+    port = int(os.getenv("PORT", "8000").strip())
     
     # Run server
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=True,
         log_level=log_level
     )
