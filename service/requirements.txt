@@ -1,0 +1,72 @@
+# GigaOffice Service Requirements
+# Python dependencies for the GigaOffice intermediate service
+
+# Web framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+psycopg2-binary
+sqlalchemy
+alembic
+
+# Message queue
+confluent-kafka
+
+# AI/ML libraries
+langchain-gigachat
+gigachat
+langchain
+langchain-community
+
+# HTTP client
+requests
+httpx
+
+# Data processing
+pandas
+numpy
+
+# Configuration
+python-dotenv
+pydantic
+pydantic-settings
+
+# Authentication and security
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Logging and monitoring
+loguru
+
+# Task scheduling
+celery
+redis
+
+# Testing
+pytest
+pytest-asyncio
+httpx
+
+# Development
+black
+isort
+flake8
+mypy
+
+# JSON handling
+orjson
+
+# CORS middleware
+fastapi-cors
+
+# Rate limiting
+slowapi
+
+# Health checks
+healthcheck
+
+# Environment validation
+environs
