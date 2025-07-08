@@ -12,12 +12,9 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
 from models import Base
+from resource_loader import resource_loader
 
-# Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://gigaoffice:gigaoffice_password@localhost:5432/gigaoffice_db"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create engine with connection pooling
 engine = create_engine(
@@ -44,7 +41,18 @@ class DatabaseManager:
     """Менеджер для работы с базой данных"""
     
     def __init__(self):
-        self.engine = engine
+        config = resource_loader.get_config("database_config")
+        self.pool_size = config.get("pool_size", 20)
+        self.max_overflow = config.get("max_overflow", 30)
+        self.engine = create_engine(
+            os.getenv("DATABASE_URL", config["default_database_url"]),
+            poolclass=QueuePool,
+            pool_size=self.pool_size,  # Number of connections to maintain
+            max_overflow=self.max_overflow,  # Maximum overflow connections
+            pool_pre_ping=True,  # Validate connections before use
+            pool_recycle=3600,  # Recycle connections every hour
+            echo=os.getenv("SQL_ECHO", "false").lower() == "true"  # SQL logging
+        )
         self.SessionLocal = SessionLocal
     
     def create_tables(self):
@@ -79,15 +87,8 @@ class DatabaseManager:
         """Получение информации о базе данных"""
         try:
             with self.engine.connect() as connection:
-                result = connection.execute(text("""
-                    SELECT 
-                        version() as version,
-                        current_database() as database_name,
-                        current_user as current_user,
-                        inet_server_addr() as server_addr,
-                        inet_server_port() as server_port
-                """)).fetchone()
-                
+                sql_query = resource_loader.load_sql("sql/database_info.sql")
+                result = connection.execute(text(sql_query)).fetchone()
                 return {
                     "version": result.version,
                     "database_name": result.database_name,
@@ -220,60 +221,15 @@ def init_default_data():
                 )
                 db.add(admin_user)
                 logger.info("Admin user created")
-            
+
+            default_prompts_data = resource_loader.load_json("prompts/default_prompts.json")            
             # Check if default prompts exist
             existing_prompts = db.query(Prompt).count()
             if existing_prompts == 0:
-                # Create default prompts
-                default_prompts = [
-                    Prompt(
-                        name="Анализ данных",
-                        description="Анализ табличных данных с выводами",
-                        template="Проанализируй данные в таблице. Предоставь краткую сводку основных показателей, найди закономерности и предложи выводы в табличном формате.",
-                        category="analysis",
-                        language="ru"
-                    ),
-                    Prompt(
-                        name="Генерация данных",
-                        description="Генерация тестовых данных",
-                        template="Сгенерируй тестовые данные для таблицы. Создай реалистичные данные с указанными колонками и количеством строк.",
-                        category="generation",
-                        language="ru"
-                    ),
-                    Prompt(
-                        name="Преобразование данных",
-                        description="Очистка и преобразование данных",
-                        template="Преобразуй данные из таблицы в нужный формат. Очисти, структурируй и приведи к единому стандарту.",
-                        category="transformation",
-                        language="ru"
-                    ),
-                    Prompt(
-                        name="Создание отчета",
-                        description="Формирование структурированного отчета",
-                        template="На основе данных создай структурированный отчет с выводами и рекомендациями в табличном виде.",
-                        category="reporting",
-                        language="ru"
-                    ),
-                    Prompt(
-                        name="Топ-5 торговых центров",
-                        description="Данные о крупнейших торговых центрах мира",
-                        template='Предоставь данные по пяти самым большим торговым центрам в мире. Ответ должен содержать колонки: "Страна", "Город", "Название ТЦ", "Площадь в кв. м.". Добавь в конец итоговую строку (слово "ИТОГО" добавь в колонку "Страна"), в которой будет указываться сумма значений по колонкам "Площадь в кв. м."',
-                        category="data_examples",
-                        language="ru"
-                    ),
-                    Prompt(
-                        name="Financial Analysis",
-                        description="Financial data analysis template",
-                        template="Analyze the financial data in the table. Provide key metrics, trends, and insights in a structured tabular format.",
-                        category="analysis",
-                        language="en"
-                    )
-                ]
-                
-                for prompt in default_prompts:
+                for prompt_data in default_prompts_data:
+                    prompt = Prompt(**prompt_data)
                     db.add(prompt)
-                
-                logger.info(f"Created {len(default_prompts)} default prompts")
+                logger.info(f"Created {len(default_prompts_data)} default prompts")
             
             db.commit()
             

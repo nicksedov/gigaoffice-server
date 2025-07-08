@@ -13,20 +13,22 @@ from langchain_gigachat.chat_models import GigaChat
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
+from resource_loader import resource_loader
 
 class GigaChatService:
     """Сервис для работы с GigaChat API"""
     
     def __init__(self):
+        config = resource_loader.get_config("gigachat_config")
         self.credentials = os.getenv("GIGACHAT_CREDENTIALS")
-        self.base_url = os.getenv("GIGACHAT_BASE_URL", "https://gigachat.devices.sberbank.ru/api/v1")
-        self.scope = os.getenv("GIGACHAT_SCOPE", "GIGACHAT_API_PERS")
-        self.model = os.getenv("GIGACHAT_MODEL", "GigaChat")
-        self.verify_ssl_certs = os.getenv("GIGACHAT_VERIFY_SSL", "false").lower() == "true"
+        self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
+        self.scope = os.getenv("GIGACHAT_SCOPE", config.get("scope"))
+        self.model = os.getenv("GIGACHAT_MODEL", config.get("model"))
+        self.verify_ssl_certs = os.getenv("GIGACHAT_VERIFY_SSL", config.get("verify_ssl_certs")).lower() == "true"
         
         # Rate limiting settings
-        self.max_requests_per_minute = int(os.getenv("GIGACHAT_MAX_REQUESTS_PER_MINUTE", "20"))
-        self.max_tokens_per_request = int(os.getenv("GIGACHAT_MAX_TOKENS_PER_REQUEST", "8192"))
+        self.max_requests_per_minute = int(os.getenv("GIGACHAT_MAX_REQUESTS_PER_MINUTE", config.get("max_requests_per_minute")))
+        self.max_tokens_per_request = int(os.getenv("GIGACHAT_MAX_TOKENS_PER_REQUEST", config.get("max_tokens_per_request")))
         
         # Request tracking
         self.request_times = []
@@ -82,23 +84,7 @@ class GigaChatService:
     
     def _prepare_system_prompt(self) -> str:
         """Подготовка системного промпта для табличных данных"""
-        return """Ты - AI ассистент для работы с табличными данными в офисном приложении.
-
-ВАЖНЫЕ ПРАВИЛА:
-1. Всегда отвечай в формате, пригодном для вставки в таблицу
-2. Если генерируешь данные, используй структуру: массив строк, где каждая строка - массив значений
-3. Для анализа данных предоставляй результаты в табличном виде
-4. Используй четкие заголовки колонок
-5. Числовые данные округляй до разумного количества знаков после запятой
-6. Текстовые данные должны быть краткими и информативными
-7. При создании итоговых строк четко их обозначай
-
-Формат ответа должен быть JSON массивом массивов:
-[
-  ["Заголовок 1", "Заголовок 2", "Заголовок 3"],
-  ["Значение 1", "Значение 2", "Значение 3"],
-  ["Значение 4", "Значение 5", "Значение 6"]
-]"""
+        return resource_loader.get_prompt_template("gigachat_system_prompt.txt")
     
     def _prepare_user_prompt(self, query: str, input_data: Optional[List[Dict]] = None) -> str:
         """Подготовка пользовательского промпта"""

@@ -15,6 +15,7 @@ from loguru import logger
 import threading
 from queue import Queue
 from dataclasses import dataclass
+from resource_loader import resource_loader
 
 @dataclass
 class QueueMessage:
@@ -35,17 +36,18 @@ class KafkaService:
     
     def __init__(self):
         # Kafka configuration
-        self.bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-        self.topic_requests = os.getenv("KAFKA_TOPIC_REQUESTS", "gigaoffice-requests")
-        self.topic_responses = os.getenv("KAFKA_TOPIC_RESPONSES", "gigaoffice-responses")
-        self.topic_dlq = os.getenv("KAFKA_TOPIC_DLQ", "gigaoffice-dlq")  # Dead Letter Queue
+        config = resource_loader.get_config("kafka_config")
+        self.bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", config.get("bootstrap_servers"))
+        self.topic_requests = os.getenv("KAFKA_TOPIC_REQUESTS", config["topics"]["requests"])
+        self.topic_responses = os.getenv("KAFKA_TOPIC_RESPONSES", config["topics"]["responses"])
+        self.topic_dlq = os.getenv("KAFKA_TOPIC_DLQ", config["topics"]["dlq"])
         
         # Consumer group settings
-        self.consumer_group = os.getenv("KAFKA_CONSUMER_GROUP", "gigaoffice-processors")
+        self.consumer_group = os.getenv("KAFKA_CONSUMER_GROUP", config["consumer_group"])
         
         # Queue settings
-        self.max_queue_size = int(os.getenv("MAX_QUEUE_SIZE", "1000"))
-        self.max_processing_time = int(os.getenv("MAX_PROCESSING_TIME", "300"))  # 5 minutes
+        self.max_queue_size = int(os.getenv("MAX_QUEUE_SIZE", config["max_queue_size"]))
+        self.max_processing_time = int(os.getenv("MAX_PROCESSING_TIME", config["max_processing_time"]))
         
         # Initialize components
         self.producer = None
@@ -68,6 +70,7 @@ class KafkaService:
     
     def _init_kafka(self):
         """Инициализация Kafka компонентов"""
+        config = resource_loader.get_config("kafka_config")
         try:
             # Common configuration
             common_config = {
@@ -77,25 +80,16 @@ class KafkaService:
             
             # Producer configuration
             producer_config = {
-                **common_config,
-                'acks': 'all',  # Wait for all replicas
-                'retries': 3,
-                'enable.idempotence': True,
-                'compression.type': 'snappy',
-                'batch.size': 16384,
-                'linger.ms': 10,
-                'max.in.flight.requests.per.connection': 1
+                'bootstrap.servers': self.bootstrap_servers,
+                'client.id': 'gigaoffice-service',
+                **config.get("producer_config", {})
             }
             
-            # Consumer configuration
+            # Consumer configuration  
             consumer_config = {
-                **common_config,
+                'bootstrap.servers': self.bootstrap_servers,
                 'group.id': self.consumer_group,
-                'auto.offset.reset': 'earliest',
-                'enable.auto.commit': False,
-                'max.poll.interval.ms': 300000,  # 5 minutes
-                'session.timeout.ms': 30000,
-                'partition.assignment.strategy': 'roundrobin'
+                **config.get("consumer_config", {})
             }
             
             # Initialize components

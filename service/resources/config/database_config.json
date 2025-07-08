@@ -1,0 +1,7 @@
+{
+  "pool_size": 20,
+  "max_overflow": 30,
+  "pool_recycle": 3600,
+  "pool_pre_ping": true,
+  "default_database_url": "postgresql://gigaoffice:gigaoffice_password@localhost:5432/gigaoffice_db"
+}
