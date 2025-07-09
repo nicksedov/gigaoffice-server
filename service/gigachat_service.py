@@ -80,7 +80,7 @@ class GigaChatService:
     
     def _count_tokens(self, text: str) -> int:
         """Примерный подсчет токенов (1 токен ≈ 4 символа для русского языка)"""
-        return len(text) // 3  # Приблизительная оценка
+        return len(text) // 4  # Приблизительная оценка
     
     def _prepare_system_prompt(self) -> str:
         """Подготовка системного промпта для табличных данных"""
@@ -344,5 +344,3 @@ class GigaChatService:
             "model": self.model
         }
 
-# Create global instance
-gigachat_service = GigaChatService()

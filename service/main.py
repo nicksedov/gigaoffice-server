@@ -29,7 +29,7 @@ from models import (
     UserCreate, UserResponse, RequestStatus
 )
 from database import get_db, init_database, check_database_health
-from gigachat_service import gigachat_service
+from gigachat_factory import gigachat_service
 from kafka_service import kafka_service
 from prompts import PromptManager
 

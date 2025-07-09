@@ -12,7 +12,7 @@ sqlalchemy
 alembic
 
 # Message queue
-confluent-kafka
+aiokafka
 
 # AI/ML libraries
 langchain-gigachat
