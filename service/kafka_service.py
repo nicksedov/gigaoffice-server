@@ -214,7 +214,7 @@ class KafkaService:
                     
                 try:
                     # Обрабатываем сообщение
-                    await self._process_message(msg, message_processor)
+                        await self._process_message(msg, message_processor)
                     
                 except Exception as e:
                     logger.error(f"Error processing message: {e}")

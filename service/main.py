@@ -28,7 +28,7 @@ from models import (
     ProcessingStatus, MetricsResponse, ErrorResponse, SuccessResponse,
     UserCreate, UserResponse, RequestStatus
 )
-from database import get_db, init_database, check_database_health
+from database import get_db, get_db_session, init_database, check_database_health
 from gigachat_factory import gigachat_service
 from kafka_service import kafka_service
 from prompts import PromptManager
@@ -46,7 +46,6 @@ security = HTTPBearer(auto_error=False)
 
 # Global variables
 app_start_time = time.time()
-active_requests = {}
 prompt_manager = None
 
 @asynccontextmanager
@@ -68,7 +67,7 @@ async def lifespan(app: FastAPI):
         # Start Kafka service
         await kafka_service.start()
         # Start Kafka consumer
-        asyncio.create_task(kafka_service.start_consumer(process_ai_request))
+        asyncio.create_task(kafka_service.start_consumer(message_handler))
         logger.info("Kafka consumer started")
         
         # Yield control to FastAPI
@@ -133,7 +132,6 @@ async def health_check():
         gigachat=gigachat_health.get("status") == "healthy",
         kafka=kafka_health.get("status") == "healthy",
         redis=True,  # Placeholder
-        active_requests=len(active_requests),
         queue_size=kafka_health.get("statistics", {}).get("messages_sent", 0),
         memory_usage=0.0,  # Would implement with psutil
         cpu_usage=0.0  # Would implement with psutil
@@ -170,13 +168,6 @@ async def process_ai_request(
         )
         db.add(db_request)
         db.commit()
-        
-        # Add to active requests
-        active_requests[request_id] = {
-            "status": "pending",
-            "created_at": time.time(),
-            "user_id": user_id
-        }
         
         # Send to Kafka queue for processing
         success = await kafka_service.send_request(
@@ -342,53 +333,10 @@ async def get_metrics(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting metrics: {e}")
+        logger.error(f"Error getting metrics: {e}") 
         raise HTTPException(status_code=500, detail=str(e))
 
-# Background task for processing requests
-async def process_request_background(request_id: str, ai_request: AIRequestCreate, db: Session):
-    """Background task для обработки запроса"""
-    try:
-        # Update status to processing
-        active_requests[request_id]["status"] = "processing"
-        
-        # Process with GigaChat
-        result, metadata = await gigachat_service.process_query(
-            query=ai_request.query_text,
-            input_data=ai_request.input_data
-        )
-        
-        # Update database
-        from models import AIRequest
-        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
-        if db_request:
-            db_request.status = RequestStatus.COMPLETED
-            db_request.result_data = result
-            db_request.tokens_used = metadata.get("total_tokens", 0)
-            db_request.processing_time = metadata.get("processing_time", 0)
-            db_request.completed_at = datetime.now()
-            db.commit()
-        
-        # Update active requests
-        active_requests[request_id]["status"] = "completed"
-        
-        logger.info(f"Request {request_id} processed successfully")
-        
-    except Exception as e:
-        logger.error(f"Error processing request {request_id}: {e}")
-        
-        # Update database with error
-        from models import AIRequest
-        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
-        if db_request:
-            db_request.status = RequestStatus.FAILED
-            db_request.error_message = str(e)
-            db.commit()
-        
-        # Update active requests
-        active_requests[request_id]["status"] = "failed"
-
-async def process_ai_request(message_data: Dict[str, Any]) -> Dict[str, Any]:
+async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
     """Process AI request from Kafka queue"""
     try:
         request_id = message_data["id"]
@@ -400,6 +348,19 @@ async def process_ai_request(message_data: Dict[str, Any]) -> Dict[str, Any]:
         # Process with GigaChat
         result, metadata = await gigachat_service.process_query(query, input_data)
         
+        # Update database
+        with get_db_session() as db:
+            from models import AIRequest
+            db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
+            if db_request:
+                db_request.status = RequestStatus.COMPLETED
+                db_request.result_data = result
+                db_request.tokens_used = metadata.get("total_tokens", 0)
+                db_request.processing_time = metadata.get("processing_time", 0)
+                db_request.completed_at = datetime.now()
+                db.commit()
+        
+        logger.info(f"Request {request_id} processed successfully")
         return {
             "success": True,
             "result": result,
@@ -407,7 +368,16 @@ async def process_ai_request(message_data: Dict[str, Any]) -> Dict[str, Any]:
         }
         
     except Exception as e:
-        logger.error(f"Error processing Kafka message: {e}")
+        logger.error(f"Error processing request {request_id}: {e}")
+        
+        # Update database with error
+        with get_db_session() as db:
+            from models import AIRequest
+            db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
+            if db_request:
+                db_request.status = RequestStatus.FAILED
+                db_request.error_message = str(e)
+                db.commit()
         return {
             "success": False,
             "error": str(e)

@@ -1,20 +1,81 @@
 import time
+import random
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
+from loguru import logger
+
+# Словари для генерации имён и городов
+MALE_NAMES = [
+    "Александр", "Дмитрий", "Максим", "Сергей", "Андрей",
+    "Алексей", "Иван", "Михаил", "Николай", "Владимир"
+]
+FEMALE_NAMES = [
+    "Анна", "Екатерина", "Мария", "Ольга", "Наталья",
+    "Татьяна", "Елена", "Ирина", "Светлана", "Юлия"
+]
+SURNAMES = [
+    "Иванов", "Петров", "Сидоров", "Кузнецов", "Попов",
+    "Васильев", "Смирнов", "Морозов", "Волков", "Соколов"
+]
+CITIES = [
+    "Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург", "Казань", "Волгоград", "Красноярск",
+    "Нижний Новгород", "Челябинск", "Самара", "Омск", "Ростов-на-Дону", "Уфа", "Иркутск", "Хабаровск"
+]
+
+def random_name() -> str:
+    gender = random.choice(["male", "female"])
+    if gender == "male":
+        name = random.choice(MALE_NAMES)
+        surname = random.choice(SURNAMES)
+    else:
+        name = random.choice(FEMALE_NAMES)
+        surname = random.choice(SURNAMES)
+        # Для женских фамилий добавим окончание "а" (упрощённо)
+        if not surname.endswith("а"):
+            surname += "а"
+    return f"{name} {surname}"
+
+def random_phone() -> str:
+    # Формат: +7XXXXXXXXXX
+    digits = [str(random.randint(0, 9)) for _ in range(10)]
+    return "+7" + "".join(digits)
+
+def random_city() -> str:
+    return random.choice(CITIES)
+
+def random_age() -> int:
+    return random.randint(18, 80)
+
+def random_height() -> int:
+    return random.randint(160, 200)
 
 class DryRunGigaChatService:
-    """�������� ��� GigaChat, ��������� ������ ��� ������� ��������."""
+    """Заглушка для GigaChat, имитирует ответы без внешних запросов."""
 
     def __init__(self, *args, **kwargs):
         self.model = "GigaChat-DryRun"
         self.total_tokens_used = 0
         self.request_times = []
+        logger.info("GigaChat client initialized successfully (DRY RUN mode)")
 
     def _count_tokens(self, text: str) -> int:
         return len(text) // 4
 
     def _add_request_time(self):
         self.request_times.append(time.time())
+
+    def _generate_fake_result(self) -> List[List[Any]]:
+        result = [['Имя', 'Телефон', 'Город', 'Возраст', 'Рост']]
+        for _ in range(5):
+            row = [
+                random_name(),         # Имя и фамилия
+                random_phone(),        # Телефон
+                random_city(),         # Город
+                random_age(),          # Возраст
+                random_height(),       # Рост
+            ]
+            result.append(row)
+        return result
 
     async def process_query(
         self,
@@ -23,13 +84,8 @@ class DryRunGigaChatService:
         temperature: float = 0.1
     ) -> Tuple[List[List[Any]], Dict[str, Any]]:
         self._add_request_time()
-        # �������� ��������
         time.sleep(0.2)
-        # �������� ����������
-        fake_result = [
-            ["Column 1", "Column 2"],
-            ["Value 1", "Value 2"],
-        ]
+        fake_result = self._generate_fake_result()
         fake_metadata = {
             "processing_time": 0.2,
             "input_tokens": 10,
