@@ -9,11 +9,10 @@ import time
 import asyncio
 from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime
-from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
-from confluent_kafka.admin import AdminClient, NewTopic
+from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
+from aiokafka.admin import AIOKafkaAdminClient, NewTopic
+from aiokafka.errors import KafkaError
 from loguru import logger
-import threading
-from queue import Queue
 from dataclasses import dataclass
 from resource_loader import resource_loader
 
@@ -32,7 +31,7 @@ class QueueMessage:
             self.created_at = time.time()
 
 class KafkaService:
-    """Сервис для работы с Apache Kafka"""
+    """Сервис для работы с Apache Kafka через aiokafka"""
     
     def __init__(self):
         # Kafka configuration
@@ -56,82 +55,96 @@ class KafkaService:
         self.is_running = False
         self.processing_callbacks = {}
         
-        # Internal queues for priority handling
-        self.priority_queue = Queue()
-        self.processing_queue = Queue()
-        
         # Statistics
         self.messages_sent = 0
         self.messages_received = 0
         self.messages_failed = 0
         self.processing_times = []
         
-        self._init_kafka()
+        # Инициализация будет выполнена в start()
+        self._initialized = False
     
-    def _init_kafka(self):
+    async def start(self):
         """Инициализация Kafka компонентов"""
+        if self._initialized:
+            return
+            
         config = resource_loader.get_config("kafka_config")
         try:
-            # Common configuration
-            common_config = {
-                'bootstrap.servers': self.bootstrap_servers,
-                'client.id': 'gigaoffice-service'
-            }
-            
             # Producer configuration
             producer_config = {
-                'bootstrap.servers': self.bootstrap_servers,
-                'client.id': 'gigaoffice-service',
+                'bootstrap_servers': self.bootstrap_servers,
+                'client_id': 'gigaoffice-producer',
                 **config.get("producer_config", {})
             }
             
             # Consumer configuration  
             consumer_config = {
-                'bootstrap.servers': self.bootstrap_servers,
-                'group.id': self.consumer_group,
+                'bootstrap_servers': self.bootstrap_servers,
+                'group_id': self.consumer_group,
+                'client_id': 'gigaoffice-consumer',
                 **config.get("consumer_config", {})
             }
             
+            # Admin configuration
+            admin_config = {
+                'bootstrap_servers': self.bootstrap_servers,
+                'client_id': 'gigaoffice-admin'
+            }
+            
             # Initialize components
-            self.producer = Producer(producer_config)
-            self.consumer = Consumer(consumer_config)
-            self.admin_client = AdminClient(common_config)
+            self.producer = AIOKafkaProducer(**producer_config)
+            self.consumer = AIOKafkaConsumer(
+                self.topic_requests,
+                **consumer_config
+            )
+            self.admin_client = AIOKafkaAdminClient(**admin_config)
+            
+            # Start components
+            await self.producer.start()
+            await self.consumer.start()
+            await self.admin_client.start()
             
             # Create topics if they don't exist
-            self._create_topics()
+            await self._create_topics()
             
+            self._initialized = True
             logger.info("Kafka service initialized successfully")
             
         except Exception as e:
             logger.error(f"Failed to initialize Kafka service: {e}")
             raise
     
-    def _create_topics(self):
+    async def _create_topics(self):
         """Создание топиков если они не существуют"""
         try:
             topics = [
-                NewTopic(self.topic_requests, num_partitions=3, replication_factor=1),
-                NewTopic(self.topic_responses, num_partitions=3, replication_factor=1),
-                NewTopic(self.topic_dlq, num_partitions=1, replication_factor=1)
+                NewTopic(
+                    name=self.topic_requests,
+                    num_partitions=3,
+                    replication_factor=1
+                ),
+                NewTopic(
+                    name=self.topic_responses,
+                    num_partitions=3,
+                    replication_factor=1
+                ),
+                NewTopic(
+                    name=self.topic_dlq,
+                    num_partitions=1,
+                    replication_factor=1
+                )
             ]
             
-            # Check existing topics
-            existing_topics = self.admin_client.list_topics(timeout=10).topics
-            topics_to_create = [topic for topic in topics if topic.topic not in existing_topics]
-            
-            if topics_to_create:
-                fs = self.admin_client.create_topics(topics_to_create)
-                
-                for topic, f in fs.items():
-                    try:
-                        f.result()  # The result itself is None
-                        logger.info(f"Topic '{topic}' created successfully")
-                    except Exception as e:
-                        logger.warning(f"Failed to create topic '{topic}': {e}")
+            # Создаем топики
+            await self.admin_client.create_topics(topics)
+            logger.info("Topics created successfully")
             
         except Exception as e:
-            logger.error(f"Error creating topics: {e}")
-    
+            # Игнорируем ошибку если топики уже существуют
+            if "already exists" not in str(e).lower():
+                logger.error(f"Error creating topics: {e}")
+
     async def send_request(
         self, 
         request_id: str, 
@@ -142,18 +155,11 @@ class KafkaService:
     ) -> bool:
         """
         Отправка запроса в очередь Kafka
-        
-        Args:
-            request_id: Уникальный ID запроса
-            user_id: ID пользователя
-            query: Текст запроса
-            input_data: Входные данные
-            priority: Приоритет запроса (выше = важнее)
-        
-        Returns:
-            bool: Успешность отправки
         """
         try:
+            if not self._initialized:
+                await self.start()
+                
             message = QueueMessage(
                 id=request_id,
                 user_id=user_id,
@@ -172,16 +178,12 @@ class KafkaService:
                 "timestamp": datetime.now().isoformat()
             }
             
-            # Send to Kafka
-            self.producer.produce(
+            # Отправляем сообщение
+            await self.producer.send_and_wait(
                 topic=self.topic_requests,
-                key=request_id,
-                value=json.dumps(message_data, ensure_ascii=False),
-                callback=self._delivery_callback
+                key=request_id.encode('utf-8'),
+                value=json.dumps(message_data, ensure_ascii=False).encode('utf-8')
             )
-            
-            # Flush to ensure delivery
-            self.producer.flush(timeout=10)
             
             self.messages_sent += 1
             logger.info(f"Request {request_id} sent to queue successfully")
@@ -192,82 +194,58 @@ class KafkaService:
             logger.error(f"Failed to send request {request_id} to queue: {e}")
             self.messages_failed += 1
             return False
-    
-    def _delivery_callback(self, err, msg):
-        """Callback для подтверждения доставки сообщения"""
-        if err:
-            logger.error(f"Message delivery failed: {err}")
-            self.messages_failed += 1
-        else:
-            logger.debug(f"Message delivered to {msg.topic()} [{msg.partition()}] @ {msg.offset()}")
-    
+
     async def start_consumer(self, message_processor: Callable):
         """
         Запуск потребителя сообщений
-        
-        Args:
-            message_processor: Функция для обработки сообщений
         """
+        if not self._initialized:
+            await self.start()
+            
         self.is_running = True
         self.processing_callbacks['default'] = message_processor
         
         try:
-            self.consumer.subscribe([self.topic_requests])
             logger.info(f"Started consuming from topic: {self.topic_requests}")
             
-            while self.is_running:
+            async for msg in self.consumer:
+                if not self.is_running:
+                    break
+                    
                 try:
-                    # Poll for messages
-                    msg = self.consumer.poll(timeout=1.0)
-                    
-                    if msg is None:
-                        continue
-                    
-                    if msg.error():
-                        if msg.error().code() == KafkaError._PARTITION_EOF:
-                            logger.debug(f"End of partition reached {msg.topic()} [{msg.partition()}] @ {msg.offset()}")
-                        else:
-                            logger.error(f"Consumer error: {msg.error()}")
-                        continue
-                    
-                    # Process message
+                    # Обрабатываем сообщение
                     await self._process_message(msg, message_processor)
                     
-                except KafkaException as e:
-                    logger.error(f"Kafka exception in consumer: {e}")
-                    await asyncio.sleep(5)  # Wait before retrying
-                    
                 except Exception as e:
-                    logger.error(f"Unexpected error in consumer: {e}")
-                    await asyncio.sleep(1)
-            
+                    logger.error(f"Error processing message: {e}")
+                    await self._send_to_dlq(msg, str(e))
+                    
         except Exception as e:
             logger.error(f"Failed to start consumer: {e}")
         finally:
-            self.consumer.close()
             logger.info("Consumer stopped")
-    
+
     async def _process_message(self, msg, processor: Callable):
         """Обработка одного сообщения"""
         try:
-            # Parse message
-            message_data = json.loads(msg.value().decode('utf-8'))
+            # Парсим сообщение
+            message_data = json.loads(msg.value.decode('utf-8'))
             request_id = message_data.get("id")
             
             logger.info(f"Processing message: {request_id}")
             start_time = time.time()
             
-            # Call processor
+            # Вызываем обработчик
             result = await processor(message_data)
             
             processing_time = time.time() - start_time
             self.processing_times.append(processing_time)
             
-            # Send response
+            # Отправляем ответ
             await self._send_response(request_id, result, processing_time)
             
-            # Commit offset
-            self.consumer.commit(asynchronous=False)
+            # Подтверждаем обработку сообщения
+            await self.consumer.commit()
             
             self.messages_received += 1
             logger.info(f"Message {request_id} processed successfully in {processing_time:.2f}s")
@@ -279,7 +257,7 @@ class KafkaService:
         except Exception as e:
             logger.error(f"Failed to process message: {e}")
             await self._send_to_dlq(msg, str(e))
-    
+
     async def _send_response(self, request_id: str, result: Dict[str, Any], processing_time: float):
         """Отправка ответа в топик ответов"""
         try:
@@ -291,59 +269,70 @@ class KafkaService:
                 "status": "completed" if result.get("success") else "failed"
             }
             
-            self.producer.produce(
+            await self.producer.send_and_wait(
                 topic=self.topic_responses,
-                key=request_id,
-                value=json.dumps(response_data, ensure_ascii=False),
-                callback=self._delivery_callback
+                key=request_id.encode('utf-8'),
+                value=json.dumps(response_data, ensure_ascii=False).encode('utf-8')
             )
-            
-            self.producer.flush(timeout=5)
             
         except Exception as e:
             logger.error(f"Failed to send response for {request_id}: {e}")
-    
+
     async def _send_to_dlq(self, msg, error_reason: str):
         """Отправка сообщения в Dead Letter Queue"""
         try:
             dlq_data = {
-                "original_topic": msg.topic(),
-                "original_partition": msg.partition(),
-                "original_offset": msg.offset(),
-                "original_key": msg.key().decode('utf-8') if msg.key() else None,
-                "original_value": msg.value().decode('utf-8'),
+                "original_topic": msg.topic,
+                "original_partition": msg.partition,
+                "original_offset": msg.offset,
+                "original_key": msg.key.decode('utf-8') if msg.key else None,
+                "original_value": msg.value.decode('utf-8'),
                 "error_reason": error_reason,
                 "timestamp": datetime.now().isoformat()
             }
             
-            self.producer.produce(
+            await self.producer.send_and_wait(
                 topic=self.topic_dlq,
-                value=json.dumps(dlq_data, ensure_ascii=False),
-                callback=self._delivery_callback
+                value=json.dumps(dlq_data, ensure_ascii=False).encode('utf-8')
             )
             
-            self.producer.flush(timeout=5)
             logger.warning(f"Message sent to DLQ: {error_reason}")
             
         except Exception as e:
             logger.error(f"Failed to send message to DLQ: {e}")
-    
+
     def stop_consumer(self):
         """Остановка потребителя"""
         self.is_running = False
         logger.info("Consumer stop requested")
-    
+
+    async def cleanup(self):
+        """Очистка ресурсов"""
+        try:
+            self.stop_consumer()
+            
+            if self.producer:
+                await self.producer.stop()
+                
+            if self.consumer:
+                await self.consumer.stop()
+                
+            if self.admin_client:
+                await self.admin_client.close()
+                
+            logger.info("Kafka service cleaned up successfully")
+            
+        except Exception as e:
+            logger.error(f"Error during Kafka cleanup: {e}")
+
     def get_queue_info(self) -> Dict[str, Any]:
         """Получение информации об очереди"""
         try:
-            # Get topic metadata
-            metadata = self.admin_client.list_topics(timeout=5)
-            
             queue_info = {
                 "topics": {
-                    "requests": self.topic_requests in metadata.topics,
-                    "responses": self.topic_responses in metadata.topics,
-                    "dlq": self.topic_dlq in metadata.topics
+                    "requests": self.topic_requests,
+                    "responses": self.topic_responses,
+                    "dlq": self.topic_dlq
                 },
                 "statistics": {
                     "messages_sent": self.messages_sent,
@@ -362,20 +351,13 @@ class KafkaService:
                 "error": str(e),
                 "status": "error"
             }
-    
+
     def get_health_status(self) -> Dict[str, Any]:
         """Проверка состояния Kafka сервиса"""
         try:
-            # Try to get metadata as health check
-            start_time = time.time()
-            metadata = self.admin_client.list_topics(timeout=5)
-            response_time = time.time() - start_time
-            
             return {
-                "status": "healthy",
-                "response_time": response_time,
+                "status": "healthy" if self._initialized else "initializing",
                 "bootstrap_servers": self.bootstrap_servers,
-                "topics_available": len(metadata.topics),
                 "consumer_running": self.is_running,
                 "statistics": {
                     "messages_sent": self.messages_sent,
@@ -391,7 +373,7 @@ class KafkaService:
                 "error": str(e),
                 "bootstrap_servers": self.bootstrap_servers
             }
-    
+
     def cleanup(self):
         """Очистка ресурсов"""
         try:

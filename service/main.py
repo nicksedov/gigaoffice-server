@@ -65,30 +65,24 @@ async def lifespan(app: FastAPI):
         prompt_manager = PromptManager()
         await prompt_manager.load_prompts()
         logger.info("Prompt manager initialized")
-        
+        # Start Kafka service
+        await kafka_service.start()
         # Start Kafka consumer
         asyncio.create_task(kafka_service.start_consumer(process_ai_request))
         logger.info("Kafka consumer started")
         
         # Yield control to FastAPI
         yield
-        
     except Exception as e:
         logger.error(f"Failed to start application: {e}")
         raise
     
     # Shutdown
     logger.info("Shutting down application...")
-    
     try:
-        # Stop Kafka consumer
-        kafka_service.stop_consumer()
-        
-        # Cleanup resources
-        kafka_service.cleanup()
-        
+        # Stop Kafka service
+        await kafka_service.cleanup()
         logger.info("Application shutdown complete")
-        
     except Exception as e:
         logger.error(f"Error during shutdown: {e}")
 
@@ -195,10 +189,6 @@ async def process_ai_request(
         
         if not success:
             raise HTTPException(status_code=500, detail="Failed to queue request")
-        
-        # For demo purposes, also process directly
-        # In production, this would only be handled by Kafka consumer
-        background_tasks.add_task(process_request_background, request_id, ai_request, db)
         
         return {
             "success": True,
