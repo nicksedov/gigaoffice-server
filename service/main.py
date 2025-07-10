@@ -174,6 +174,8 @@ async def process_ai_request(
             request_id=request_id,
             user_id=user_id,
             query=ai_request.query_text,
+            input_range=ai_request.input_range,
+            output_range=ai_request.output_range, 
             input_data=ai_request.input_data,
             priority=1 if current_user and current_user.get("role") == "premium" else 0
         )
@@ -320,12 +322,14 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         request_id = message_data["id"]
         query = message_data["query"]
-        input_data = message_data.get("input_data")
+        input_range = message_data["input_range"]
+        output_range = message_data["output_range"]
+        input_data = message_data["input_data"]
         
         logger.info(f"Processing Kafka message: {request_id}")
         
         # Process with GigaChat
-        result, metadata = await gigachat_service.process_query(query, input_data)
+        result, metadata = await gigachat_service.process_query(query, input_range, output_range, input_data)
         
         # Update database
         with get_db_session() as db:

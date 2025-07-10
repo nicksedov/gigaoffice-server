@@ -86,7 +86,9 @@ class GigaChatService:
     
     async def process_query(
         self, 
-        query: str, 
+        query: str,
+        input_range: str,
+        output_range: str,
         input_data: Optional[List[Dict]] = None,
         temperature: float = 0.1
     ) -> Tuple[List[List[Any]], Dict[str, Any]]:
@@ -108,7 +110,7 @@ class GigaChatService:
             
             # Prepare prompts
             system_prompt = self.prompt_builder.prepare_system_prompt()
-            user_prompt = self.prompt_builder.prepare_user_prompt(query, input_data)
+            user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, output_range, input_data)
             
             # Count tokens
             total_input_tokens = self._count_tokens(system_prompt + user_prompt)

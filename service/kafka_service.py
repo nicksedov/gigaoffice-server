@@ -23,6 +23,8 @@ class QueueMessage:
     user_id: int
     priority: int
     query: str
+    input_range: str
+    output_range: str
     input_data: Optional[List[Dict]] = None
     created_at: float = None
     
@@ -149,7 +151,9 @@ class KafkaService:
         self, 
         request_id: str, 
         user_id: int, 
-        query: str, 
+        query: str,
+        input_range: str,
+        output_range: str, 
         input_data: Optional[List[Dict]] = None,
         priority: int = 0
     ) -> bool:
@@ -164,6 +168,8 @@ class KafkaService:
                 id=request_id,
                 user_id=user_id,
                 priority=priority,
+                input_range=input_range,
+                output_range=output_range,
                 query=query,
                 input_data=input_data
             )
@@ -173,6 +179,8 @@ class KafkaService:
                 "user_id": message.user_id,
                 "priority": message.priority,
                 "query": message.query,
+                "input_range": message.input_range,
+                "output_range": message.output_range, 
                 "input_data": message.input_data,
                 "created_at": message.created_at,
                 "timestamp": datetime.now().isoformat()

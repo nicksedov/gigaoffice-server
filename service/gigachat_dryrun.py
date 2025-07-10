@@ -51,8 +51,8 @@ class DryRunGigaChatService:
         
         return env_vars
 
-    def _generate_debug_table(self, query: str, input_data: Optional[List[Dict]] = None, 
-                             input_range: Optional[str] = None, output_range: Optional[str] = None) -> List[List[Any]]:
+    def _generate_debug_table(self, query: str, input_range: Optional[str] = None, 
+        output_range: Optional[str] = None, input_data: Optional[List[Dict]] = None) -> List[List[Any]]:
         """Генерация таблицы с отладочной информацией"""
         
         # Получаем переменные окружения
@@ -60,7 +60,7 @@ class DryRunGigaChatService:
         
         # Генерируем промпты используя GigachatPromptBuilder
         system_prompt = self.prompt_builder.prepare_system_prompt()
-        user_prompt = self.prompt_builder.prepare_user_prompt(query, input_data)
+        user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, output_range, input_data)
         
         # Формируем таблицу
         result = [['Параметр', 'Значение']]
@@ -90,10 +90,10 @@ class DryRunGigaChatService:
     async def process_query(
         self,
         query: str,
-        input_data: Optional[List[Dict]] = None,
-        temperature: float = 0.1,
         input_range: Optional[str] = None,
-        output_range: Optional[str] = None
+        output_range: Optional[str] = None,
+        input_data: Optional[List[Dict]] = None,
+        temperature: float = 0.1
     ) -> Tuple[List[List[Any]], Dict[str, Any]]:
         """Обработка запроса с отображением отладочной информации"""
         
@@ -101,7 +101,7 @@ class DryRunGigaChatService:
         time.sleep(0.2)  # Имитация обработки
         
         # Генерируем отладочную таблицу
-        debug_result = self._generate_debug_table(query, input_data, input_range, output_range)
+        debug_result = self._generate_debug_table(query, input_range, output_range, input_data)
         
         fake_metadata = {
             "processing_time": 0.2,
