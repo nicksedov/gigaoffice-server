@@ -18,7 +18,7 @@ from resource_loader import resource_loader
 class GigaChatService:
     """Сервис для работы с GigaChat API"""
     
-    def __init__(self):
+    def __init__(self, prompt_builder):
         config = resource_loader.get_config("gigachat_config")
         self.credentials = os.getenv("GIGACHAT_CREDENTIALS")
         self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
@@ -34,6 +34,8 @@ class GigaChatService:
         self.request_times = []
         self.total_tokens_used = 0
         
+        self.prompt_builder = prompt_builder
+
         # Initialize GigaChat client
         self._init_client()
         
@@ -82,26 +84,6 @@ class GigaChatService:
         """Примерный подсчет токенов (1 токен ≈ 4 символа для русского языка)"""
         return len(text) // 4  # Приблизительная оценка
     
-    def _prepare_system_prompt(self) -> str:
-        """Подготовка системного промпта для табличных данных"""
-        return resource_loader.get_prompt_template("gigachat_system_prompt.txt")
-    
-    def _prepare_user_prompt(self, query: str, input_data: Optional[List[Dict]] = None) -> str:
-        """Подготовка пользовательского промпта"""
-        prompt_parts = []
-        
-        if input_data:
-            prompt_parts.append("ИСХОДНЫЕ ДАННЫЕ:")
-            prompt_parts.append(json.dumps(input_data, ensure_ascii=False, indent=2))
-            prompt_parts.append("")
-        
-        prompt_parts.append("ЗАДАЧА:")
-        prompt_parts.append(query)
-        prompt_parts.append("")
-        prompt_parts.append("Предоставь ответ в виде JSON массива массивов, готового для вставки в таблицу.")
-        
-        return "\n".join(prompt_parts)
-    
     async def process_query(
         self, 
         query: str, 
@@ -125,8 +107,8 @@ class GigaChatService:
                 raise Exception("Rate limit exceeded. Please wait before making another request.")
             
             # Prepare prompts
-            system_prompt = self._prepare_system_prompt()
-            user_prompt = self._prepare_user_prompt(query, input_data)
+            system_prompt = self.prompt_builder.prepare_system_prompt()
+            user_prompt = self.prompt_builder.prepare_user_prompt(query, input_data)
             
             # Count tokens
             total_input_tokens = self._count_tokens(system_prompt + user_prompt)

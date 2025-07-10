@@ -280,26 +280,6 @@ async def get_preset_prompts(language: str = "ru", db: Session = Depends(get_db)
         logger.error(f"Error getting preset prompts: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/prompts/popular", response_model=List[Dict[str, Any]])
-async def get_popular_prompts(limit: int = 10, db: Session = Depends(get_db)):
-    """Получение популярных запросов"""
-    try:
-        popular_queries = await prompt_manager.get_popular_queries(limit)
-        
-        return [
-            {
-                "query": query.query_text,
-                "usage_count": query.usage_count,
-                "category": query.category,
-                "success_rate": query.success_rate
-            }
-            for query in popular_queries
-        ]
-        
-    except Exception as e:
-        logger.error(f"Error getting popular prompts: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 # Metrics endpoints
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics(
@@ -324,8 +304,7 @@ async def get_metrics(
             successful_requests=kafka_info.get("statistics", {}).get("messages_received", 0) - kafka_info.get("statistics", {}).get("messages_failed", 0),
             failed_requests=kafka_info.get("statistics", {}).get("messages_failed", 0),
             avg_processing_time=kafka_info.get("statistics", {}).get("avg_processing_time", 0),
-            total_tokens_used=gigachat_stats.get("total_tokens_used", 0),
-            popular_queries=[]  # Would implement with database queries
+            total_tokens_used=gigachat_stats.get("total_tokens_used", 0)
         )
         
         return metrics
@@ -405,6 +384,6 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=True,
+        reload=False,
         log_level=log_level
     )

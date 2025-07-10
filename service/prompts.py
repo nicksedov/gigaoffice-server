@@ -12,7 +12,7 @@ from sqlalchemy import desc, func
 from loguru import logger
 
 from database import get_db_session
-from models import Prompt, PopularQuery, AIRequest, RequestStatus
+from models import Prompt, AIRequest, RequestStatus
 
 class PromptManager:
     """Менеджер для работы с промптами"""
@@ -227,116 +227,6 @@ class PromptManager:
             logger.error(f"Error deleting prompt: {e}")
             return False
     
-    async def track_query_usage(self, query_text: str, category: str = None, language: str = "ru"):
-        """Отслеживание использования запроса для популярных запросов"""
-        try:
-            query_hash = hashlib.md5(query_text.encode('utf-8')).hexdigest()
-            
-            with get_db_session() as db:
-                # Check if query already exists
-                popular_query = db.query(PopularQuery).filter(
-                    PopularQuery.query_hash == query_hash
-                ).first()
-                
-                if popular_query:
-                    # Update existing record
-                    popular_query.usage_count += 1
-                    popular_query.last_used = datetime.now()
-                else:
-                    # Create new record
-                    popular_query = PopularQuery(
-                        query_text=query_text,
-                        query_hash=query_hash,
-                        usage_count=1,
-                        category=category,
-                        language=language
-                    )
-                    db.add(popular_query)
-                
-                db.commit()
-                
-        except Exception as e:
-            logger.error(f"Error tracking query usage: {e}")
-    
-    async def get_popular_queries(
-        self, 
-        limit: int = 10, 
-        language: str = "ru",
-        min_usage_count: int = 2
-    ) -> List[PopularQuery]:
-        """Получение популярных запросов"""
-        try:
-            with get_db_session() as db:
-                queries = db.query(PopularQuery).filter(
-                    PopularQuery.language == language,
-                    PopularQuery.usage_count >= min_usage_count
-                ).order_by(desc(PopularQuery.usage_count)).limit(limit).all()
-                
-                return queries
-                
-        except Exception as e:
-            logger.error(f"Error getting popular queries: {e}")
-            return []
-    
-    async def update_query_statistics(self, query_hash: str, processing_time: float, success: bool):
-        """Обновление статистики запроса"""
-        try:
-            with get_db_session() as db:
-                popular_query = db.query(PopularQuery).filter(
-                    PopularQuery.query_hash == query_hash
-                ).first()
-                
-                if popular_query:
-                    # Update average processing time
-                    if popular_query.avg_processing_time:
-                        # Calculate weighted average
-                        total_time = popular_query.avg_processing_time * (popular_query.usage_count - 1)
-                        popular_query.avg_processing_time = (total_time + processing_time) / popular_query.usage_count
-                    else:
-                        popular_query.avg_processing_time = processing_time
-                    
-                    # Update success rate
-                    if popular_query.success_rate:
-                        # Calculate new success rate
-                        total_successful = popular_query.success_rate * (popular_query.usage_count - 1) / 100
-                        if success:
-                            total_successful += 1
-                        popular_query.success_rate = (total_successful / popular_query.usage_count) * 100
-                    else:
-                        popular_query.success_rate = 100.0 if success else 0.0
-                    
-                    db.commit()
-                
-        except Exception as e:
-            logger.error(f"Error updating query statistics: {e}")
-    
-    async def suggest_prompts_for_query(self, query: str, limit: int = 5) -> List[Prompt]:
-        """Предложение промптов на основе схожести с запросом"""
-        try:
-            # Simple keyword-based matching (can be improved with ML)
-            query_words = set(query.lower().split())
-            
-            with get_db_session() as db:
-                all_prompts = db.query(Prompt).filter(Prompt.is_active == True).all()
-                
-                scored_prompts = []
-                for prompt in all_prompts:
-                    # Calculate similarity score
-                    prompt_words = set(prompt.template.lower().split())
-                    common_words = query_words.intersection(prompt_words)
-                    score = len(common_words) / max(len(query_words), 1)
-                    
-                    if score > 0:
-                        scored_prompts.append((prompt, score))
-                
-                # Sort by score and return top results
-                scored_prompts.sort(key=lambda x: x[1], reverse=True)
-                return [prompt for prompt, score in scored_prompts[:limit]]
-                
-        except Exception as e:
-            logger.error(f"Error suggesting prompts: {e}")
-            return []
-    
     async def get_prompt_categories(self, language: str = "ru") -> List[Dict[str, Any]]:
         """Получение категорий промптов"""
         try:
@@ -375,11 +265,6 @@ class PromptManager:
                     Prompt.is_active == True
                 ).order_by(desc(Prompt.usage_count)).limit(10).all()
                 
-                # Popular queries in period
-                popular_queries = db.query(PopularQuery).filter(
-                    PopularQuery.last_used >= start_date
-                ).order_by(desc(PopularQuery.usage_count)).limit(10).all()
-                
                 # Category statistics
                 category_stats = db.query(
                     Prompt.category,
@@ -399,14 +284,6 @@ class PromptManager:
                             "category": prompt.category
                         }
                         for prompt in most_used
-                    ],
-                    "popular_queries": [
-                        {
-                            "query": query.query_text[:100] + "...",
-                            "usage_count": query.usage_count,
-                            "success_rate": query.success_rate or 0
-                        }
-                        for query in popular_queries
                     ],
                     "category_statistics": [
                         {

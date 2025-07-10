@@ -129,25 +129,6 @@ class ServiceMetrics(Base):
     gigachat_errors = Column(Integer, default=0)
     gigachat_avg_response_time = Column(Float)
 
-class PopularQuery(Base):
-    """Модель популярных запросов"""
-    __tablename__ = "popular_queries"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    query_text = Column(Text, nullable=False)
-    query_hash = Column(String(64), unique=True, index=True)  # MD5 hash for deduplication
-    usage_count = Column(Integer, default=1)
-    category = Column(String(100))
-    language = Column(String(10), default="ru")
-    
-    # Timestamps
-    first_used = Column(DateTime(timezone=True), server_default=func.now())
-    last_used = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    # Statistics
-    avg_processing_time = Column(Float)
-    success_rate = Column(Float)  # Percentage
-
 # Pydantic Models for API
 
 class UserCreate(BaseModel):
@@ -255,7 +236,6 @@ class MetricsResponse(BaseModel):
     failed_requests: int
     avg_processing_time: float
     total_tokens_used: int
-    popular_queries: List[Dict[str, Any]]
     
 class ErrorResponse(BaseModel):
     """Схема ответа с ошибкой"""

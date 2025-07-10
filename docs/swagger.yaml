@@ -153,16 +153,6 @@ components:
               template: { type: string }
               category: { type: string }
 
-    PopularPromptsResponse:
-      type: array
-      items:
-        type: object
-        properties:
-          query:        { type: string }
-          usage_count:  { type: integer }
-          category:     { type: string }
-          success_rate: { type: number, format: float }
-
     MetricsResponse:
       type: object
       properties:
@@ -276,25 +266,6 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/PresetPromptsResponse' }
-        '500':
-          description: Ошибка сервера
-
-  /api/prompts/popular:
-    get:
-      summary: Топ популярных запросов
-      description: |
-        Берёт статистику из таблицы **popular_queries**.
-      tags: [Prompts]
-      parameters:
-        - in: query
-          name: limit
-          schema: { type: integer, default: 10 }
-      responses:
-        '200':
-          description: Список популярных запросов
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/PopularPromptsResponse' }
         '500':
           description: Ошибка сервера
 

@@ -1,61 +1,25 @@
+"""
+DryRunGigaChatService с интеграцией GigachatPromptBuilder
+"""
+
+import os
+import json
+import base64
 import time
 import random
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 from loguru import logger
 
-# Словари для генерации имён и городов
-MALE_NAMES = [
-    "Александр", "Дмитрий", "Максим", "Сергей", "Андрей",
-    "Алексей", "Иван", "Михаил", "Николай", "Владимир"
-]
-FEMALE_NAMES = [
-    "Анна", "Екатерина", "Мария", "Ольга", "Наталья",
-    "Татьяна", "Елена", "Ирина", "Светлана", "Юлия"
-]
-SURNAMES = [
-    "Иванов", "Петров", "Сидоров", "Кузнецов", "Попов",
-    "Васильев", "Смирнов", "Морозов", "Волков", "Соколов"
-]
-CITIES = [
-    "Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург", "Казань", "Волгоград", "Красноярск",
-    "Нижний Новгород", "Челябинск", "Самара", "Омск", "Ростов-на-Дону", "Уфа", "Иркутск", "Хабаровск"
-]
-
-def random_name() -> str:
-    gender = random.choice(["male", "female"])
-    if gender == "male":
-        name = random.choice(MALE_NAMES)
-        surname = random.choice(SURNAMES)
-    else:
-        name = random.choice(FEMALE_NAMES)
-        surname = random.choice(SURNAMES)
-        # Для женских фамилий добавим окончание "а" (упрощённо)
-        if not surname.endswith("а"):
-            surname += "а"
-    return f"{name} {surname}"
-
-def random_phone() -> str:
-    # Формат: +7XXXXXXXXXX
-    digits = [str(random.randint(0, 9)) for _ in range(10)]
-    return "+7" + "".join(digits)
-
-def random_city() -> str:
-    return random.choice(CITIES)
-
-def random_age() -> int:
-    return random.randint(18, 80)
-
-def random_height() -> int:
-    return random.randint(160, 200)
-
 class DryRunGigaChatService:
-    """Заглушка для GigaChat, имитирует ответы без внешних запросов."""
+    """Заглушка для GigaChat с отображением переменных окружения и промптов"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, prompt_builder):
         self.model = "GigaChat-DryRun"
         self.total_tokens_used = 0
         self.request_times = []
+        # Используем GigachatPromptBuilder
+        self.prompt_builder = prompt_builder
         logger.info("GigaChat client initialized successfully (DRY RUN mode)")
 
     def _count_tokens(self, text: str) -> int:
@@ -64,28 +28,81 @@ class DryRunGigaChatService:
     def _add_request_time(self):
         self.request_times.append(time.time())
 
-    def _generate_fake_result(self) -> List[List[Any]]:
-        result = [['Имя', 'Телефон', 'Город', 'Возраст', 'Рост']]
-        for _ in range(5):
-            row = [
-                random_name(),         # Имя и фамилия
-                random_phone(),        # Телефон
-                random_city(),         # Город
-                random_age(),          # Возраст
-                random_height(),       # Рост
-            ]
-            result.append(row)
+    def _get_gigachat_env_vars(self) -> List[List[str]]:
+        """Получение всех переменных окружения с префиксом GIGACHAT"""
+        env_vars = []
+        
+        for key, value in os.environ.items():
+            if key.startswith("GIGACHAT_"):
+                if key == "GIGACHAT_CREDENTIALS":
+                    # Декодируем из BASE64 и маскируем после двоеточия
+                    try:
+                        decoded = base64.b64decode(value).decode('utf-8')
+                        if ':' in decoded:
+                            parts = decoded.split(':', 1)
+                            masked_value = f"{parts[0]}:{'*' * len(parts[1])}"
+                        else:
+                            masked_value = decoded[:10] + '*' * max(0, len(decoded) - 10)
+                        env_vars.append([key, masked_value])
+                    except Exception:
+                        env_vars.append([key, "***INVALID_BASE64***"])
+                else:
+                    env_vars.append([key, value])
+        
+        return env_vars
+
+    def _generate_debug_table(self, query: str, input_data: Optional[List[Dict]] = None, 
+                             input_range: Optional[str] = None, output_range: Optional[str] = None) -> List[List[Any]]:
+        """Генерация таблицы с отладочной информацией"""
+        
+        # Получаем переменные окружения
+        env_vars = self._get_gigachat_env_vars()
+        
+        # Генерируем промпты используя GigachatPromptBuilder
+        system_prompt = self.prompt_builder.prepare_system_prompt()
+        user_prompt = self.prompt_builder.prepare_user_prompt(query, input_data)
+        
+        # Формируем таблицу
+        result = [['Параметр', 'Значение']]
+        
+        # Добавляем переменные окружения
+        result.append(['# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ GIGACHAT', ''])
+        for env_var in env_vars:
+            result.append(env_var)
+        
+        # Добавляем пользовательские данные
+        result.append(['# ПОЛЬЗОВАТЕЛЬСКИЕ ДАННЫЕ', ''])
+        result.append(['Промпт (запрос)', query])
+        result.append(['Диапазон исходных данных', input_range or 'Не указан'])
+        result.append(['Диапазон для результата', output_range or 'Не указан'])
+        
+        # Добавляем входные данные если есть
+        if input_data:
+            result.append(['Входные данные', json.dumps(input_data, ensure_ascii=False, indent=2)])
+        
+        # Добавляем сгенерированные промпты
+        result.append(['# СГЕНЕРИРОВАННЫЕ ПРОМПТЫ', ''])
+        result.append(['Системный промпт', system_prompt])
+        result.append(['Пользовательский промпт', user_prompt])
+        
         return result
 
     async def process_query(
         self,
         query: str,
         input_data: Optional[List[Dict]] = None,
-        temperature: float = 0.1
+        temperature: float = 0.1,
+        input_range: Optional[str] = None,
+        output_range: Optional[str] = None
     ) -> Tuple[List[List[Any]], Dict[str, Any]]:
+        """Обработка запроса с отображением отладочной информации"""
+        
         self._add_request_time()
-        time.sleep(0.2)
-        fake_result = self._generate_fake_result()
+        time.sleep(0.2)  # Имитация обработки
+        
+        # Генерируем отладочную таблицу
+        debug_result = self._generate_debug_table(query, input_data, input_range, output_range)
+        
         fake_metadata = {
             "processing_time": 0.2,
             "input_tokens": 10,
@@ -93,11 +110,12 @@ class DryRunGigaChatService:
             "total_tokens": 18,
             "model": self.model,
             "timestamp": datetime.now().isoformat(),
-            "request_id": "dryrun-123",
+            "request_id": "dryrun-debug-123",
             "success": True
         }
+        
         self.total_tokens_used += fake_metadata["total_tokens"]
-        return fake_result, fake_metadata
+        return debug_result, fake_metadata
 
     def get_available_models(self) -> List[str]:
         return [self.model]
@@ -119,7 +137,12 @@ class DryRunGigaChatService:
     ) -> List[Dict[str, Any]]:
         results = []
         for query in queries:
-            result, metadata = await self.process_query(query["query"], query.get("input_data"))
+            result, metadata = await self.process_query(
+                query["query"], 
+                query.get("input_data"),
+                input_range=query.get("input_range"),
+                output_range=query.get("output_range")
+            )
             results.append({
                 "id": query.get("id"),
                 "result": result,
