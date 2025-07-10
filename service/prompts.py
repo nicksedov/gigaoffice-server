@@ -20,7 +20,7 @@ class PromptManager:
     def __init__(self):
         self.cached_prompts = {}
         self.cache_expiry = {}
-        self.cache_duration = 300  # 5 minutes
+        self.cache_duration = 600  # 10 minutes
         
     async def load_prompts(self):
         """Загрузка всех промптов при инициализации"""
@@ -29,21 +29,22 @@ class PromptManager:
                 prompts = db.query(Prompt).filter(Prompt.is_active == True).all()
                 
                 for prompt in prompts:
-                    cache_key = f"{prompt.language}_{prompt.category}"
+                    cache_key = f"{prompt.category}"
                     if cache_key not in self.cached_prompts:
                         self.cached_prompts[cache_key] = []
                     self.cached_prompts[cache_key].append(prompt)
-                
+
+                db.close()
                 logger.info(f"Loaded {len(prompts)} prompts into cache")
                 
         except Exception as e:
             logger.error(f"Error loading prompts: {e}")
             raise
     
-    async def get_prompts_by_language(self, language: str = "ru") -> List[Prompt]:
+    async def get_prompts(self)-> List[Prompt]:
         """Получение промптов по языку"""
         try:
-            cache_key = f"lang_{language}"
+            cache_key = "active"
             
             # Check cache
             if cache_key in self.cached_prompts and cache_key in self.cache_expiry:
@@ -53,24 +54,24 @@ class PromptManager:
             # Load from database
             with get_db_session() as db:
                 prompts = db.query(Prompt).filter(
-                    Prompt.language == language,
                     Prompt.is_active == True
                 ).order_by(Prompt.usage_count.desc()).all()
                 
                 # Update cache
                 self.cached_prompts[cache_key] = prompts
                 self.cache_expiry[cache_key] = time.time() + self.cache_duration
+                db.close()
                 
-                return prompts
+            return prompts
                 
         except Exception as e:
-            logger.error(f"Error getting prompts by language: {e}")
+            logger.error(f"Error getting prompts: {e}")
             return []
     
-    async def get_prompts_by_category(self, category: str, language: str = "ru") -> List[Prompt]:
+    async def get_prompts_by_category(self, category: str) -> List[Prompt]:
         """Получение промптов по категории"""
         try:
-            cache_key = f"{language}_{category}"
+            cache_key = category
             
             # Check cache
             if cache_key in self.cached_prompts and cache_key in self.cache_expiry:
@@ -81,15 +82,15 @@ class PromptManager:
             with get_db_session() as db:
                 prompts = db.query(Prompt).filter(
                     Prompt.category == category,
-                    Prompt.language == language,
                     Prompt.is_active == True
                 ).order_by(Prompt.usage_count.desc()).all()
                 
                 # Update cache
                 self.cached_prompts[cache_key] = prompts
                 self.cache_expiry[cache_key] = time.time() + self.cache_duration
+                db.close()
                 
-                return prompts
+            return prompts
                 
         except Exception as e:
             logger.error(f"Error getting prompts by category: {e}")
@@ -121,7 +122,6 @@ class PromptManager:
         template: str, 
         description: str = None,
         category: str = None,
-        language: str = "ru",
         created_by: int = None
     ) -> Optional[Prompt]:
         """Создание нового промпта"""
@@ -132,7 +132,6 @@ class PromptManager:
                     description=description,
                     template=template,
                     category=category,
-                    language=language,
                     created_by=created_by
                 )
                 
@@ -142,8 +141,8 @@ class PromptManager:
                 
                 # Clear relevant cache
                 cache_keys_to_clear = [
-                    f"lang_{language}",
-                    f"{language}_{category}"
+                    "active",
+                    category
                 ]
                 
                 for key in cache_keys_to_clear:
@@ -227,7 +226,7 @@ class PromptManager:
             logger.error(f"Error deleting prompt: {e}")
             return False
     
-    async def get_prompt_categories(self, language: str = "ru") -> List[Dict[str, Any]]:
+    async def get_prompt_categories(self) -> List[Dict[str, Any]]:
         """Получение категорий промптов"""
         try:
             with get_db_session() as db:
@@ -235,7 +234,6 @@ class PromptManager:
                     Prompt.category,
                     func.count(Prompt.id).label('count')
                 ).filter(
-                    Prompt.language == language,
                     Prompt.is_active == True,
                     Prompt.category.isnot(None)
                 ).group_by(Prompt.category).all()
@@ -304,10 +302,10 @@ class PromptManager:
         self.cached_prompts.clear()
         self.cache_expiry.clear()
     
-    async def export_prompts(self, language: str = "ru", format: str = "json") -> str:
+    async def export_prompts(self, format: str = "json") -> str:
         """Экспорт промптов в JSON или CSV"""
         try:
-            prompts = await self.get_prompts_by_language(language)
+            prompts = await self.get_prompts()
             
             if format.lower() == "json":
                 import json
@@ -318,7 +316,6 @@ class PromptManager:
                         "description": prompt.description,
                         "template": prompt.template,
                         "category": prompt.category,
-                        "language": prompt.language,
                         "usage_count": prompt.usage_count,
                         "created_at": prompt.created_at.isoformat() if prompt.created_at else None
                     }
@@ -333,7 +330,7 @@ class PromptManager:
                 writer = csv.writer(output)
                 
                 # Write header
-                writer.writerow(['ID', 'Name', 'Description', 'Template', 'Category', 'Language', 'Usage Count'])
+                writer.writerow(['ID', 'Name', 'Description', 'Template', 'Category', 'Usage Count'])
                 
                 # Write data
                 for prompt in prompts:
@@ -343,7 +340,6 @@ class PromptManager:
                         prompt.description or "",
                         prompt.template,
                         prompt.category or "",
-                        prompt.language,
                         prompt.usage_count
                     ])
                 

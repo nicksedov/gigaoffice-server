@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS prompts (
     description TEXT,
     template TEXT NOT NULL,
     category VARCHAR(100),
-    language VARCHAR(10) DEFAULT 'ru',
     is_active BOOLEAN DEFAULT TRUE,
     usage_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -101,7 +100,6 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
-CREATE INDEX IF NOT EXISTS idx_prompts_language ON prompts(language);
 CREATE INDEX IF NOT EXISTS idx_prompts_category ON prompts(category);
 CREATE INDEX IF NOT EXISTS idx_prompts_is_active ON prompts(is_active);
 CREATE INDEX IF NOT EXISTS idx_prompts_usage_count ON prompts(usage_count DESC);

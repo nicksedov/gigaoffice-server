@@ -59,7 +59,6 @@ class Prompt(Base):
     description = Column(Text)
     template = Column(Text, nullable=False)
     category = Column(String(100))
-    language = Column(String(10), default="ru")
     is_active = Column(Boolean, default=True)
     usage_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -159,7 +158,6 @@ class PromptCreate(BaseModel):
     description: Optional[str] = None
     template: str = Field(..., min_length=1)
     category: Optional[str] = None
-    language: str = Field(default="ru", pattern=r'^[a-z]{2}$')
 
 class PromptResponse(BaseModel):
     """Схема ответа с данными промпта"""
@@ -168,7 +166,6 @@ class PromptResponse(BaseModel):
     description: Optional[str]
     template: str
     category: Optional[str]
-    language: str
     is_active: bool
     usage_count: int
     created_at: datetime

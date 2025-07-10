@@ -258,15 +258,27 @@ async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
         logger.error(f"Error getting AI result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# === service/main.py ===
+from typing import List, Dict, Any
+from fastapi import HTTPException
 
-# ───────────────────────────────────────────────────────────────
-# 1. Импорт typing.Optional (уже есть выше в файле) ─ ничего менять не нужно
-# ───────────────────────────────────────────────────────────────
+# Внизу файла main.py, после существующих эндпоинтов
+@app.get("/api/prompts/categories", response_model=Dict[str, Any])
+async def get_prompt_categories_endpoint():
+    """
+    Получение списка категорий предустановленных промптов.
+    """
+    try:
+        categories = await prompt_manager.get_prompt_categories()
+        return {
+            "status": "success",
+            "categories": categories
+        }
+    except Exception as e:
+        logger.error(f"Error getting prompt categories endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/prompts/presets", response_model=Dict[str, Any])
 async def get_preset_prompts(
-    language: str = "ru",
     category: Optional[str] = None,          # ← NEW
     db: Session = Depends(get_db)
 ):
@@ -274,21 +286,14 @@ async def get_preset_prompts(
     Получение предустановленных промптов.
 
     Args:
-        language: ISO-код языка (по умолчанию «ru»).
         category: (необязательно) категория промптов, по которой нужно отфильтровать результат.
     """
     try:
-        # ────────────────────────────────
-        # 2. Выбор метода менеджера
-        # ────────────────────────────────
         if category:
-            prompts = await prompt_manager.get_prompts_by_category(category, language)
+            prompts = await prompt_manager.get_prompts_by_category(category)
         else:
-            prompts = await prompt_manager.get_prompts_by_language(language)
+            prompts = await prompt_manager.get_prompts()
 
-        # ────────────────────────────────
-        # 3. Формирование ответа
-        # ────────────────────────────────
         return {
             "status": "success",
             "prompts": [
