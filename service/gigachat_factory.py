@@ -107,17 +107,12 @@ class GigachatPromptBuilder:
         
         # 2. Диапазон ячеек с исходными данными
         if input_range:
-            prompt_parts.append("ДИАПАЗОН ЯЧЕЕК С ИСХОДНЫМИ ДАННЫМИ: ")
-            prompt_parts.append(input_range)
+            prompt_parts.append(f"ДИАПАЗОН ЯЧЕЕК С ИСХОДНЫМИ ДАННЫМИ: {input_range}")
             prompt_parts.append("")
         
-        # 3. Предполагаемая размерность результата
+        # 3. Диапазон ячеек результата
         if output_range:
-            range_info = self._parse_excel_range(output_range)
-            if range_info and not range_info.get("is_single_cell", False):
-                prompt_parts.append("ПРЕДПОЛАГАЕМАЯ РАЗМЕРНОСТЬ МАССИВА В ОТВЕТЕ: ")
-                prompt_parts.append(f"{range_info['width']} колонок, {range_info['height']} строк")
-                prompt_parts.append("")
+            prompt_parts.append(f"ДИАПАЗОН ЯЧЕЕК ДЛЯ ВСТАВКИ РЕЗУЛЬТАТА: {output_range}")
         
         # 4. Задача
         prompt_parts.append("ЗАДАЧА:")
