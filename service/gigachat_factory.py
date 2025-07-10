@@ -97,7 +97,8 @@ class GigachatPromptBuilder:
         Returns:
             str: Сформированный промпт для отправки в GigaChat
         """
-        prompt_parts = []
+        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+        prompt_parts = [f"ДАТА ЗАПРОСА: {timestamp_str}", ""]
         
         # 1. Исходные данные
         if input_data:

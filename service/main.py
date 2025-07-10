@@ -258,13 +258,37 @@ async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
         logger.error(f"Error getting AI result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Prompts endpoints
+# === service/main.py ===
+
+# ───────────────────────────────────────────────────────────────
+# 1. Импорт typing.Optional (уже есть выше в файле) ─ ничего менять не нужно
+# ───────────────────────────────────────────────────────────────
+
 @app.get("/api/prompts/presets", response_model=Dict[str, Any])
-async def get_preset_prompts(language: str = "ru", db: Session = Depends(get_db)):
-    """Получение предустановленных промптов"""
+async def get_preset_prompts(
+    language: str = "ru",
+    category: Optional[str] = None,          # ← NEW
+    db: Session = Depends(get_db)
+):
+    """
+    Получение предустановленных промптов.
+
+    Args:
+        language: ISO-код языка (по умолчанию «ru»).
+        category: (необязательно) категория промптов, по которой нужно отфильтровать результат.
+    """
     try:
-        prompts = await prompt_manager.get_prompts_by_language(language)
-        
+        # ────────────────────────────────
+        # 2. Выбор метода менеджера
+        # ────────────────────────────────
+        if category:
+            prompts = await prompt_manager.get_prompts_by_category(category, language)
+        else:
+            prompts = await prompt_manager.get_prompts_by_language(language)
+
+        # ────────────────────────────────
+        # 3. Формирование ответа
+        # ────────────────────────────────
         return {
             "status": "success",
             "prompts": [
@@ -277,7 +301,7 @@ async def get_preset_prompts(language: str = "ru", db: Session = Depends(get_db)
                 for prompt in prompts
             ]
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting preset prompts: {e}")
         raise HTTPException(status_code=500, detail=str(e))

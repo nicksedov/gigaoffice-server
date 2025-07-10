@@ -6,7 +6,6 @@
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 
 -- Create custom types
 DO $$ BEGIN
@@ -97,20 +96,6 @@ CREATE TABLE IF NOT EXISTS service_metrics (
     gigachat_avg_response_time FLOAT
 );
 
--- Popular Queries table
-CREATE TABLE IF NOT EXISTS popular_queries (
-    id SERIAL PRIMARY KEY,
-    query_text TEXT NOT NULL,
-    query_hash VARCHAR(64) UNIQUE NOT NULL,
-    usage_count INTEGER DEFAULT 1,
-    category VARCHAR(100),
-    language VARCHAR(10) DEFAULT 'ru',
-    first_used TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    last_used TIMESTAMP WITH TIME ZONE,
-    avg_processing_time FLOAT,
-    success_rate FLOAT
-);
-
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -128,10 +113,6 @@ CREATE INDEX IF NOT EXISTS idx_ai_requests_priority ON ai_requests(priority DESC
 
 CREATE INDEX IF NOT EXISTS idx_service_metrics_timestamp ON service_metrics(timestamp DESC);
 
-CREATE INDEX IF NOT EXISTS idx_popular_queries_hash ON popular_queries(query_hash);
-CREATE INDEX IF NOT EXISTS idx_popular_queries_usage_count ON popular_queries(usage_count DESC);
-CREATE INDEX IF NOT EXISTS idx_popular_queries_language ON popular_queries(language);
-
 -- Create foreign key constraints
 -- (These will be handled by SQLAlchemy, but included for completeness)
 
@@ -141,60 +122,6 @@ VALUES
     ('admin', 'admin@gigaoffice.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewFyrtDJejt9Z3Im', 'System Administrator', 'admin'),
     ('demo', 'demo@gigaoffice.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewFyrtDJejt9Z3Im', 'Demo User', 'user')
 ON CONFLICT (username) DO NOTHING;
-
--- Insert default prompts
-INSERT INTO prompts (name, description, template, category, language) 
-VALUES 
-    (
-        'Анализ данных',
-        'Анализ табличных данных с выводами',
-        'Проанализируй данные в таблице. Предоставь краткую сводку основных показателей, найди закономерности и предложи выводы в табличном формате.',
-        'analysis',
-        'ru'
-    ),
-    (
-        'Генерация данных',
-        'Генерация тестовых данных',
-        'Сгенерируй тестовые данные для таблицы. Создай реалистичные данные с указанными колонками и количеством строк.',
-        'generation',
-        'ru'
-    ),
-    (
-        'Преобразование данных',
-        'Очистка и преобразование данных',
-        'Преобразуй данные из таблицы в нужный формат. Очисти, структурируй и приведи к единому стандарту.',
-        'transformation',
-        'ru'
-    ),
-    (
-        'Создание отчета',
-        'Формирование структурированного отчета',
-        'На основе данных создай структурированный отчет с выводами и рекомендациями в табличном виде.',
-        'reporting',
-        'ru'
-    ),
-    (
-        'Топ-5 торговых центров',
-        'Данные о крупнейших торговых центрах мира',
-        'Предоставь данные по пяти самым большим торговым центрам в мире. Ответ должен содержать колонки: "Страна", "Город", "Название ТЦ", "Площадь в кв. м.". Добавь в конец итоговую строку (слово "ИТОГО" добавь в колонку "Страна"), в которой будет указываться сумма значений по колонкам "Площадь в кв. м."',
-        'data_examples',
-        'ru'
-    ),
-    (
-        'Финансовый анализ',
-        'Шаблон для анализа финансовых данных',
-        'Проанализируй финансовые данные в таблице. Предоставь ключевые показатели, тенденции и аналитическую информацию в структурированном табличном формате.',
-        'analysis',
-        'en'
-    ),
-    (
-        'Отчет о продажах',
-        'Анализ эффективности продаж',
-        'Создай подробный отчет о продажах на основе предоставленных данных. Включи итоговые, средние значения и показатели эффективности.',
-        'reporting',
-        'en'
-    )
-ON CONFLICT DO NOTHING;
 
 -- Create functions for common operations
 
