@@ -279,7 +279,7 @@ async def get_prompt_categories_endpoint():
 
 @app.get("/api/prompts/presets", response_model=Dict[str, Any])
 async def get_preset_prompts(
-    category: Optional[str] = None,          # ← NEW
+    category: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """

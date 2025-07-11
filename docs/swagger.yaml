@@ -8,7 +8,7 @@ info:
     • Обменивается заданиями и ответами через Kafka (топики *gigaoffice-requests*, *gigaoffice-responses*, *gigaoffice-dlq*)
 
 servers:
-  - url: https://example.com        # заменить на фактический URL
+  - url: https://omv-gigaoffice.ydns.eu
     description: Production
 
 components:
@@ -258,8 +258,8 @@ paths:
       tags: [Prompts]
       parameters:
         - in: query
-          name: language
-          schema: { type: string, default: "ru" }
+          name: category
+          schema: { type: string }
       responses:
         '200':
           description: Список промптов
