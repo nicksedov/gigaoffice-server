@@ -3,16 +3,14 @@ GigaOffice Prompt Manager
 Менеджер для работы с предустановленными промптами и популярными запросами
 """
 
-import hashlib
 import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 from loguru import logger
 
 from database import get_db_session
-from models import Prompt, AIRequest, RequestStatus
+from models import Prompt
 
 class PromptManager:
     """Менеджер для работы с промптами"""

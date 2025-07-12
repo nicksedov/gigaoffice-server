@@ -7,8 +7,8 @@ import os
 import time
 import asyncio
 import uuid
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from typing import Dict, Any, Optional
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
@@ -24,9 +24,8 @@ import uvicorn
 
 # Local imports
 from models import (
-    AIRequestCreate, AIRequestResponse, PromptResponse, ServiceHealth,
-    ProcessingStatus, MetricsResponse, ErrorResponse, SuccessResponse,
-    UserCreate, UserResponse, RequestStatus
+    AIRequestCreate, ServiceHealth,
+    ProcessingStatus, MetricsResponse, RequestStatus
 )
 from database import get_db, get_db_session, init_database, check_database_health
 from gigachat_factory import gigachat_service
@@ -258,7 +257,7 @@ async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
         logger.error(f"Error getting AI result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-from typing import List, Dict, Any
+from typing import Dict, Any
 from fastapi import HTTPException
 
 # Внизу файла main.py, после существующих эндпоинтов

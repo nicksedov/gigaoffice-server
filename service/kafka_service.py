@@ -6,12 +6,10 @@ GigaOffice Kafka Service
 import os
 import json
 import time
-import asyncio
 from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from aiokafka.admin import AIOKafkaAdminClient, NewTopic
-from aiokafka.errors import KafkaError
 from loguru import logger
 from dataclasses import dataclass
 from resource_loader import resource_loader

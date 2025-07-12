@@ -11,7 +11,6 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from langchain_gigachat.chat_models import GigaChat
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from resource_loader import resource_loader
 

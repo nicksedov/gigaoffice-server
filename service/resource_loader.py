@@ -3,10 +3,9 @@ Resource Loader Utility
 Утилита для загрузки строковых ресурсов из файлов
 """
 
-import os
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from loguru import logger
 
 class ResourceLoader:
