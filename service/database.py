@@ -14,7 +14,16 @@ from loguru import logger
 from models import Base
 from resource_loader import resource_loader
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Собираем параметры подключения из переменных окружения
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "")
+DB_USER = os.getenv("DB_USER", "")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+SQL_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
+
+# Формируем строку подключения
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Create engine with connection pooling
 engine = create_engine(
@@ -38,22 +47,32 @@ SessionLocal = sessionmaker(
 metadata = MetaData()
 
 class DatabaseManager:
-    """Менеджер для работы с базой данных"""
-    
+    """Менеджер работы с БД и пулом соединений"""
     def __init__(self):
+        # Приоритет переменных окружения над конфигом
         config = resource_loader.get_config("database_config")
-        self.pool_size = config.get("pool_size", 20)
-        self.max_overflow = config.get("max_overflow", 30)
+        host = os.getenv("DB_HOST", config.get("host"))
+        port = os.getenv("DB_PORT", config.get("port"))
+        name = os.getenv("DB_NAME", config.get("name"))
+        user = os.getenv("DB_USER", config.get("user"))
+        password = os.getenv("DB_PASSWORD", config.get("password"))
+        echo_flag = os.getenv("DB_ECHO", str(config.get("echo", False))).lower() == "true"
+
+        url = f"postgresql://{user}:{password}@{host}:{port}/{name}"
         self.engine = create_engine(
-            os.getenv("DATABASE_URL", config["default_database_url"]),
+            url,
             poolclass=QueuePool,
-            pool_size=self.pool_size,  # Number of connections to maintain
-            max_overflow=self.max_overflow,  # Maximum overflow connections
-            pool_pre_ping=True,  # Validate connections before use
-            pool_recycle=3600,  # Recycle connections every hour
-            echo=os.getenv("SQL_ECHO", "false").lower() == "true"  # SQL logging
+            pool_size=config.get("pool_size", 20),
+            max_overflow=config.get("max_overflow", 30),
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            echo=echo_flag
         )
-        self.SessionLocal = SessionLocal
+        self.SessionLocal = sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=self.engine
+        )
     
     def create_tables(self):
         """Создание всех таблиц"""
