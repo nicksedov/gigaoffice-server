@@ -1,0 +1,44 @@
+[
+  {
+    "name": "generation",
+    "display_name": "Генерация данных",
+    "description": "Создание синтетических данных для тестирования и разработки",
+    "is_active": true,
+    "sort_order": 1
+  },
+  {
+    "name": "analysis",
+    "display_name": "Анализ данных",
+    "description": "Статистический анализ, корреляции, тренды и исследование данных",
+    "is_active": true,
+    "sort_order": 2
+  },
+    {
+    "name": "import",
+    "display_name": "Импорт внешних данных",
+    "description": "Получение актуальных данных из внешних источников",
+    "is_active": true,
+    "sort_order": 3
+  },
+  {
+    "name": "transformation",
+    "display_name": "Преобразование данных",
+    "description": "Очистка, нормализация и преобразование данных",
+    "is_active": true,
+    "sort_order": 4
+  },
+  {
+    "name": "finance",
+    "display_name": "Финансовый анализ",
+    "description": "Финансовые расчеты, планирование и экономический анализ",
+    "is_active": true,
+    "sort_order": 5
+  },
+  {
+    "name": "reporting",
+    "display_name": "Отчетность",
+    "description": "Создание отчетов, дашбордов и аналитических панелей",
+    "is_active": true,
+    "sort_order": 6
+  }
+]

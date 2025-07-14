@@ -60,7 +60,8 @@ async def lifespan(app: FastAPI):
         # Initialize prompt manager
         global prompt_manager
         prompt_manager = PromptManager()
-        await prompt_manager.load_prompts()
+        await prompt_manager.get_prompt_categories()
+        await prompt_manager.get_prompts()
         logger.info("Prompt manager initialized")
         # Start Kafka service
         await kafka_service.start()
@@ -259,11 +260,10 @@ async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
 from typing import Dict, Any
 from fastapi import HTTPException
 
-# Внизу файла main.py, после существующих эндпоинтов
 @app.get("/api/prompts/categories", response_model=Dict[str, Any])
 async def get_prompt_categories_endpoint():
     """
-    Получение списка категорий предустановленных промптов.
+    Получение списка категорий предустановленных промптов с описанием.
     """
     try:
         categories = await prompt_manager.get_prompt_categories()
@@ -275,6 +275,53 @@ async def get_prompt_categories_endpoint():
         logger.error(f"Error getting prompt categories endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/prompts/categories/{category_id}", response_model=Dict[str, Any])
+async def get_category_details(category_id: int, db: Session = Depends(get_db)):
+    """
+    Получение подробной информации о категории
+    """
+    try:
+        from models import Category
+        
+        category = db.query(Category).filter(
+            Category.id == category_id,
+            Category.is_active == True
+        ).first()
+        
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+        
+        # Получаем промпты для этой категории
+        prompts = await prompt_manager.get_prompts_by_category(str(category_id))
+        
+        return {
+            "status": "success",
+            "category": {
+                "id": category.id,
+                "name": category.name,
+                "display_name": category.display_name,
+                "description": category.description,
+                "sort_order": category.sort_order,
+                "prompt_count": len(prompts)
+            },
+            "prompts": [
+                {
+                    "id": prompt.id,
+                    "name": prompt.name,
+                    "description": prompt.description,
+                    "template": prompt.template,
+                    "category_id": prompt.category_id
+                }
+                for prompt in prompts
+            ]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting category details: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/prompts/presets", response_model=Dict[str, Any])
 async def get_preset_prompts(
     category: Optional[str] = None,
@@ -284,7 +331,7 @@ async def get_preset_prompts(
     Получение предустановленных промптов.
 
     Args:
-        category: (необязательно) категория промптов, по которой нужно отфильтровать результат.
+        category: (необязательно) категория промптов (ID или name), по которой нужно отфильтровать результат.
     """
     try:
         if category:
@@ -299,7 +346,9 @@ async def get_preset_prompts(
                     "id": prompt.id,
                     "name": prompt.name,
                     "template": prompt.template,
-                    "category": prompt.category
+                    "category_id": prompt.category_id,
+                    "category_name": prompt.category_obj.name if prompt.category_obj else None,
+                    "category_display_name": prompt.category_obj.display_name if prompt.category_obj else None
                 }
                 for prompt in prompts
             ]

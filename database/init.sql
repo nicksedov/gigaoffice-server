@@ -40,13 +40,26 @@ CREATE TABLE IF NOT EXISTS users (
     monthly_tokens_used INTEGER DEFAULT 0
 );
 
+-- Categories table
+CREATE TABLE IF NOT EXISTS categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
 -- Prompts table
 CREATE TABLE IF NOT EXISTS prompts (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     template TEXT NOT NULL,
-    category VARCHAR(100),
+    category_id INTEGER,
     is_active BOOLEAN DEFAULT TRUE,
     usage_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -100,9 +113,17 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
-CREATE INDEX IF NOT EXISTS idx_prompts_category ON prompts(category);
+CREATE INDEX IF NOT EXISTS idx_categories_active ON categories(is_active);
+CREATE INDEX IF NOT EXISTS idx_categories_sort_order ON categories(sort_order);
+
 CREATE INDEX IF NOT EXISTS idx_prompts_is_active ON prompts(is_active);
 CREATE INDEX IF NOT EXISTS idx_prompts_usage_count ON prompts(usage_count DESC);
+-- Добавляем внешний ключ к таблице prompts для связи с категориями
+ALTER TABLE prompts ADD CONSTRAINT fk_prompts_category 
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
+-- Создаем индекс для связи промптов с категориями
+CREATE INDEX IF NOT EXISTS idx_prompts_category_id ON prompts(category_id);
+
 
 CREATE INDEX IF NOT EXISTS idx_ai_requests_user_id ON ai_requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_status ON ai_requests(status);

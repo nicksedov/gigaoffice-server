@@ -5,8 +5,9 @@ GigaOffice Service Data Models
 
 from datetime import datetime
 from typing import Optional, List, Any, Dict
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, JSON, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, JSON, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -50,6 +51,22 @@ class User(Base):
     monthly_requests = Column(Integer, default=0)
     monthly_tokens_used = Column(Integer, default=0)
 
+class Category(Base):
+    """Модель категории промптов"""
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, nullable=False, index=True)
+    display_name = Column(String(255), nullable=False)
+    description = Column(Text)
+    is_active = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationship
+    prompts = relationship("Prompt", back_populates="category_obj")
+
 class Prompt(Base):
     """Модель предустановленного промпта"""
     __tablename__ = "prompts"
@@ -58,12 +75,45 @@ class Prompt(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text)
     template = Column(Text, nullable=False)
-    category = Column(String(100))
+    category_id = Column(Integer, ForeignKey('categories.id'))
     is_active = Column(Boolean, default=True)
     usage_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_by = Column(Integer)  # Reference to User.id
+    
+    # Relationship
+    category_obj = relationship("Category", back_populates="prompts")
+
+# Обновленные Pydantic модели
+class CategoryResponse(BaseModel):
+    """Схема ответа с данными категории"""
+    id: int
+    name: str
+    display_name: str
+    description: Optional[str]
+    is_active: bool
+    sort_order: int
+    prompt_count: int = 0
+    
+    class Config:
+        from_attributes = True
+
+class PromptResponse(BaseModel):
+    """Схема ответа с данными промпта"""
+    id: int
+    name: str
+    description: Optional[str]
+    template: str
+    category_id: Optional[int]
+    category_name: Optional[str]  # Получаем через relationship
+    is_active: bool
+    usage_count: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 
 class AIRequest(Base):
     """Модель запроса к ИИ"""
@@ -158,20 +208,6 @@ class PromptCreate(BaseModel):
     description: Optional[str] = None
     template: str = Field(..., min_length=1)
     category: Optional[str] = None
-
-class PromptResponse(BaseModel):
-    """Схема ответа с данными промпта"""
-    id: int
-    name: str
-    description: Optional[str]
-    template: str
-    category: Optional[str]
-    is_active: bool
-    usage_count: int
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
 
 class AIRequestCreate(BaseModel):
     """Схема для создания запроса к ИИ"""

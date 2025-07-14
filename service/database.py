@@ -40,7 +40,8 @@ engine = create_engine(
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    bind=engine,
+    expire_on_commit=False
 )
 
 # Metadata for migrations
@@ -71,7 +72,8 @@ class DatabaseManager:
         self.SessionLocal = sessionmaker(
             autocommit=False,
             autoflush=False,
-            bind=self.engine
+            bind=self.engine,
+            expire_on_commit=False
         )
     
     def create_tables(self):
@@ -221,7 +223,7 @@ def init_default_data():
     """Инициализация базовых данных"""
     try:
         with get_db_session() as db:
-            from models import Prompt, User
+            from models import Prompt, User, Category
             from passlib.context import CryptContext
             
             # Create password context
@@ -241,14 +243,57 @@ def init_default_data():
                 db.add(admin_user)
                 logger.info("Admin user created")
 
-            default_prompts_data = resource_loader.load_json("prompts/default_prompts.json")            
-            # Check if default prompts exist
-            existing_prompts = db.query(Prompt).count()
-            if existing_prompts == 0:
-                for prompt_data in default_prompts_data:
-                    prompt = Prompt(**prompt_data)
-                    db.add(prompt)
-                logger.info(f"Created {len(default_prompts_data)} default prompts")
+            # Initialize categories
+            categories_data = resource_loader.load_json("prompts/prompt_categories.json")
+            existing_categories = db.query(Category).count()
+            
+            if existing_categories == 0:
+                category_map = {}
+                for category_data in categories_data:
+                    category = Category(**category_data)
+                    db.add(category)
+                    db.flush()  # Получаем ID
+                    category_map[category.name] = category.id
+                
+                logger.info(f"Created {len(categories_data)} categories")
+                
+                # Create default prompts with category_id
+                default_prompts_data = resource_loader.load_json("prompts/default_prompts.json")
+                
+                existing_prompts = db.query(Prompt).count()
+                if existing_prompts == 0:
+                    for prompt_data in default_prompts_data:
+                        category_name = prompt_data.get('category')
+                        category_id = category_map.get(category_name) if category_name else None
+                        
+                        # Создаем промпт только с category_id
+                        prompt = Prompt(
+                            name=prompt_data['name'],
+                            description=prompt_data.get('description'),
+                            template=prompt_data['template'],
+                            category_id=category_id
+                        )
+                        db.add(prompt)
+                    
+                    logger.info(f"Created {len(default_prompts_data)} default prompts")
+            else:
+                # Миграция существующих промптов: перенос category -> category_id
+                category_map = {cat.name: cat.id for cat in db.query(Category).all()}
+                
+                # Находим промпты, которые еще не имеют category_id
+                prompts_to_migrate = db.query(Prompt).filter(
+                    Prompt.category_id.is_(None)
+                ).all()
+                
+                migrated_count = 0
+                for prompt in prompts_to_migrate:
+                    # Пытаемся найти category_id по старому полю category
+                    if hasattr(prompt, 'category') and prompt.category in category_map:
+                        prompt.category_id = category_map[prompt.category]
+                        migrated_count += 1
+                
+                if migrated_count > 0:
+                    logger.info(f"Migrated {migrated_count} prompts to use category_id")
             
             db.commit()
             

@@ -6,7 +6,6 @@ info:
     Промежуточный сервер для интеграции плагинов Р7-Офис с AI-моделью GigaChat.
     • Хранит заявки и метаданные в PostgreSQL  
     • Обменивается заданиями и ответами через Kafka (топики *gigaoffice-requests*, *gigaoffice-responses*, *gigaoffice-dlq*)
-
 servers:
   - url: https://omv-gigaoffice.ydns.eu
     description: Production
@@ -19,7 +18,6 @@ components:
       bearerFormat: JWT
 
   schemas:
-    # --- ENUMы --------------------------------------------------------------
     RequestStatus:
       type: string
       description: |
@@ -37,16 +35,10 @@ components:
         status:
           type: string
           example: ok
-        timestamp:
-          type: string
-          format: date-time
-        version:
-          type: string
-          example: "1.0.0"
-        uptime:
+        response_time:
           type: number
           format: float
-          description: Seconds since service start
+          description: Время ответа health-чека (сек)
         database:
           type: boolean
         gigachat:
@@ -55,10 +47,9 @@ components:
           type: boolean
         redis:
           type: boolean
-        active_requests:
-          type: integer
         queue_size:
           type: integer
+          description: Количество сообщений, отправленных в Kafka
         memory_usage:
           type: number
           format: float
@@ -81,10 +72,10 @@ components:
         preset_prompt:
           type: string
         input_data:
-          description: Табличные данные из листа Р7-Офис (если есть)
           type: array
           items:
             type: object
+          description: Табличные данные из листа Р7-Офис (если есть)
 
     AIProcessResponse:
       type: object
@@ -104,7 +95,7 @@ components:
       type: object
       properties:
         request_id:
-          type: integer
+          type: string
         status:
           $ref: '#/components/schemas/RequestStatus'
         progress:
@@ -127,11 +118,11 @@ components:
         message:
           type: string
         result:
-          description: Табличный результат от GigaChat
           type: array
           items:
             type: array
             items: {}
+          description: Табличный результат от GigaChat
         tokens_used:
           type: integer
         processing_time:
@@ -148,22 +139,36 @@ components:
           items:
             type: object
             properties:
-              id: { type: integer }
-              name: { type: string }
-              template: { type: string }
-              category: { type: string }
+              id:
+                type: integer
+              name:
+                type: string
+              template:
+                type: string
+              category_id:
+                type: integer
+              category_name:
+                type: string
+              category_display_name:
+                type: string
 
     MetricsResponse:
       type: object
       properties:
-        period:               { type: string, enum: [hour, day, week, month] }
-        total_requests:       { type: integer }
-        successful_requests:  { type: integer }
-        failed_requests:      { type: integer }
-        avg_processing_time:  { type: number, format: float }
-        total_tokens_used:    { type: integer }
-        popular_queries:
-          $ref: '#/components/schemas/PopularPromptsResponse'
+        period:
+          type: string
+          enum: [hour, day, week, month]
+        total_requests:
+          type: integer
+        successful_requests:
+          type: integer
+        failed_requests:
+          type: integer
+        avg_processing_time:
+          type: number
+          format: float
+        total_tokens_used:
+          type: integer
 
 paths:
   /api/health:
@@ -177,7 +182,8 @@ paths:
           description: Текущие показатели здоровья сервиса
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ServiceHealth' }
+              schema:
+                $ref: '#/components/schemas/ServiceHealth'
 
   /api/ai/process:
     post:
@@ -185,87 +191,186 @@ paths:
       description: |
         • Создаёт запись **AIRequest** в PostgreSQL  
         • Отправляет сообщение в Kafka topic **gigaoffice-requests**  
-        • В фоне может сразу вызвать GigaChat, если сервис запущен без воркеров  
-        Лимит: **10 запросов в минуту** с одного IP (см. декоратор `@limiter.limit`).
+        • Ограничение: 10 запросов в минуту на один IP.
       tags: [AI]
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/AIRequestCreate' }
+            schema:
+              $ref: '#/components/schemas/AIRequestCreate'
       responses:
         '200':
           description: Запрос успешно поставлен в очередь
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AIProcessResponse' }
+              schema:
+                $ref: '#/components/schemas/AIProcessResponse'
         '500':
-          description: Ошибка сервера (например, Kafka недоступна)
+          description: Ошибка сервера
 
   /api/ai/status/{request_id}:
     get:
       summary: Проверить статус обработки
       description: |
-        Читает запись **AIRequest** из PostgreSQL.  
-        Не взаимодействует с Kafka.
+        Читает запись **AIRequest** из PostgreSQL. Kafka не используется.
       tags: [AI]
       parameters:
         - in: path
           name: request_id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Текущий статус запроса
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ProcessingStatus' }
+              schema:
+                $ref: '#/components/schemas/ProcessingStatus'
         '404':
-          description: Запрос с таким ID не найден
+          description: Запрос не найден
         '500':
-          description: Неожиданная ошибка сервера
+          description: Ошибка сервера
 
   /api/ai/result/{request_id}:
     get:
       summary: Получить результат запроса
       description: |
-        Возвращает готовый результат, если `status == completed`,  
-        либо сообщение о том, что обработка ещё не завершена.  
-        Чтение из таблицы **AIRequest**; Kafka не используется.
+        Возвращает результат, если `status == completed`, иначе сообщение о незавершённости.
       tags: [AI]
       parameters:
         - in: path
           name: request_id
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Результат или промежуточная информация
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/AIResultResponse' }
+              schema:
+                $ref: '#/components/schemas/AIResultResponse'
         '404':
           description: Запрос не найден
         '500':
-          description: Неожиданная ошибка сервера
+          description: Ошибка сервера
+
+  /api/prompts/categories:
+    get:
+      summary: Список категорий промптов
+      description: |
+        Читает категории из PostgreSQL (таблица **categories**) с подсчетом активных промптов.
+      tags: [Prompts]
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  categories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        display_name:
+                          type: string
+                        description:
+                          type: string
+                        is_active:
+                          type: boolean
+                        sort_order:
+                          type: integer
+                        prompt_count:
+                          type: integer
+        '500':
+          description: Ошибка сервера
+
+  /api/prompts/categories/{category_id}:
+    get:
+      summary: Детали категории и её промпты
+      description: |
+        Возвращает данные категории и список промптов из PostgreSQL.
+      tags: [Prompts]
+      parameters:
+        - in: path
+          name: category_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Детали категории
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  category:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      display_name:
+                        type: string
+                      description:
+                        type: string
+                      sort_order:
+                        type: integer
+                      prompt_count:
+                        type: integer
+                  prompts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        template:
+                          type: string
+                        category_id:
+                          type: integer
+        '404':
+          description: Категория не найдена
+        '500':
+          description: Ошибка сервера
 
   /api/prompts/presets:
     get:
       summary: Список предустановленных промптов
       description: |
-        Читает актуальные промпты из PostgreSQL (таблица **prompts**).  
-        Кеширует результат на 5 минут в памяти процесса.
+        Читает активные промпты из PostgreSQL (таблица **prompts**), кеширует 10 минут.
       tags: [Prompts]
       parameters:
         - in: query
           name: category
-          schema: { type: string }
+          schema:
+            type: string
+            description: Фильтр по ID или имени категории
       responses:
         '200':
           description: Список промптов
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/PresetPromptsResponse' }
+              schema:
+                $ref: '#/components/schemas/PresetPromptsResponse'
         '500':
           description: Ошибка сервера
 
@@ -273,22 +378,25 @@ paths:
     get:
       summary: Метрики использования сервиса
       description: |
-        Доступно только **admin/premium** пользователям (проверка роли через Bearer-токен).  
-        Возвращает статистику Kafka + счётчики токенов GigaChat.
+        Доступно для **admin/premium**. Возвращает статистику Kafka + токены GigaChat.
       tags: [Service]
       security:
         - bearerAuth: []
       parameters:
         - in: query
           name: period
-          schema: { type: string, default: day, enum: [hour, day, week, month] }
+          schema:
+            type: string
+            default: day
+            enum: [hour, day, week, month]
       responses:
         '200':
-          description: Метрики за выбранный период
+          description: Метрики за период
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/MetricsResponse' }
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
         '403':
-          description: Доступ запрещён (недостаточно прав)
+          description: Доступ запрещён
         '500':
           description: Ошибка сервера
