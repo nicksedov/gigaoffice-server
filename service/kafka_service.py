@@ -386,10 +386,10 @@ class KafkaService:
             self.stop_consumer()
             
             if self.producer:
-                self.producer.flush(timeout=10)
+                self.producer.stop()
                 
             if self.consumer:
-                self.consumer.close()
+                self.consumer.stop()
                 
             logger.info("Kafka service cleaned up successfully")
             

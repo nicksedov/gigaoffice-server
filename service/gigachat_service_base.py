@@ -1,88 +1,64 @@
 """
-GigaOffice GigaChat Service
-Сервис для работы с GigaChat API через langchain-gigachat
+Base GigaChat Service
+Базовый класс для всех реализаций GigaChat сервиса
 """
 
 import os
 import json
 import time
 import asyncio
+from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
-from langchain_gigachat.chat_models import GigaChat
-from langchain_core.messages import HumanMessage, SystemMessage
 from loguru import logger
 from resource_loader import resource_loader
+from langchain_core.messages import HumanMessage, SystemMessage
 
-class GigaChatService:
-    """Сервис для работы с GigaChat API"""
+class BaseGigaChatService(ABC):
+    """Базовый абстрактный класс для GigaChat сервисов"""
     
     def __init__(self, prompt_builder):
+        # Общие настройки для всех режимов
         config = resource_loader.get_config("gigachat_config")
-        self.credentials = os.getenv("GIGACHAT_CREDENTIALS")
-        self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
-        self.scope = os.getenv("GIGACHAT_SCOPE", config.get("scope"))
         self.model = os.getenv("GIGACHAT_MODEL", config.get("model"))
-        self.verify_ssl_certs = os.getenv("GIGACHAT_VERIFY_SSL", config.get("verify_ssl_certs")).lower() == "true"
+        self.scope = os.getenv("GIGACHAT_SCOPE", config.get("scope"))
+        self.verify_ssl_certs = os.getenv("GIGACHAT_VERIFY_SSL", str(config.get("verify_ssl_certs", False))).lower() == "true"
         
         # Rate limiting settings
-        self.max_requests_per_minute = int(os.getenv("GIGACHAT_MAX_REQUESTS_PER_MINUTE", config.get("max_requests_per_minute")))
-        self.max_tokens_per_request = int(os.getenv("GIGACHAT_MAX_TOKENS_PER_REQUEST", config.get("max_tokens_per_request")))
+        self.max_requests_per_minute = int(os.getenv("GIGACHAT_MAX_REQUESTS_PER_MINUTE", config.get("max_requests_per_minute", 20)))
+        self.max_tokens_per_request = int(os.getenv("GIGACHAT_MAX_TOKENS_PER_REQUEST", config.get("max_tokens_per_request", 8192)))
         
         # Request tracking
         self.request_times = []
         self.total_tokens_used = 0
         
         self.prompt_builder = prompt_builder
-
-        # Initialize GigaChat client
-        self._init_client()
+        self.client = None
         
-    def _init_client(self):
-        """Инициализация клиента GigaChat"""
-        try:
-            if not self.credentials:
-                raise ValueError("GIGACHAT_CREDENTIALS environment variable is required")
-            
-            self.client = GigaChat(
-                credentials=self.credentials,
-                base_url=self.base_url,
-                scope=self.scope,
-                model=self.model,
-                verify_ssl_certs=self.verify_ssl_certs,
-                timeout=60.0
-            )
-            
-            logger.info("GigaChat client initialized successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize GigaChat client: {e}")
-            raise
+        # Инициализация клиента (делегируется подклассам)
+        self._init_client()
     
+    @abstractmethod
+    def _init_client(self):
+        """Абстрактный метод для инициализации клиента GigaChat"""
+        pass
+    
+    # Общие методы для всех режимов
     def _check_rate_limit(self) -> bool:
         """Проверка лимитов скорости запросов"""
         current_time = time.time()
-        
-        # Remove requests older than 1 minute
-        self.request_times = [
-            req_time for req_time in self.request_times 
-            if current_time - req_time < 60
-        ]
-        
-        # Check if we can make a new request
-        if len(self.request_times) >= self.max_requests_per_minute:
-            return False
-        
-        return True
+        self.request_times = [req_time for req_time in self.request_times if current_time - req_time < 60]
+        return len(self.request_times) < self.max_requests_per_minute
     
     def _add_request_time(self):
         """Добавление времени запроса для отслеживания лимитов"""
         self.request_times.append(time.time())
     
     def _count_tokens(self, text: str) -> int:
-        """Примерный подсчет токенов (1 токен ≈ 4 символа для русского языка)"""
-        return len(text) // 4  # Приблизительная оценка
+        """Примерный подсчет токенов"""
+        return len(text) // 4
     
+        
     async def process_query(
         self, 
         query: str,
@@ -140,44 +116,8 @@ class GigaChatService:
             
             self.total_tokens_used += total_tokens
             
-            # Try to parse JSON response
-            try:
-                # Clean response content
-                content = response_content.strip()
-                
-                # Extract JSON from markdown code blocks if present
-                if content.startswith("```"):
-                    lines = content.split("\n")
-                    start_line = 0
-                    end_line = len(lines)
-                    
-                    for i, line in enumerate(lines):
-                        if line.startswith("```"):
-                            if start_line == 0:
-                                start_line = i + 1
-                            else:
-                                end_line = i
-                                break
-                    
-                    content = "\n".join(lines[start_line:end_line])
-                
-                # Parse JSON
-                result_data = json.loads(content)
-                
-                # Validate result format
-                if not isinstance(result_data, list):
-                    raise ValueError("Result must be a list")
-                
-                for row in result_data:
-                    if not isinstance(row, list):
-                        raise ValueError("Each row must be a list")
-                
-            except (json.JSONDecodeError, ValueError) as e:
-                logger.warning(f"Failed to parse JSON response: {e}")
-                # Fallback: return response as single cell
-                result_data = [[response_content]]
-            
-            # Prepare metadata
+            from gigachat_response_parser import response_parser
+            result_data = response_parser.parse(response_content)
             metadata = {
                 "processing_time": processing_time,
                 "input_tokens": total_input_tokens,
