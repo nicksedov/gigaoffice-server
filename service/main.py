@@ -22,12 +22,12 @@ from loguru import logger
 import uvicorn
 
 # Local imports
-from models import (
-    AIRequestCreate, 
-    AIResponseCreate, AIResponseOut,
-    ServiceHealth,
-    ProcessingStatus, MetricsResponse, RequestStatus
+from model_types import RequestStatus
+from model_api import (
+    AIRequestCreate, AIResponseCreate, AIResponseOut,
+    ServiceHealth, ProcessingStatus, MetricsResponse
 )
+from model_orm import AIRequest, AIResponse, Category
 from database import get_db, get_db_session, init_database, check_database_health
 from gigachat_factory import gigachat_service
 from kafka_service import kafka_service
@@ -157,7 +157,6 @@ async def process_ai_request(
         user_id = current_user.get("id", 0) if current_user else 0
         
         # Save request to database
-        from models import AIRequest
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
@@ -199,8 +198,6 @@ async def process_ai_request(
 async def get_processing_status(request_id: str, db: Session = Depends(get_db)):
     """Получение статуса обработки запроса"""
     try:
-        from models import AIRequest
-        
         db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Request not found")
@@ -233,8 +230,6 @@ async def get_processing_status(request_id: str, db: Session = Depends(get_db)):
 async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
     """Получение результата обработки ИИ"""
     try:
-        from models import AIRequest
-        
         db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Request not found")
@@ -262,7 +257,6 @@ async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
 # Insert API
 @app.post("/api/ai/response", response_model=AIResponseOut)
 async def submit_ai_response(response: AIResponseCreate, db: Session = Depends(get_db)):
-    from models import AIRequest,AIResponse
     # Проверка, что ai_request_id существует
     ai_request = db.query(AIRequest).filter_by(id=response.ai_request_id).first()
     if not ai_request:
@@ -299,8 +293,6 @@ async def get_category_details(category_id: int, db: Session = Depends(get_db)):
     Получение подробной информации о категории
     """
     try:
-        from models import Category
-        
         category = db.query(Category).filter(
             Category.id == category_id,
             Category.is_active == True
@@ -427,7 +419,6 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         
         # Update database
         with get_db_session() as db:
-            from models import AIRequest
             db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
             if db_request:
                 db_request.status = RequestStatus.COMPLETED
@@ -449,7 +440,6 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         
         # Update database with error
         with get_db_session() as db:
-            from models import AIRequest
             db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
             if db_request:
                 db_request.status = RequestStatus.FAILED

@@ -11,7 +11,7 @@ from sqlalchemy.orm import joinedload
 from loguru import logger
 
 from database import get_db_session
-from models import Prompt, Category
+from model_orm import Prompt, Category
 
 class PromptManager:
     """Менеджер для работы с промптами"""
