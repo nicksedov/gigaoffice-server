@@ -257,6 +257,58 @@ paths:
         '500':
           description: Ошибка сервера
 
+  /api/ai/response:
+    post:
+      summary: Сохранить ответ GigaChat и пользовательскую оценку
+      description: >
+        Сохраняет текст ответа GigaChat для указанного запроса, а также оценку пользователя (хороший/плохой) и комментарий.  
+        Используется для случаев, когда ответ не прошёл форматный контроль либо получена обратная связь пользователя.
+      tags: [AI]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ai_request_id:
+                  type: string
+                  format: uuid
+                  description: Идентификатор запроса (ai_requests.id)
+                  example: "4e2a2e93-5060-4200-8e5e-a2bcddb05b44"
+                text_response:
+                  type: string
+                  description: Текст полученного ответа GigaChat
+                rating:
+                  type: boolean
+                  nullable: true
+                  description: Оценка (true — хороший, false — плохой, null — нет оценки)
+                comment:
+                  type: string
+                  description: Комментарий пользователя
+      responses:
+        '200':
+          description: Ответ сохранён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  ai_request_id:
+                    type: string
+                  text_response:
+                    type: string
+                  rating:
+                    type: boolean
+                  comment:
+                    type: string
+        '404':
+          description: Запрос не найден
+        '500':
+          description: Ошибка сервера
+
   /api/prompts/categories:
     get:
       summary: Список категорий промптов

@@ -89,6 +89,15 @@ CREATE TABLE IF NOT EXISTS ai_requests (
     priority INTEGER DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS ai_responses (
+    id SERIAL PRIMARY KEY,
+    ai_request_id VARCHAR NOT NULL REFERENCES ai_requests(id) ON DELETE CASCADE,
+    text_response TEXT NOT NULL,
+    rating BOOLEAN,
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Service Metrics table
 CREATE TABLE IF NOT EXISTS service_metrics (
     id SERIAL PRIMARY KEY,
@@ -120,7 +129,9 @@ CREATE INDEX IF NOT EXISTS idx_prompts_is_active ON prompts(is_active);
 CREATE INDEX IF NOT EXISTS idx_prompts_usage_count ON prompts(usage_count DESC);
 -- Добавляем внешний ключ к таблице prompts для связи с категориями
 ALTER TABLE prompts ADD CONSTRAINT fk_prompts_category 
+    FALTER TABLE prompts ADD CONSTRAINT fk_prompts_category 
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
+OREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
 -- Создаем индекс для связи промптов с категориями
 CREATE INDEX IF NOT EXISTS idx_prompts_category_id ON prompts(category_id);
 
@@ -129,6 +140,8 @@ CREATE INDEX IF NOT EXISTS idx_ai_requests_user_id ON ai_requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_status ON ai_requests(status);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_created_at ON ai_requests(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_priority ON ai_requests(priority DESC);
+
+CREATE INDEX idx_ai_responses_request_id ON ai_responses(ai_request_id);
 
 CREATE INDEX IF NOT EXISTS idx_service_metrics_timestamp ON service_metrics(timestamp DESC);
 

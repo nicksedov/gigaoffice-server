@@ -23,7 +23,9 @@ import uvicorn
 
 # Local imports
 from models import (
-    AIRequestCreate, ServiceHealth,
+    AIRequestCreate, 
+    AIResponseCreate, AIResponseOut,
+    ServiceHealth,
     ProcessingStatus, MetricsResponse, RequestStatus
 )
 from database import get_db, get_db_session, init_database, check_database_health
@@ -257,8 +259,24 @@ async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
         logger.error(f"Error getting AI result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-from typing import Dict, Any
-from fastapi import HTTPException
+# Insert API
+@router.post("/api/ai/response", response_model=AIResponseOut)
+async def submit_ai_response(response: AIResponseCreate, db: Session = Depends(get_db)):
+    # Проверка, что ai_request_id существует
+    ai_request = db.query(AIRequest).filter_by(id=response.ai_request_id).first()
+    if not ai_request:
+        raise HTTPException(status_code=404, detail="AI request not found")
+    from models import AIResponse
+    ai_response = AIResponse(
+        ai_request_id=response.ai_request_id,
+        text_response=response.text_response,
+        rating=response.rating,
+        comment=response.comment
+    )
+    db.add(ai_response)
+    db.commit()
+    db.refresh(ai_response)
+    return ai_response
 
 @app.get("/api/prompts/categories", response_model=Dict[str, Any])
 async def get_prompt_categories_endpoint():

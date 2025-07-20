@@ -148,6 +148,21 @@ class AIRequest(Base):
     queue_position = Column(Integer)
     priority = Column(Integer, default=0)
 
+    responses = relationship("AIResponse", back_populates="ai_request", cascade="all, delete-orphan")
+
+class AIResponse(Base):
+    __tablename__ = "ai_responses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ai_request_id = Column(Integer, ForeignKey("ai_requests.id"), nullable=False, index=True)
+    text_response = Column(Text, nullable=False)
+    rating = Column(Boolean, nullable=True)  # true=хороший, false=плохой, null=не оценено
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Опционально: связь для удобства доступа к запросу
+    ai_request = relationship("AIRequest", back_populates="responses")
+
 class ServiceMetrics(Base):
     """Модель метрик сервиса"""
     __tablename__ = "service_metrics"
@@ -233,6 +248,19 @@ class AIRequestResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class AIResponseCreate(BaseModel):
+    ai_request_id: int
+    text_response: str
+    rating: Optional[bool] = None  # True — хороший, False — плохой, None — не оценено
+    comment: Optional[str] = None
+
+class AIResponseOut(BaseModel):
+    id: int
+    ai_request_id: int
+    text_response: str
+    rating: Optional[bool]
+    comment: Optional[str]
 
 class ServiceHealth(BaseModel):
     """Схема для проверки здоровья сервиса"""
