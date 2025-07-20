@@ -11,6 +11,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from pydantic import BaseModel, Field
 from enum import Enum
+from uuid import UUID
 
 # SQLAlchemy Base
 Base = declarative_base()
@@ -250,14 +251,14 @@ class AIRequestResponse(BaseModel):
         from_attributes = True
 
 class AIResponseCreate(BaseModel):
-    ai_request_id: int
+    ai_request_id: str
     text_response: str
     rating: Optional[bool] = None  # True — хороший, False — плохой, None — не оценено
     comment: Optional[str] = None
 
 class AIResponseOut(BaseModel):
     id: int
-    ai_request_id: int
+    ai_request_id: UUID
     text_response: str
     rating: Optional[bool]
     comment: Optional[str]

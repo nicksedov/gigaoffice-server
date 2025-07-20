@@ -260,13 +260,13 @@ async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Insert API
-@router.post("/api/ai/response", response_model=AIResponseOut)
+@app.post("/api/ai/response", response_model=AIResponseOut)
 async def submit_ai_response(response: AIResponseCreate, db: Session = Depends(get_db)):
+    from models import AIRequest,AIResponse
     # Проверка, что ai_request_id существует
     ai_request = db.query(AIRequest).filter_by(id=response.ai_request_id).first()
     if not ai_request:
         raise HTTPException(status_code=404, detail="AI request not found")
-    from models import AIResponse
     ai_response = AIResponse(
         ai_request_id=response.ai_request_id,
         text_response=response.text_response,

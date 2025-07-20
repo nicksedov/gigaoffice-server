@@ -298,6 +298,7 @@ paths:
                     type: integer
                   ai_request_id:
                     type: string
+                    format: uuid
                   text_response:
                     type: string
                   rating:
