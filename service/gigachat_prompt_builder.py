@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import yaml
 from datetime import datetime
 from typing import Optional, List, Dict, Literal, Any
 from resource_loader import resource_loader
@@ -30,7 +31,7 @@ class GigachatPromptBuilder:
         'generation': 'generation_examples.yaml'
     }
 
-    def __init__(self, resources_dir: str = 'resources'):
+    def __init__(self, resources_dir: str = 'resources/prompts/'):
         self.resources_dir = resources_dir
 
     def _load_examples(self, examples_type: Literal['analysis', 'transformation', 'search', 'generation']) -> list:
@@ -60,8 +61,8 @@ class GigachatPromptBuilder:
         Аргумент:
             examples_type: 'analysis', 'transformation', 'search' или 'generation'
         """
-        prompt_lines = [self.SYSTEM_PROMPT_COMMON, "", "### Примеры:"]
         examples = self._load_examples(examples_type)
+        prompt_lines = [self.SYSTEM_PROMPT_COMMON, "", "### Примеры:"]
         for ex in examples:
             prompt_lines.append("Запрос:")
             prompt_lines.append(ex['request'])
@@ -168,12 +169,11 @@ class GigachatPromptBuilder:
             prompt_parts.append(f"ДИАПАЗОН ЯЧЕЕК ДЛЯ ВСТАВКИ РЕЗУЛЬТАТА: {output_range}")
         
         # 4. Задача
-        prompt_parts.append("ЗАДАЧА:")
-        prompt_parts.append(query)
+        prompt_parts.append(f"ЗАДАЧА: {query}")
         prompt_parts.append("")
         
         # 5. Инструкция по формату ответа
-        prompt_parts.append("Предоставь ответ в виде JSON массива массивов.")
+        prompt_parts.append("Предоставь ответ в виде JSON-массива массивов.")
         
         return "\n".join(prompt_parts)
 
