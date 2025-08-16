@@ -77,7 +77,7 @@ class AIRequest(Base):
     input_range = Column(String(50))
     output_range = Column(String(50), nullable=False)
     query_text = Column(Text, nullable=False)
-    preset_prompt_id = Column(Integer)  # Reference to Prompt.id
+    category = Column(String(50))
     input_data = Column(JSON)
     
     # Response data

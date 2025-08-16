@@ -75,7 +75,6 @@ class AIRequestCreate(BaseModel):
     input_range: Optional[str] = Field(None, max_length=50)
     output_range: str = Field(..., max_length=50)
     query_text: str = Field(..., min_length=1)
-    preset_prompt: Optional[str] = None
     category: Optional[str] = None
     input_data: Optional[List[Dict[str, Any]]] = None
 

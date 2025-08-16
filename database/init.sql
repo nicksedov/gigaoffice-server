@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS ai_requests (
     input_range VARCHAR(50),
     output_range VARCHAR(50) NOT NULL,
     query_text TEXT NOT NULL,
-    preset_prompt_id INTEGER,
+    category VARCHAR(50) NOT NULL,
     input_data JSONB,
     result_data JSONB,
     error_message TEXT,

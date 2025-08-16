@@ -1,7 +1,8 @@
+import os
 import json
 import re
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Literal, Any
 from resource_loader import resource_loader
 from string import Template
 
@@ -13,8 +14,31 @@ GigaChat Prompt Builder
 class GigachatPromptBuilder:
     """Класс для формирования промптов для GigaChat"""
     
-    def __init__(self):
-        pass
+    SYSTEM_PROMPT_COMMON = (
+        "Ты — виртуальный ассистент для работы с электронными таблицами Р7-Офис.\n"
+        "Всегда предоставляй решения в формате, пригодном для вставки в электронную таблицу.\n"
+        "1. Если генерируешь данные, используй структуру: массив строк, где каждая строка — массив значений.\n"
+        "2. Если пользователь просит провести анализ или отчет, отвечай через статистические формулы над переданным диапазоном ячеек.\n"
+        "3. Даты в формате YYYY-MM-DD. Числовые данные разумно округлять.\n"
+        "4. Ответ всегда в виде JSON-массива массивов."
+    )
+
+    EXAMPLES_MAP = {
+        'analysis': 'analysis_examples.yaml',
+        'transformation': 'analysis_examples.yaml',
+        'search': 'analysis_examples.yaml', 
+        'generation': 'generation_examples.yaml'
+    }
+
+    def __init__(self, resources_dir: str = 'resources'):
+        self.resources_dir = resources_dir
+
+    def _load_examples(self, examples_type: Literal['analysis', 'transformation', 'search', 'generation']) -> list:
+        filename = self.EXAMPLES_MAP.get(examples_type, self.EXAMPLES_MAP['analysis'])
+        path = os.path.join(self.resources_dir, filename)
+        with open(path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+        return data['examples']
     
     def prepare_classifier_system_prompt(self, categories: List[Dict[str, Any]]) -> str:
         """Подготовка системного промпта для классификатора пользовательского запроса"""
@@ -30,10 +54,23 @@ class GigachatPromptBuilder:
         text = pt.substitute({"category_list": category_list})
         return text
 
-    def prepare_system_prompt(self) -> str:
-        """Подготовка системного промпта для табличных данных"""
-        return resource_loader.get_prompt_template("gigachat_system_prompt.txt")
-    
+    def prepare_system_prompt(self, examples_type: Literal['analysis', 'transformation', 'search', 'generation'] = 'analysis') -> str:
+        """
+        Формирует системный промпт с общей частью и релевантными примерами.
+        Аргумент:
+            examples_type: 'analysis', 'transformation', 'search' или 'generation'
+        """
+        prompt_lines = [self.SYSTEM_PROMPT_COMMON, "", "### Примеры:"]
+        examples = self._load_examples(examples_type)
+        for ex in examples:
+            prompt_lines.append("Запрос:")
+            prompt_lines.append(ex['request'])
+            prompt_lines.append("Ответ:")
+            prompt_lines.append(f"{ex['response']}")
+            prompt_lines.append('')
+
+        return "\n".join(prompt_lines)
+
     def _parse_excel_range(self, range_str: str) -> Optional[Dict[str, Any]]:
         """
         Парсинг диапазона ячеек Excel для вычисления размерности

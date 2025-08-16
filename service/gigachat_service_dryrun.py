@@ -51,14 +51,15 @@ class DryRunGigaChatService:
         return env_vars
 
     def _generate_debug_table(self, query: str, input_range: Optional[str] = None, 
-        output_range: Optional[str] = None, input_data: Optional[List[Dict]] = None) -> List[List[Any]]:
+        output_range: Optional[str] = None, category: Optional[str] = None,
+        input_data: Optional[List[Dict]] = None) -> List[List[Any]]:
         """Генерация таблицы с отладочной информацией"""
         
         # Получаем переменные окружения
         env_vars = self._get_gigachat_env_vars()
         
         # Генерируем промпты используя GigachatPromptBuilder
-        system_prompt = self.prompt_builder.prepare_system_prompt()
+        system_prompt = self.prompt_builder.prepare_system_prompt(category)
         user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, output_range, input_data)
         
         # Формируем таблицу
@@ -74,6 +75,7 @@ class DryRunGigaChatService:
         result.append(['Промпт (запрос)', query])
         result.append(['Диапазон исходных данных', input_range or 'Не указан'])
         result.append(['Диапазон для результата', output_range or 'Не указан'])
+        result.append(['Категория запроса', category or 'Не указана'])
         
         # Добавляем входные данные если есть
         if input_data:
@@ -108,6 +110,7 @@ class DryRunGigaChatService:
         query: str,
         input_range: Optional[str] = None,
         output_range: Optional[str] = None,
+        category: Optional[str] = None,
         input_data: Optional[List[Dict]] = None,
         temperature: float = 0.1
     ) -> Tuple[List[List[Any]], Dict[str, Any]]:
@@ -117,7 +120,7 @@ class DryRunGigaChatService:
         time.sleep(0.2)  # Имитация обработки
         
         # Генерируем отладочную таблицу
-        debug_result = self._generate_debug_table(query, input_range, output_range, input_data)
+        debug_result = self._generate_debug_table(query, input_range, output_range, category, input_data)
         
         fake_metadata = {
             "processing_time": 0.2,

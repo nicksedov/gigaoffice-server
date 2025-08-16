@@ -121,8 +121,9 @@ class BaseGigaChatService(ABC):
     async def process_query(
         self, 
         query: str,
-        input_range: str,
+        input_range: Optional[str],
         output_range: str,
+        category: Optional[str],
         input_data: Optional[List[Dict]] = None,
         temperature: float = 0.1
     ) -> Tuple[List[List[Any]], Dict[str, Any]]:
@@ -131,6 +132,9 @@ class BaseGigaChatService(ABC):
         
         Args:
             query: Текст запроса
+            input_range: диапазон входных данных (опционально)
+            output_range: диапазон вывода результата
+            category: категория запроса
             input_data: Входные данные (опционально)
             temperature: Температура генерации (0.0 - 1.0)
         
