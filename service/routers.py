@@ -6,6 +6,9 @@ GigaOffice API Routers
 import uuid
 import time
 from datetime import datetime
+import json
+import asyncio
+from langchain_core.messages import HumanMessage, SystemMessage
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.responses import JSONResponse
@@ -18,6 +21,7 @@ from loguru import logger
 from model_types import RequestStatus
 from model_api import (
     AIRequestCreate, AIResponseCreate, AIResponseOut,
+    PromptClassificationRequest,
     ServiceHealth, ProcessingStatus, MetricsResponse
 )
 from model_orm import AIRequest, AIResponse, Category
@@ -278,6 +282,32 @@ async def get_preset_prompts(
 
     except Exception as e:
         logger.error(f"Error getting preset prompts: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@prompts_router.post("/classify", response_model=Dict[str, Any])
+@limiter.limit("10/minute")
+async def classify_prompt(
+    request: Request,
+    classification_request: PromptClassificationRequest,
+    current_user: Optional[Dict] = Depends(get_current_user)
+):
+    """
+    Классифицирует пользовательский промпт по предопределенным категориям
+    
+    Args:
+        prompt_text: Текст промпта для классификации
+        include_descriptions: Включать описания категорий в системный промпт
+    
+    Returns:
+        Результат классификации с вероятностями для каждой категории
+    """
+    try:
+        result = await gigachat_service.classify_query(classification_request.prompt_text) 
+        return result      
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error classifying prompt: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Metrics endpoints

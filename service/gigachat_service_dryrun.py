@@ -86,6 +86,23 @@ class DryRunGigaChatService:
         
         return result
 
+    async def classify_query(
+        self,
+        query: str,
+        temperature: float = 0.1
+    ) -> Dict[str, Any]:
+        """Обработка запроса с отображением отладочной информации"""
+        
+        time.sleep(0.2)  # Имитация обработки
+        
+        fake_metadata = {
+            "success": True,
+            "query_text": query,
+            "category": {"name": "generation"},
+            "confidence": 0.9
+        }
+        return fake_metadata
+
     async def process_query(
         self,
         query: str,

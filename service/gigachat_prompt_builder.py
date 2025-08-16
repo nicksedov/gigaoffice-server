@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from resource_loader import resource_loader
+from string import Template
 
 """
 GigaChat Prompt Builder
@@ -15,6 +16,20 @@ class GigachatPromptBuilder:
     def __init__(self):
         pass
     
+    def prepare_classifier_system_prompt(self, categories: List[Dict[str, Any]]) -> str:
+        """Подготовка системного промпта для классификатора пользовательского запроса"""
+        # Добавляем информацию о категориях
+        category_list = "\n"
+        for category in categories:
+            category_list += f"- {category['name']}"
+            if category['description']:
+                category_list += f": {category['description']}"
+            category_list += "\n"
+        prompt = resource_loader.get_prompt_template("gigachat_classifier_system_prompt.txt")
+        pt = Template(prompt)
+        text = pt.substitute({"category_list": category_list})
+        return text
+
     def prepare_system_prompt(self) -> str:
         """Подготовка системного промпта для табличных данных"""
         return resource_loader.get_prompt_template("gigachat_system_prompt.txt")

@@ -12,7 +12,10 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from loguru import logger
 from resource_loader import resource_loader
+from prompts import prompt_manager
+from gigachat_response_parser import response_parser
 from langchain_core.messages import HumanMessage, SystemMessage
+from fastapi import HTTPException
 
 class BaseGigaChatService(ABC):
     """Базовый абстрактный класс для GigaChat сервисов"""
@@ -59,6 +62,62 @@ class BaseGigaChatService(ABC):
         return len(text) // 4
     
         
+    async def classify_query(
+        self, 
+        query: str,
+        temperature: float = 0.1
+    ) -> Dict[str, Any]:
+        """
+        Классификация запроса
+        """
+        if not self._check_rate_limit():
+            raise Exception("Rate limit exceeded. Please wait before making another request.")
+        else:
+            # Получаем категории из базы данных
+            categories = await prompt_manager.get_prompt_categories()
+            # Подготовка сообщений
+            system_prompt = self.prompt_builder.prepare_classifier_system_prompt(categories)
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=query)
+            ]
+            response = await asyncio.to_thread(self.client.invoke, messages)
+            response_content = response.content
+            
+            # Парсим ответ
+            try:
+                result = response_parser.parse_object(response_content)
+                
+                # Валидация результата
+                if not isinstance(result, dict):
+                    raise ValueError("Expected dictionary response from parser")
+                    
+                if not all(key in result for key in ['category', 'confidence']):
+                    raise ValueError("Invalid response format")
+                    
+                for category in categories:
+                    if result['category'] == category['name']:
+                        return {
+                            "success": True,
+                            "query_text": query,
+                            "category": category,
+                            "confidence": result['confidence']
+                        }
+                return {
+                    "success": True,
+                    "query_text": query,
+                    "category": { "name": "uncertain" },
+                    "confidence": 0
+                }
+                
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.error(f"Error parsing classification response: {e}")
+                logger.debug(f"Raw response content: {response_content}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to parse classification response"
+                )
+
     async def process_query(
         self, 
         query: str,
@@ -116,7 +175,6 @@ class BaseGigaChatService(ABC):
             
             self.total_tokens_used += total_tokens
             
-            from gigachat_response_parser import response_parser
             result_data = response_parser.parse(response_content)
             metadata = {
                 "processing_time": processing_time,

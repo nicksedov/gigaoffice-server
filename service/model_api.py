@@ -76,6 +76,7 @@ class AIRequestCreate(BaseModel):
     output_range: str = Field(..., max_length=50)
     query_text: str = Field(..., min_length=1)
     preset_prompt: Optional[str] = None
+    category: Optional[str] = None
     input_data: Optional[List[Dict[str, Any]]] = None
 
 class AIRequestResponse(BaseModel):
@@ -107,6 +108,11 @@ class AIResponseOut(BaseModel):
     text_response: str
     rating: Optional[bool]
     comment: Optional[str]
+
+class PromptClassificationRequest(BaseModel):
+    """Схема для классификации промпта"""
+    prompt_text: str = Field(..., min_length=1, description="Текст промпта для классификации")
+    include_descriptions: bool = Field(False, description="Включать ли описания категорий в системный промпт")    
 
 class ServiceHealth(BaseModel):
     """Схема для проверки здоровья сервиса"""
