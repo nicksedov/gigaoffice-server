@@ -15,31 +15,22 @@ GigaChat Prompt Builder
 class GigachatPromptBuilder:
     """Класс для формирования промптов для GigaChat"""
     
-    SYSTEM_PROMPT_COMMON = (
-        "Ты — виртуальный ассистент для работы с электронными таблицами Р7-Офис.\n"
-        "Всегда предоставляй решения в формате, пригодном для вставки в электронную таблицу.\n"
-        "1. Если генерируешь данные, используй структуру: массив строк, где каждая строка — массив значений.\n"
-        "2. Если пользователь просит провести анализ или отчет, отвечай через статистические формулы над переданным диапазоном ячеек.\n"
-        "3. Даты в формате YYYY-MM-DD. Числовые данные разумно округлять.\n"
-        "4. Ответ всегда в виде JSON-массива массивов."
-    )
-
-    EXAMPLES_MAP = {
-        'analysis': 'analysis_examples.yaml',
-        'transformation': 'analysis_examples.yaml',
-        'search': 'analysis_examples.yaml', 
-        'generation': 'generation_examples.yaml'
+    PROMPT_CONFIG_FILE_MAP = {
+        'analysis':       'system_prompt_analysis.yaml',
+        'transformation': 'system_prompt_transformation.yaml',
+        'search':         'system_prompt_search.yaml', 
+        'generation':     'system_prompt_generation.yaml'
     }
 
     def __init__(self, resources_dir: str = 'resources/prompts/'):
         self.resources_dir = resources_dir
 
-    def _load_examples(self, examples_type: Literal['analysis', 'transformation', 'search', 'generation']) -> list:
-        filename = self.EXAMPLES_MAP.get(examples_type, self.EXAMPLES_MAP['analysis'])
+    def _load_system_prompt(self, prompt_type: Literal['analysis', 'transformation', 'search', 'generation']) -> list:
+        filename = self.PROMPT_CONFIG_FILE_MAP.get(prompt_type, self.PROMPT_CONFIG_FILE_MAP['analysis'])
         path = os.path.join(self.resources_dir, filename)
         with open(path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
-        return data['examples']
+        return data
     
     def prepare_classifier_system_prompt(self, categories: List[Dict[str, Any]]) -> str:
         """Подготовка системного промпта для классификатора пользовательского запроса"""
@@ -50,23 +41,24 @@ class GigachatPromptBuilder:
             if category['description']:
                 category_list += f": {category['description']}"
             category_list += "\n"
-        prompt = resource_loader.get_prompt_template("gigachat_classifier_system_prompt.txt")
+        prompt = resource_loader.get_prompt_template("classification_system_prompt.txt")
         pt = Template(prompt)
         text = pt.substitute({"category_list": category_list})
         return text
 
-    def prepare_system_prompt(self, examples_type: Literal['analysis', 'transformation', 'search', 'generation'] = 'analysis') -> str:
+    def prepare_system_prompt(self, prompt_type: Literal['analysis', 'transformation', 'search', 'generation'] = 'analysis') -> str:
         """
         Формирует системный промпт с общей частью и релевантными примерами.
         Аргумент:
-            examples_type: 'analysis', 'transformation', 'search' или 'generation'
+            prompt_type: 'analysis', 'transformation', 'search' или 'generation'
         """
-        examples = self._load_examples(examples_type)
-        prompt_lines = [self.SYSTEM_PROMPT_COMMON, "", "### Примеры:"]
+        data = self._load_system_prompt(prompt_type)
+        examples = data['examples']
+        prompt_lines = [data['prompt'], "", "### Примеры:"]
         for ex in examples:
             prompt_lines.append("Запрос:")
             prompt_lines.append(ex['request'])
-            prompt_lines.append("Ответ:")
+            prompt_lines.append("Твой ответ:")
             prompt_lines.append(f"{ex['response']}")
             prompt_lines.append('')
 
@@ -153,26 +145,22 @@ class GigachatPromptBuilder:
         timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         prompt_parts = [f"ДАТА ЗАПРОСА: {timestamp_str}", ""]
         
-        # 1. Исходные данные
+        # 1. Задача
+        prompt_parts.append(f"ЗАДАЧА: {query}")
+        prompt_parts.append("")
+
+        # 2. Исходные данные
         if input_data:
             prompt_parts.append("ИСХОДНЫЕ ДАННЫЕ:")
             prompt_parts.append(json.dumps(input_data, ensure_ascii=False, indent=2))
             prompt_parts.append("")
         
-        # 2. Диапазон ячеек с исходными данными
+        # 3. Диапазон ячеек с исходными данными
         if input_range:
             prompt_parts.append(f"ДИАПАЗОН ЯЧЕЕК С ИСХОДНЫМИ ДАННЫМИ: {input_range}")
             prompt_parts.append("")
         
-        # 3. Диапазон ячеек результата
-        if output_range:
-            prompt_parts.append(f"ДИАПАЗОН ЯЧЕЕК ДЛЯ ВСТАВКИ РЕЗУЛЬТАТА: {output_range}")
-        
-        # 4. Задача
-        prompt_parts.append(f"ЗАДАЧА: {query}")
-        prompt_parts.append("")
-        
-        # 5. Инструкция по формату ответа
+        # 4. Инструкция по формату ответа
         prompt_parts.append("Предоставь ответ в виде JSON-массива массивов.")
         
         return "\n".join(prompt_parts)
