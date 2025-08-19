@@ -46,7 +46,10 @@ class GigachatPromptBuilder:
         text = pt.substitute({"category_list": category_list})
         return text
 
-    def prepare_system_prompt(self, prompt_type: Literal['analysis', 'transformation', 'search', 'generation'] = 'analysis') -> str:
+    def prepare_system_prompt(
+        self, 
+        prompt_type: Literal['analysis', 'transformation', 'search', 'generation'] = 'analysis'
+    ) -> str:
         """
         Формирует системный промпт с общей частью и релевантными примерами.
         Аргумент:
@@ -59,7 +62,7 @@ class GigachatPromptBuilder:
             prompt_lines.append("Запрос:")
             prompt_lines.append(ex['request'])
             prompt_lines.append("Твой ответ:")
-            prompt_lines.append(f"{ex['response']}")
+            prompt_lines.append(ex['response'])
             prompt_lines.append('')
 
         return "\n".join(prompt_lines)

@@ -1,3 +1,4 @@
+# prompts.py
 """
 GigaOffice Prompt Manager
 Менеджер для работы с предустановленными промптами и популярными запросами
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import desc, func
 from sqlalchemy.orm import joinedload
 from loguru import logger
+from cachetools import TTLCache
 
 from database import get_db_session
 from model_orm import Prompt, Category
@@ -17,22 +19,17 @@ class PromptManager:
     """Менеджер для работы с промптами"""
     
     def __init__(self):
-        self.cached_prompts = {}
-        self.cache_expiry = {}
-        self.cache_duration = 600  # 10 minutes
-        
+        # TTLCache(maxsize, ttl) - maxsize можно подобрать по объему кэша, ttl в секундах (здесь 1 час)
+        self.cache = TTLCache(maxsize=1000, ttl=3600)
+
     async def get_prompt_categories(self) -> List[Dict[str, Any]]:
-        """Получение категорий промптов с описанием"""
+        cache_key = "categories_with_description"
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         try:
-            cache_key = "categories_with_description"
-            
-            # Check cache
-            if cache_key in self.cached_prompts and cache_key in self.cache_expiry:
-                if time.time() < self.cache_expiry[cache_key]:
-                    return self.cached_prompts[cache_key]
-            
             with get_db_session() as db:
-                # Получаем категории с подсчетом промптов
                 categories = db.query(
                     Category.id,
                     Category.name,
@@ -53,7 +50,7 @@ class PromptManager:
                     Category.is_active,
                     Category.sort_order
                 ).order_by(Category.sort_order).all()
-                
+
                 result = [
                     {
                         "id": category.id,
@@ -66,58 +63,48 @@ class PromptManager:
                     }
                     for category in categories
                 ]
-                
-                # Update cache
-                self.cached_prompts[cache_key] = result
-                self.cache_expiry[cache_key] = time.time() + self.cache_duration
-                
+
+                self.cache[cache_key] = result
                 return result
-                
+
         except Exception as e:
             logger.error(f"Error getting prompt categories: {e}")
             return []
-    
+
     async def get_prompts(self) -> List[Prompt]:
-        """Получение всех активных промптов с eager loading"""
+        cache_key = "all_active_prompts"
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         try:
-            cache_key = "all_active_prompts"
-            
-            if cache_key in self.cached_prompts and cache_key in self.cache_expiry:
-                if time.time() < self.cache_expiry[cache_key]:
-                    return self.cached_prompts[cache_key]
-            
             with get_db_session() as db:
                 prompts = db.query(Prompt).options(
                     joinedload(Prompt.category_obj)
                 ).filter(
                     Prompt.is_active == True
                 ).order_by(Prompt.usage_count.desc()).all()
-                
-                # Принудительно загружаем relationships пока объекты в сессии
+
                 for prompt in prompts:
                     if prompt.category_obj:
                         _ = prompt.category_obj.name  # Принудительная загрузка
-                
-                self.cached_prompts[cache_key] = prompts
-                self.cache_expiry[cache_key] = time.time() + self.cache_duration
+
+                self.cache[cache_key] = prompts
                 return prompts
-                
+
         except Exception as e:
             logger.error(f"Error getting prompts: {e}")
             return []
-            
+
     async def get_prompts_by_category(self, category_identifier: str) -> List[Prompt]:
-        """Получение промптов по категории с eager loading"""
+        cache_key = f"category_{category_identifier}"
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         try:
-            cache_key = f"category_{category_identifier}"
-            
-            if cache_key in self.cached_prompts and cache_key in self.cache_expiry:
-                if time.time() < self.cache_expiry[cache_key]:
-                    return self.cached_prompts[cache_key]
-            
             with get_db_session() as db:
                 if category_identifier.isdigit():
-                    # Поиск по ID с eager loading
                     prompts = db.query(Prompt).options(
                         joinedload(Prompt.category_obj)
                     ).filter(
@@ -125,7 +112,6 @@ class PromptManager:
                         Prompt.is_active == True
                     ).order_by(Prompt.usage_count.desc()).all()
                 else:
-                    # Поиск по name категории с eager loading
                     prompts = db.query(Prompt).options(
                         joinedload(Prompt.category_obj)
                     ).join(Category).filter(
@@ -133,16 +119,14 @@ class PromptManager:
                         Category.is_active == True,
                         Prompt.is_active == True
                     ).order_by(Prompt.usage_count.desc()).all()
-                
-                # Принудительно загружаем relationships пока объекты в сессии
+
                 for prompt in prompts:
                     if prompt.category_obj:
                         _ = prompt.category_obj.name  # Принудительная загрузка
-                
-                self.cached_prompts[cache_key] = prompts
-                self.cache_expiry[cache_key] = time.time() + self.cache_duration
+
+                self.cache[cache_key] = prompts
                 return prompts
-                
+
         except Exception as e:
             logger.error(f"Error getting prompts by category: {e}")
             return []
@@ -358,11 +342,10 @@ class PromptManager:
             logger.error(f"Error getting usage analytics: {e}")
             return {}
     
+    # При изменении данных очищаем кэш полностью
     def _clear_cache(self):
-        """Очистка кэша"""
-        self.cached_prompts.clear()
-        self.cache_expiry.clear()
-    
+        self.cache.clear()
+
     async def export_prompts(self, format: str = "json") -> str:
         """Экспорт промптов в JSON или CSV"""
         try:
