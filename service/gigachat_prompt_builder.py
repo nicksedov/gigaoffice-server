@@ -16,6 +16,7 @@ class GigachatPromptBuilder:
     """Класс для формирования промптов для GigaChat"""
     
     PROMPT_CONFIG_FILE_MAP = {
+        'classifier':     'user_prompt_classifier.yaml',
         'analysis':       'system_prompt_analysis.yaml',
         'transformation': 'system_prompt_transformation.yaml',
         'search':         'system_prompt_search.yaml', 
@@ -25,7 +26,7 @@ class GigachatPromptBuilder:
     def __init__(self, resources_dir: str = 'resources/prompts/'):
         self.resources_dir = resources_dir
 
-    def _load_system_prompt(self, prompt_type: Literal['analysis', 'transformation', 'search', 'generation']) -> list:
+    def _load_system_prompt(self, prompt_type: str) -> list:
         filename = self.PROMPT_CONFIG_FILE_MAP.get(prompt_type, self.PROMPT_CONFIG_FILE_MAP['analysis'])
         path = os.path.join(self.resources_dir, filename)
         with open(path, 'r', encoding='utf-8') as f:
@@ -34,6 +35,7 @@ class GigachatPromptBuilder:
     
     def prepare_classifier_system_prompt(self, categories: List[Dict[str, Any]]) -> str:
         """Подготовка системного промпта для классификатора пользовательского запроса"""
+        text = self.prepare_system_prompt('classifier')
         # Добавляем информацию о категориях
         category_list = "\n"
         for category in categories:
@@ -41,19 +43,17 @@ class GigachatPromptBuilder:
             if category['description']:
                 category_list += f": {category['description']}"
             category_list += "\n"
-        prompt = resource_loader.get_prompt_template("classification_system_prompt.txt")
-        pt = Template(prompt)
-        text = pt.substitute({"category_list": category_list})
-        return text
+        pt = Template(text)
+        return pt.substitute({"category_list": category_list})
 
     def prepare_system_prompt(
         self, 
-        prompt_type: Literal['analysis', 'transformation', 'search', 'generation'] = 'analysis'
+        prompt_type: str = 'analysis'
     ) -> str:
         """
         Формирует системный промпт с общей частью и релевантными примерами.
         Аргумент:
-            prompt_type: 'analysis', 'transformation', 'search' или 'generation'
+            prompt_type: тип промпта, например 'analysis', 'transformation', 'search' или 'generation'
         """
         data = self._load_system_prompt(prompt_type)
         examples = data['examples']
