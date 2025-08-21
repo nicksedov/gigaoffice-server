@@ -90,7 +90,6 @@ async def process_ai_request(
             user_id=user_id,
             status=RequestStatus.PENDING,
             input_range=ai_request.input_range,
-            output_range=ai_request.output_range,
             query_text=ai_request.query_text,
             category=ai_request.category,
             input_data=ai_request.input_data
@@ -103,7 +102,6 @@ async def process_ai_request(
             user_id=user_id,
             query=ai_request.query_text,
             input_range=ai_request.input_range,
-            output_range=ai_request.output_range, 
             category=ai_request.category,
             input_data=ai_request.input_data,
             priority=1 if current_user and current_user.get("role") == "premium" else 0

@@ -44,14 +44,13 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         request_id = message_data["id"]
         query = message_data["query"]
         input_range = message_data["input_range"]
-        output_range = message_data["output_range"]
         category = message_data["category"]
         input_data = message_data["input_data"]
         
         logger.info(f"Processing Kafka message: {request_id}")
         
         # Process with GigaChat
-        result, metadata = await gigachat_service.process_query(query, input_range, output_range, category, input_data)
+        result, metadata = await gigachat_service.process_query(query, input_range, category, input_data)
         
         # Update database
         with get_db_session() as db:

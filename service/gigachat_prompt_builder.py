@@ -130,7 +130,6 @@ class GigachatPromptBuilder:
         self, 
         query: str, 
         input_range: Optional[str] = None,
-        output_range: Optional[str] = None,
         input_data: Optional[List[Dict]] = None
     ) -> str:
         """
@@ -140,7 +139,6 @@ class GigachatPromptBuilder:
             query: Текст запроса пользователя
             input_data: Входные данные (опционально)
             input_range: Диапазон ячеек с исходными данными (например, "A1:C10")
-            output_range: Диапазон ячеек для результата (например, "E1:G5")
             
         Returns:
             str: Сформированный промпт для отправки в GigaChat

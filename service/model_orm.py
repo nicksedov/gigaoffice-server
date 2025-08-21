@@ -75,7 +75,6 @@ class AIRequest(Base):
     
     # Request data
     input_range = Column(String(50))
-    output_range = Column(String(50), nullable=False)
     query_text = Column(Text, nullable=False)
     category = Column(String(50))
     input_data = Column(JSON)

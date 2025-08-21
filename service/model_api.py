@@ -73,7 +73,6 @@ class PromptCreate(BaseModel):
 class AIRequestCreate(BaseModel):
     """Схема для создания запроса к ИИ"""
     input_range: Optional[str] = Field(None, max_length=50)
-    output_range: str = Field(..., max_length=50)
     query_text: str = Field(..., min_length=1)
     category: Optional[str] = None
     input_data: Optional[List[Dict[str, Any]]] = None
@@ -83,7 +82,6 @@ class AIRequestResponse(BaseModel):
     id: int
     status: str
     input_range: Optional[str]
-    output_range: str
     query_text: str
     result_data: Optional[List[List[Any]]]
     error_message: Optional[str]

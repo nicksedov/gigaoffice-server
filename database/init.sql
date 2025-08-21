@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS ai_requests (
     user_id INTEGER,
     status VARCHAR(20) DEFAULT 'pending',
     input_range VARCHAR(50),
-    output_range VARCHAR(50) NOT NULL,
     query_text TEXT NOT NULL,
     category VARCHAR(50) NOT NULL,
     input_data JSONB,

@@ -122,7 +122,6 @@ class BaseGigaChatService(ABC):
         self, 
         query: str,
         input_range: Optional[str],
-        output_range: str,
         category: Optional[str],
         input_data: Optional[List[Dict]] = None,
         temperature: float = 0.1
@@ -133,7 +132,6 @@ class BaseGigaChatService(ABC):
         Args:
             query: Текст запроса
             input_range: диапазон входных данных (опционально)
-            output_range: диапазон вывода результата
             category: категория запроса
             input_data: Входные данные (опционально)
             temperature: Температура генерации (0.0 - 1.0)
@@ -148,7 +146,7 @@ class BaseGigaChatService(ABC):
             
             # Prepare prompts
             system_prompt = self.prompt_builder.prepare_system_prompt()
-            user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, output_range, input_data)
+            user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, input_data)
             
             # Count tokens
             total_input_tokens = self._count_tokens(system_prompt + user_prompt)

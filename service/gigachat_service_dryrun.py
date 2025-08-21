@@ -51,7 +51,7 @@ class DryRunGigaChatService:
         return env_vars
 
     def _generate_debug_table(self, query: str, input_range: Optional[str] = None, 
-        output_range: Optional[str] = None, category: Optional[str] = None,
+        category: Optional[str] = None,
         input_data: Optional[List[Dict]] = None) -> List[List[Any]]:
         """Генерация таблицы с отладочной информацией"""
         
@@ -60,7 +60,7 @@ class DryRunGigaChatService:
         
         # Генерируем промпты используя GigachatPromptBuilder
         system_prompt = self.prompt_builder.prepare_system_prompt(category)
-        user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, output_range, input_data)
+        user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, input_data)
         
         # Формируем таблицу
         result = [['Параметр', 'Значение']]
@@ -74,7 +74,6 @@ class DryRunGigaChatService:
         result.append(['# ПОЛЬЗОВАТЕЛЬСКИЕ ДАННЫЕ', ''])
         result.append(['Промпт (запрос)', query])
         result.append(['Диапазон исходных данных', input_range or 'Не указан'])
-        result.append(['Диапазон для результата', output_range or 'Не указан'])
         result.append(['Категория запроса', category or 'Не указана'])
         
         # Добавляем входные данные если есть
@@ -109,7 +108,6 @@ class DryRunGigaChatService:
         self,
         query: str,
         input_range: Optional[str] = None,
-        output_range: Optional[str] = None,
         category: Optional[str] = None,
         input_data: Optional[List[Dict]] = None,
         temperature: float = 0.1
@@ -120,7 +118,7 @@ class DryRunGigaChatService:
         time.sleep(0.2)  # Имитация обработки
         
         # Генерируем отладочную таблицу
-        debug_result = self._generate_debug_table(query, input_range, output_range, category, input_data)
+        debug_result = self._generate_debug_table(query, input_range, category, input_data)
         
         fake_metadata = {
             "processing_time": 0.2,
@@ -160,7 +158,6 @@ class DryRunGigaChatService:
                 query["query"], 
                 query.get("input_data"),
                 input_range=query.get("input_range"),
-                output_range=query.get("output_range")
             )
             results.append({
                 "id": query.get("id"),
