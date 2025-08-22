@@ -1,4 +1,4 @@
-# GigaOffice Service Requirements
+﻿# GigaOffice Service Requirements
 # Python dependencies for the GigaOffice intermediate service
 
 # Web framework
@@ -70,3 +70,6 @@ healthcheck
 
 # Environment validation
 environs
+
+# Data caching
+cachetools	

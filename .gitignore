@@ -1,4 +1,4 @@
-.vs
+﻿.vs
 .idea
 .venv
 .log
@@ -6,4 +6,4 @@ docker
 __pycache__
 
 *.prompt
-runlocal.sh
+*.sh
