@@ -2,6 +2,7 @@
   "base_url": "https://gigachat.devices.sberbank.ru/api/v1",
   "scope": "GIGACHAT_API_PERS",
   "model": "GigaChat",
+  "max_retries": 3,
   "verify_ssl_certs": false,
   "timeout": 60.0,
   "max_requests_per_minute": 20,

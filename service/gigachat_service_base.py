@@ -139,77 +139,184 @@ class BaseGigaChatService(ABC):
         Returns:
             Tuple[результат, метаданные]
         """
-        try:
-            # Check rate limits
-            if not self._check_rate_limit():
-                raise Exception("Rate limit exceeded. Please wait before making another request.")
-            
-            # Prepare prompts
-            system_prompt = self.prompt_builder.prepare_system_prompt()
-            user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, input_data)
-            
-            # Count tokens
-            total_input_tokens = self._count_tokens(system_prompt + user_prompt)
-            if total_input_tokens > self.max_tokens_per_request:
-                raise Exception(f"Input too long: {total_input_tokens} tokens (max: {self.max_tokens_per_request})")
-            
-            # Prepare messages
-            messages = [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=user_prompt)
-            ]
-            
-            # Add request time for rate limiting
-            self._add_request_time()
-            
-            # Make request to GigaChat
-            start_time = time.time()
-            logger.info(f"Sending request to GigaChat: {query[:100]}...")
-            
-            response = await asyncio.to_thread(self.client.invoke, messages)
-            
-            processing_time = time.time() - start_time
-            
-            # Parse response
-            response_content = response.content
-            output_tokens = self._count_tokens(response_content)
-            total_tokens = total_input_tokens + output_tokens
-            
-            self.total_tokens_used += total_tokens
-            
-            result_data = response_parser.parse(response_content)
-            metadata = {
-                "processing_time": processing_time,
-                "input_tokens": total_input_tokens,
-                "output_tokens": output_tokens,
-                "total_tokens": total_tokens,
-                "model": self.model,
-                "timestamp": datetime.now().isoformat(),
-                "request_id": getattr(response, 'id', None),
-                "success": True
-            }
-            
-            logger.info(f"GigaChat request completed successfully in {processing_time:.2f}s, tokens: {total_tokens}")
-            
-            return result_data, metadata
-            
-        except Exception as e:
-            logger.error(f"GigaChat request failed: {e}")
-            
-            metadata = {
-                "processing_time": 0,
-                "input_tokens": 0,
-                "output_tokens": 0,
-                "total_tokens": 0,
-                "model": self.model,
-                "timestamp": datetime.now().isoformat(),
-                "request_id": None,
-                "success": False,
-                "error": str(e)
-            }
-            
-            raise Exception(f"GigaChat processing failed: {e}")
-    
+        # Получаем количество попыток из конфигурации
+        config = resource_loader.get_config("gigachat_config")
+        max_retries = int(os.getenv("GIGACHAT_MAX_RETRIES", config.get("max_retries", 3)))
+        
+        last_exception = None
+        total_processing_time = 0
+        total_input_tokens = 0
+        total_output_tokens = 0
+        
+        for attempt in range(max_retries):
+            try:
+                # Check rate limits
+                if not self._check_rate_limit():
+                    raise Exception("Rate limit exceeded. Please wait before making another request.")
+                
+                # Prepare prompts
+                system_prompt = self.prompt_builder.prepare_system_prompt()
+                user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, input_data)
+                
+                # Count tokens
+                input_tokens = self._count_tokens(system_prompt + user_prompt)
+                if input_tokens > self.max_tokens_per_request:
+                    raise Exception(f"Input too long: {input_tokens} tokens (max: {self.max_tokens_per_request})")
+                
+                total_input_tokens = input_tokens
+                
+                # Prepare messages
+                messages = [
+                    SystemMessage(content=system_prompt),
+                    HumanMessage(content=user_prompt)
+                ]
+                
+                # Add request time for rate limiting
+                self._add_request_time()
+                
+                # Make request to GigaChat
+                start_time = time.time()
+                logger.info(f"Sending request to GigaChat (attempt {attempt + 1}/{max_retries}): {query[:100]}...")
+                
+                response = await asyncio.to_thread(self.client.invoke, messages)
+                
+                processing_time = time.time() - start_time
+                total_processing_time += processing_time
+                
+                # Parse response
+                response_content = response.content
+                output_tokens = self._count_tokens(response_content)
+                total_output_tokens += output_tokens
+                total_tokens = input_tokens + output_tokens
+                
+                self.total_tokens_used += total_tokens
+                
+                # Попытка парсинга ответа
+                result_data = response_parser.parse(response_content)
+                
+                # Проверяем, что парсер вернул валидные данные
+                if result_data is None:
+                    logger.warning(
+                        f"Parser returned None for response (attempt {attempt + 1}/{max_retries}). "
+                        f"Query: {query[:100]}..."
+                    )
+                    logger.debug(f"Response content that failed to parse: {response_content}")
+                    
+                    # Если это не последняя попытка, продолжаем
+                    if attempt < max_retries - 1:
+                        logger.info(f"Retrying request (attempt {attempt + 2}/{max_retries})...")
+                        # Небольшая задержка перед повтором
+                        await asyncio.sleep(1.0)
+                        continue
+                    else:
+                        # Последняя попытка неудачна
+                        logger.error(
+                            f"All {max_retries} attempts failed to parse response. "
+                            f"Final response content: {response_content}"
+                        )
+                        raise Exception(f"Failed to parse GigaChat response after {max_retries} attempts")
+                
+                # Успешный результат
+                metadata = {
+                    "processing_time": total_processing_time,
+                    "input_tokens": total_input_tokens,
+                    "output_tokens": total_output_tokens,
+                    "total_tokens": total_input_tokens + total_output_tokens,
+                    "model": self.model,
+                    "timestamp": datetime.now().isoformat(),
+                    "request_id": getattr(response, 'id', None),
+                    "success": True,
+                    "attempts": attempt + 1,
+                    "max_retries": max_retries
+                }
+                
+                logger.info(
+                    f"GigaChat request completed successfully in {total_processing_time:.2f}s, "
+                    f"tokens: {total_input_tokens + total_output_tokens}, attempts: {attempt + 1}"
+                )
+                
+                return result_data, metadata
+                
+            except Exception as e:
+                last_exception = e
+                logger.warning(f"Attempt {attempt + 1}/{max_retries} failed: {e}")
+                
+                # Если это не последняя попытка и ошибка не критичная, продолжаем
+                if attempt < max_retries - 1:
+                    # Проверяем, стоит ли повторять попытку для данного типа ошибки
+                    if self._should_retry_error(e):
+                        logger.info(f"Retrying request (attempt {attempt + 2}/{max_retries})...")
+                        # Увеличиваем задержку с каждой попыткой
+                        await asyncio.sleep(2.0 * (attempt + 1))
+                        continue
+                    else:
+                        # Критичная ошибка, не повторяем
+                        logger.error(f"Critical error, not retrying: {e}")
+                        break
+        
+        # Все попытки исчерпаны
+        logger.error(f"GigaChat request failed after {max_retries} attempts: {last_exception}")
+        
+        metadata = {
+            "processing_time": total_processing_time,
+            "input_tokens": total_input_tokens,
+            "output_tokens": total_output_tokens,
+            "total_tokens": total_input_tokens + total_output_tokens,
+            "model": self.model,
+            "timestamp": datetime.now().isoformat(),
+            "request_id": None,
+            "success": False,
+            "error": str(last_exception),
+            "attempts": max_retries,
+            "max_retries": max_retries
+        }
+        
+        raise Exception(f"GigaChat processing failed after {max_retries} attempts: {last_exception}")
+
+    def _should_retry_error(self, error: Exception) -> bool:
+        """
+        Определяет, стоит ли повторять запрос при данной ошибке
+        
+        Args:
+            error: Исключение, которое произошло
+        
+        Returns:
+            True, если ошибку можно повторить, False - если критичная
+        """
+        error_message = str(error).lower()
+        
+        # Ошибки, при которых НЕ стоит повторять
+        non_retryable_errors = [
+            "rate limit exceeded",
+            "input too long",
+            "authentication failed",
+            "invalid credentials",
+            "insufficient permissions",
+            "quota exceeded"
+        ]
+        
+        for non_retryable in non_retryable_errors:
+            if non_retryable in error_message:
+                return False
+        
+        # Ошибки, при которых стоит повторить
+        retryable_errors = [
+            "timeout",
+            "connection",
+            "network",
+            "server error",
+            "service unavailable",
+            "internal error",
+            "failed to parse"
+        ]
+        
+        for retryable in retryable_errors:
+            if retryable in error_message:
+                return True
+        
+        # По умолчанию повторяем неизвестные ошибки
+        return True 
+        
     def get_available_models(self) -> List[str]:
         """Получение списка доступных моделей"""
         try:
