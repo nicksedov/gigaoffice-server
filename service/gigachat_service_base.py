@@ -75,6 +75,11 @@ class BaseGigaChatService(ABC):
         else:
             # Получаем категории из базы данных
             categories = await prompt_manager.get_prompt_categories()
+            categories.append({
+                        "name": 'uncertain',
+                        "display_name": 'Не относится к задачам, решаемым в электронных таблицах',
+                        "description": 'Не относится ни к одной категории анализа, синтеза, поиска или обработки данных с помощью электронных таблиц'
+                    })
             # Подготовка сообщений
             system_prompt = self.prompt_builder.prepare_classifier_system_prompt(categories)
             messages = [
