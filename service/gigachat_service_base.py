@@ -97,6 +97,7 @@ class BaseGigaChatService(ABC):
                     
                 for category in categories:
                     if result['category'] == category['name']:
+                        logger.info((f"Prompt '{query[:50]}' classified as '{category['name']}' with confidence rate {result['confidence']:3f}"))
                         return {
                             "success": True,
                             "query_text": query,
