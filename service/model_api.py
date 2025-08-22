@@ -1,4 +1,4 @@
-"""
+﻿"""
 GigaOffice Service Data Models
 Модели данных для промежуточного сервиса GigaOffice
 """
@@ -122,7 +122,6 @@ class ServiceHealth(BaseModel):
     database: bool = True
     gigachat: bool = True
     kafka: bool = True
-    redis: bool = True
     
     # Performance metrics
     active_requests: int = 0

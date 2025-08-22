@@ -1,4 +1,4 @@
-"""
+﻿"""
 GigaOffice API Routers
 Все API эндпоинты для обработки запросов
 """
@@ -62,7 +62,6 @@ async def health_check():
         database=db_health.get("status") == "healthy",
         gigachat=gigachat_health.get("status") == "healthy",
         kafka=kafka_health.get("status") == "healthy",
-        redis=True,
         queue_size=kafka_health.get("statistics", {}).get("messages_sent", 0),
         memory_usage=0.0,
         cpu_usage=0.0

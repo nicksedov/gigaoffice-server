@@ -1,4 +1,4 @@
-openapi: 3.0.3
+﻿openapi: 3.0.3
 info:
   title: GigaOffice AI Service API
   version: "1.0.0"
@@ -44,8 +44,6 @@ components:
         gigachat:
           type: boolean
         kafka:
-          type: boolean
-        redis:
           type: boolean
         queue_size:
           type: integer

@@ -41,10 +41,6 @@ python-multipart
 # Logging and monitoring
 loguru
 
-# Task scheduling
-celery
-redis
-
 # Testing
 pytest
 pytest-asyncio
