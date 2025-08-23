@@ -19,7 +19,6 @@ class MtlsGigaChatService(BaseGigaChatService):
             
             # Получаем параметры для mTLS подключения
             self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
-            self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
             self.ca_bundle_file = os.getenv("GIGACHAT_MTLS_CA_BUNDLE_FILE")
             self.cert_file = os.getenv("GIGACHAT_MTLS_CERT_FILE")
             self.key_file = os.getenv("GIGACHAT_MTLS_KEY_FILE")
