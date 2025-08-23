@@ -13,8 +13,8 @@ from loguru import logger
 class DryRunGigaChatService:
     """Заглушка для GigaChat с отображением переменных окружения и промптов"""
 
-    def __init__(self, prompt_builder):
-        self.model = "GigaChat-DryRun"
+    def __init__(self, prompt_builder, model=None):
+        self.model = model or "GigaChat-DryRun"
         self.total_tokens_used = 0
         self.request_times = []
         # Используем GigachatPromptBuilder

@@ -20,7 +20,7 @@ from loguru import logger
 from database import init_database, get_db_session
 from model_types import RequestStatus
 from model_orm import AIRequest
-from gigachat_factory import gigachat_service
+from gigachat_factory import gigachat_generate_service
 from kafka_service import kafka_service
 from prompts import prompt_manager
 
@@ -50,7 +50,7 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"Processing Kafka message: {request_id}")
         
         # Process with GigaChat
-        result, metadata = await gigachat_service.process_query(query, input_range, category, input_data)
+        result, metadata = await gigachat_generate_service.process_query(query, input_range, category, input_data)
         
         # Update database
         with get_db_session() as db:

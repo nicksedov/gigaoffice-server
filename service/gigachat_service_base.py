@@ -20,10 +20,10 @@ from fastapi import HTTPException
 class BaseGigaChatService(ABC):
     """Базовый абстрактный класс для GigaChat сервисов"""
     
-    def __init__(self, prompt_builder):
-        # Общие настройки для всех режимов
+class BaseGigaChatService(ABC):
+    def __init__(self, prompt_builder, model=None):
         config = resource_loader.get_config("gigachat_config")
-        self.model = os.getenv("GIGACHAT_MODEL", config.get("model"))
+        self.model = model or os.getenv("GIGACHAT_GENERATE_MODEL", config.get("model"))
         self.scope = os.getenv("GIGACHAT_SCOPE", config.get("scope"))
         self.verify_ssl_certs = os.getenv("GIGACHAT_VERIFY_SSL", str(config.get("verify_ssl_certs", False))).lower() == "true"
         

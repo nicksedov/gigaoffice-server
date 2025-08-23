@@ -26,7 +26,7 @@ from model_api import (
 )
 from model_orm import AIRequest, AIResponse, Category
 from database import get_db, check_database_health
-from gigachat_factory import gigachat_service
+from gigachat_factory import gigachat_classify_service, gigachat_generate_service
 from kafka_service import kafka_service
 from fastapi_config import security, app_start_time
 from prompts import prompt_manager
@@ -54,7 +54,7 @@ async def health_check():
     uptime = time.time() - app_start_time
     
     db_health = check_database_health()
-    gigachat_health = gigachat_service.check_service_health()
+    gigachat_health = gigachat_classify_service.check_service_health()
     kafka_health = kafka_service.get_health_status()
     
     health_status = ServiceHealth(
@@ -301,7 +301,7 @@ async def classify_prompt(
         Результат классификации с вероятностями для каждой категории
     """
     try:
-        result = await gigachat_service.classify_query(classification_request.prompt_text) 
+        result = await gigachat_classify_service.classify_query(classification_request.prompt_text) 
         return result      
     except HTTPException:
         raise
@@ -320,7 +320,7 @@ async def get_metrics(
         if not current_user or current_user.get("role") not in ["admin", "premium"]:
             raise HTTPException(status_code=403, detail="Access denied")
         
-        gigachat_stats = gigachat_service.get_usage_statistics()
+        gigachat_stats = gigachat_generate_service.get_usage_statistics()
         kafka_info = kafka_service.get_queue_info()
         
         metrics = MetricsResponse(
