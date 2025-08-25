@@ -1,0 +1,17 @@
+2025-08-25 21:22:52 | INFO | __main__:178 | Starting GigaOffice AI Service v1.0.0
+2025-08-25 21:22:52 | INFO | __main__:179 | Environment: development
+2025-08-25 21:22:52 | INFO | __main__:180 | Server configuration: 0.0.0.0:8000 (workers: 1, reload: False)
+2025-08-25 21:22:52 | INFO | app.lifespan:30 | Starting GigaOffice AI Service v1.0.0
+2025-08-25 21:22:52 | INFO | app.lifespan:100 | Initializing database...
+2025-08-25 21:22:52 | INFO | app.db.session:182 | Starting database initialization...
+2025-08-25 21:22:54 | ERROR | app.utils.logger:330 | TIMER db_connection_check - 2.031s - FAILED
+2025-08-25 21:22:54 | ERROR | app.db.session:125 | Database connection failed: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: Permission denied (0x0000271D/10013)
+	Is the server running on that host and accepting TCP/IP connections?
+connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-08-25 21:22:54 | ERROR | app.db.session:198 | Database initialization failed: Database connection check failed
+2025-08-25 21:22:54 | ERROR | app.lifespan:114 | Database startup failed: Database connection check failed
+2025-08-25 21:22:54 | ERROR | app.lifespan:55 | Application startup failed: Database connection check failed
+2025-08-25 21:22:54 | ERROR | app.utils.logger:157 | application.startup - FAILED - 0.000s

@@ -136,6 +136,11 @@ class AppState:
         self.components_status[component] = False
         self.is_ready = False
     
+    def mark_component_shutdown(self, component: str):
+        """Mark a component as shutdown during application cleanup"""
+        self.components_status[component] = False
+        self.is_ready = False
+    
     def check_readiness(self):
         """Check if all components are ready"""
         self.is_ready = all(self.components_status.values())

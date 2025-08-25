@@ -166,6 +166,193 @@ class DatabaseManager:
             logger.error(f"Error getting database info: {e}")
             return {"error": str(e)}
     
+    async def initialize(self) -> None:
+        """
+        Initialize database: check connection, create tables, setup default data
+        
+        This method is called during application startup and performs:
+        1. Database connection validation
+        2. Table creation if needed
+        3. Default data initialization (categories, prompts, admin user)
+        
+        Raises:
+            Exception: If initialization fails
+        """
+        try:
+            logger.info("Starting database initialization...")
+            
+            # Check database connection
+            if not self.check_connection():
+                raise Exception("Database connection check failed")
+            
+            # Create tables if they don't exist
+            self.create_tables()
+            
+            # Initialize default data
+            self.init_default_data()
+            
+            logger.info("Database initialization completed successfully")
+            app_state.mark_component_ready("database")
+            
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}")
+            app_state.mark_component_failed("database")
+            raise
+    
+    async def cleanup(self) -> None:
+        """
+        Cleanup database connections and resources
+        
+        This method is called during application shutdown and performs:
+        1. Connection pool disposal
+        2. Resource cleanup
+        """
+        try:
+            logger.info("Cleaning up database connections...")
+            
+            if self.engine:
+                # Dispose of connection pool
+                self.engine.dispose()
+                logger.info("Database connection pool disposed")
+            
+            # Clear cache and reset state
+            app_state.mark_component_shutdown("database")
+            
+        except Exception as e:
+            logger.error(f"Database cleanup error: {e}")
+    
+    def init_default_data(self) -> None:
+        """
+        Initialize default categories, prompts, and admin user
+        
+        This method sets up the basic data required for the application:
+        - Default prompt categories
+        - Default prompt templates  
+        - System administrator account
+        
+        Raises:
+            Exception: If data initialization fails
+        """
+        try:
+            from ..utils.resource_loader import resource_loader
+            from .models import Prompt, User, Category
+            from passlib.context import CryptContext
+            
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            
+            with get_db_session() as db:
+                # Create admin user if doesn't exist
+                admin_user = db.query(User).filter(User.username == "admin").first()
+                if not admin_user:
+                    admin_user = User(
+                        username="admin",
+                        email="admin@gigaoffice.com",
+                        hashed_password=pwd_context.hash("admin123"),
+                        full_name="System Administrator",
+                        role="admin"
+                    )
+                    db.add(admin_user)
+                    logger.info("Admin user created")
+
+                # Initialize categories
+                category_map = self._create_default_categories(db, resource_loader)
+                
+                # Create default prompts
+                self._create_default_prompts(db, resource_loader, category_map)
+                
+                # Migrate legacy data if needed
+                self._migrate_legacy_data(db)
+                
+                db.commit()
+                logger.info("Default data initialization completed")
+                
+        except Exception as e:
+            logger.error(f"Error initializing default data: {e}")
+            raise
+    
+    def _create_default_categories(self, db: Session, resource_loader) -> Dict[str, int]:
+        """
+        Create default prompt categories and return name->id mapping
+        
+        Args:
+            db: Database session
+            resource_loader: Resource loader instance
+            
+        Returns:
+            Dictionary mapping category names to IDs
+        """
+        from .models import Category
+        
+        categories_data = resource_loader.load_json("prompts/prompt_categories.json")
+        existing_categories = db.query(Category).count()
+        category_map = {}
+        
+        if existing_categories == 0 and categories_data:
+            for category_data in categories_data:
+                category = Category(**category_data)
+                db.add(category)
+                db.flush()  # Get ID
+                category_map[category.name] = category.id
+            
+            logger.info(f"Created {len(categories_data)} categories")
+        else:
+            # Build mapping from existing categories
+            category_map = {cat.name: cat.id for cat in db.query(Category).all()}
+        
+        return category_map
+    
+    def _create_default_prompts(self, db: Session, resource_loader, 
+                               category_map: Dict[str, int]) -> None:
+        """
+        Create default prompt templates with category associations
+        
+        Args:
+            db: Database session
+            resource_loader: Resource loader instance
+            category_map: Category name to ID mapping
+        """
+        from .models import Prompt
+        
+        default_prompts_data = resource_loader.load_json("prompts/default_prompts.json")
+        existing_prompts = db.query(Prompt).count()
+        
+        if existing_prompts == 0 and default_prompts_data:
+            for prompt_data in default_prompts_data:
+                category_name = prompt_data.get('category')
+                category_id = category_map.get(category_name) if category_name else None
+                
+                prompt = Prompt(
+                    name=prompt_data['name'],
+                    description=prompt_data.get('description'),
+                    template=prompt_data['template'],
+                    category_id=category_id
+                )
+                db.add(prompt)
+            
+            logger.info(f"Created {len(default_prompts_data)} default prompts")
+    
+    def _migrate_legacy_data(self, db: Session) -> None:
+        """
+        Handle backward compatibility for legacy data
+        
+        Args:
+            db: Database session
+        """
+        from .models import Prompt, Category
+        
+        # Migrate existing prompts to use category_id
+        category_map = {cat.name: cat.id for cat in db.query(Category).all()}
+        prompts_to_migrate = db.query(Prompt).filter(Prompt.category_id.is_(None)).all()
+        
+        migrated_count = 0
+        for prompt in prompts_to_migrate:
+            if hasattr(prompt, 'category') and prompt.category in category_map:
+                prompt.category_id = category_map[prompt.category]
+                migrated_count += 1
+        
+        if migrated_count > 0:
+            logger.info(f"Migrated {migrated_count} prompts to use category_id")
+    
     def get_session(self) -> Session:
         """Get a new database session"""
         if not self.SessionLocal:
