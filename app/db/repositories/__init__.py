@@ -6,13 +6,13 @@ Data access layer implementing repository pattern.
 
 from .base import BaseRepository
 from .ai_requests import AIRequestRepository
-from .prompts import PromptRepository, CategoryRepository
-from .users import UserRepository
+from .prompts import PromptsRepository, CategoryRepository
+from .users import UsersRepository
 
 __all__ = [
     "BaseRepository",
     "AIRequestRepository", 
-    "PromptRepository",
+    "PromptsRepository",
     "CategoryRepository",
-    "UserRepository"
+    "UsersRepository"
 ]

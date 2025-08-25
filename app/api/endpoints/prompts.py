@@ -13,7 +13,7 @@ from loguru import logger
 from app.models.prompts import PromptClassificationRequest, CategoryResponse, PromptResponse
 from app.db.session import get_db
 from app.db.models import Category
-from app.db.repositories.prompts import PromptRepository, CategoryRepository
+from app.db.repositories.prompts import PromptsRepository, CategoryRepository
 from app.services.ai.factory import gigachat_factory
 from app.services.prompts.manager import prompt_manager
 from app.utils.logger import structured_logger
@@ -30,9 +30,9 @@ async def get_current_user(request: Request):
     # TODO: Implement proper authentication
     return {"id": 1, "username": "demo_user", "role": "user"}
 
-async def get_prompt_repo(db: Session = Depends(get_db)) -> PromptRepository:
+async def get_prompt_repo(db: Session = Depends(get_db)) -> PromptsRepository:
     """Get prompt repository instance"""
-    return PromptRepository(db)
+    return PromptsRepository(db)
 
 async def get_category_repo(db: Session = Depends(get_db)) -> CategoryRepository:
     """Get category repository instance"""

@@ -12,7 +12,7 @@ from ..models import Prompt, Category
 from ...utils.logger import structured_logger
 
 
-class PromptRepository(BaseRepository[Prompt]):
+class PromptsRepository(BaseRepository[Prompt]):
     """Repository for prompt management operations"""
     
     def __init__(self, db: Session):
