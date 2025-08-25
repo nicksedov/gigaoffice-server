@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from loguru import logger
 
 from app.models.ai_requests import AIRequestCreate, AIRequestResponse, ProcessingStatus
-from app.models.users import AIResponseCreate, AIResponseOut
+from app.models.ai_responses import AIResponseCreate, AIResponseOut
 from app.db.session import get_db
 from app.db.models import AIRequest, AIResponse
 from app.db.repositories.ai_requests import AIRequestRepository
