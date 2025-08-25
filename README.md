@@ -230,20 +230,34 @@ curl http://localhost:8000/api/health
 
 ```
 service/
-├── main.py                    # Точка входа приложения
-├── fastapi_config.py          # Конфигурация FastAPI
-├── database.py                # Настройки БД и менеджер подключений
-├── model_orm.py               # SQLAlchemy модели
-├── model_api.py               # Pydantic схемы для API
-├── model_types.py             # Перечисления и типы
-├── routers.py                 # API маршруты
-├── gigachat_factory.py        # Фабрика GigaChat сервисов
-├── gigachat_service_*.py      # Реализации GigaChat сервисов
-├── gigachat_prompt_builder.py # Построитель промптов
-├── kafka_service.py           # Сервис очередей Kafka
-├── prompts.py                 # Менеджер промптов
-├── resource_loader.py         # Загрузчик ресурсов
-└── requirements.txt           # Зависимости Python
+├── core/                    # Core application components
+│   ├── config.py           # Centralized configuration
+│   ├── exceptions.py       # Custom exceptions
+│   └── dependencies.py     # Common dependencies
+├── api/                     # API layer
+│   └── routes/
+│       ├── health.py       # Health endpoints
+│       ├── ai.py           # AI processing
+│       ├── prompts.py      # Prompt management
+│       └── metrics.py      # Metrics endpoints
+├── services/                # Business logic layer
+│   └── gigachat/
+│       ├── base.py         # Base service interface
+│       ├── factory.py      # Service factory
+│       ├── prompt_builder.py
+│       ├── response_parser.py
+│       └── implementations/
+│           ├── cloud.py    # Cloud implementation
+│           ├── mtls.py     # mTLS implementation
+│           └── dryrun.py   # Development implementation
+├── models/                  # Data models
+│   ├── base.py             # Base model classes
+│   ├── database.py         # ORM models
+│   └── schemas.py          # API schemas
+├── database/               # Database layer
+│   └── connection.py       # Database connection
+└── utils/                  # Utility functions
+    └── resource_loader.py
 ```
 
 ### Добавление новых функций

@@ -1,9 +1,21 @@
-﻿.vs
+﻿# IDEs
+.vs
+.vscode
 .idea
+
+# AI
+.qoder
+*.prompt
+*_REPORT.md
+
+# Python
 .venv
-.log
-docker
 __pycache__
 
-*.prompt
+# Logging
+log
+.log
+docker
+
+# Local scripts
 *.sh
