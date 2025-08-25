@@ -7,7 +7,8 @@ import os
 import time
 from functools import lru_cache
 from typing import Optional, Dict, Any
-from pydantic import BaseSettings, validator
+from pydantic import validator
+from pydantic_settings import BaseSettings
 from pathlib import Path
 
 
@@ -130,6 +131,9 @@ def get_settings() -> Settings:
     """Get cached application settings"""
     return Settings()
 
+
+# Export settings instance for direct import
+settings = get_settings()
 
 # Global app state instance
 app_state = AppState()
