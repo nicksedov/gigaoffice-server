@@ -21,8 +21,33 @@ class StructuredLogger:
         self._setup_logger()
         self._request_contexts = {}
     
+    def _validate_log_level(self, level: str) -> str:
+        """Validate and normalize log level for loguru compatibility"""
+        if not level:
+            return "INFO"
+        
+        # Normalize to uppercase
+        normalized_level = str(level).upper().strip()
+        
+        # Valid loguru levels
+        valid_levels = {'TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNING', 'ERROR', 'CRITICAL'}
+        
+        if normalized_level not in valid_levels:
+            # Log warning to stderr before logger is fully configured
+            print(
+                f"WARNING: Invalid log level '{level}' detected. "
+                f"Falling back to 'INFO'. Valid levels: {', '.join(sorted(valid_levels))}",
+                file=sys.stderr
+            )
+            return "INFO"
+        
+        return normalized_level
+    
     def _setup_logger(self):
         """Configure loguru logger with structured output"""
+        # Validate log level first
+        validated_level = self._validate_log_level(self.settings.log_level)
+        
         # Remove default handler
         logger.remove()
         
@@ -37,7 +62,7 @@ class StructuredLogger:
         logger.add(
             sys.stderr,
             format=console_format,
-            level=self.settings.log_level,
+            level=validated_level,
             colorize=True,
             backtrace=True,
             diagnose=True
@@ -59,7 +84,7 @@ class StructuredLogger:
             logger.add(
                 log_path,
                 format=file_format,
-                level=self.settings.log_level,
+                level=validated_level,
                 rotation="100 MB",
                 retention="30 days",
                 compression="gz",

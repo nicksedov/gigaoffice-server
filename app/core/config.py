@@ -77,6 +77,25 @@ class Settings(BaseSettings):
             raise ValueError('GigaChat mode must be dryrun, cloud, or mtls')
         return v
     
+    @validator('log_level')
+    def validate_log_level(cls, v):
+        """Normalize log level to uppercase and validate against loguru levels"""
+        if not v:
+            return "INFO"  # Default fallback
+        
+        # Normalize to uppercase
+        normalized_level = str(v).upper().strip()
+        
+        # Valid loguru levels
+        valid_levels = {'TRACE', 'DEBUG', 'INFO', 'SUCCESS', 'WARNING', 'ERROR', 'CRITICAL'}
+        
+        if normalized_level not in valid_levels:
+            raise ValueError(
+                f"Log level '{v}' is not valid. Must be one of: {', '.join(sorted(valid_levels))}"
+            )
+        
+        return normalized_level
+    
     @property
     def is_development(self) -> bool:
         return self.environment == "development"
