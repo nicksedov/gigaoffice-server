@@ -76,36 +76,9 @@ class AIRequestUpdate(BaseModel):
     user_feedback: Optional[str] = Field(None, max_length=1000)
 
 
-class AIResponseCreate(BaseModel):
-    """Schema for creating AI response"""
-    ai_request_id: int
-    text_response: str = Field(..., min_length=1)
-    rating: Optional[bool] = Field(None, description="True for good, False for bad, None for not rated")
-    comment: Optional[str] = Field(None, max_length=500)
-    confidence_score: Optional[float] = Field(None, ge=0.0, le=1.0)
-    response_type: str = Field("text", description="Response type: text, json, markdown, etc.")
-
-
-class AIResponseOut(BaseModel):
-    """Schema for AI response output"""
-    id: int
-    ai_request_id: int
-    text_response: str
-    rating: Optional[bool]
-    comment: Optional[str]
-    confidence_score: Optional[float]
-    response_type: str
-    tokens_used: int
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
-
-
-class AIResponseUpdate(BaseModel):
-    """Schema for updating AI response"""
-    rating: Optional[bool] = None
-    comment: Optional[str] = Field(None, max_length=500)
+# AI Response models have been moved to app.models.ai_responses
+# Import them from there if needed:
+# from app.models.ai_responses import AIResponseCreate, AIResponseOut, AIResponseUpdate
 
 
 class ProcessingStatus(BaseModel):

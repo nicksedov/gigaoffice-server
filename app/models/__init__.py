@@ -6,7 +6,8 @@ Pydantic models for API request/response validation and shared type definitions.
 
 from .types import RequestStatus, UserRole, AIServiceMode, LogLevel, Environment, KafkaTopicType
 from .ai_requests import AIRequestCreate, AIRequestResponse, ProcessingStatus
-from .users import UserCreate, UserResponse, AIResponseCreate, AIResponseOut
+from .users import UserCreate, UserResponse
+from .ai_responses import AIResponseCreate, AIResponseOut, AIResponseUpdate
 from .prompts import PromptCreate, PromptResponse, CategoryResponse, PromptClassificationRequest
 from .health import ServiceHealth, MetricsResponse, ErrorResponse, SuccessResponse
 
@@ -25,8 +26,10 @@ __all__ = [
     # Users
     "UserCreate",
     "UserResponse",
+    # AI Responses
     "AIResponseCreate",
     "AIResponseOut",
+    "AIResponseUpdate",
     # Prompts
     "PromptCreate",
     "PromptResponse",
