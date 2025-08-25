@@ -334,3 +334,61 @@ class CategoriesListResponse(BaseModel):
                 "total": 5
             }
         }
+
+
+class PromptClassificationRequest(BaseModel):
+    """Schema for prompt classification request"""
+    prompt_text: str = Field(
+        ..., 
+        min_length=1, 
+        max_length=5000, 
+        description="Text content to classify into categories"
+    )
+    include_descriptions: bool = Field(
+        False, 
+        description="Include category descriptions in response"
+    )
+    confidence_threshold: float = Field(
+        0.5, 
+        ge=0.0, 
+        le=1.0, 
+        description="Minimum confidence threshold for classification"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "prompt_text": "Create a summary of quarterly sales performance",
+                "include_descriptions": True,
+                "confidence_threshold": 0.7
+            }
+        }
+
+
+class ClassificationResponse(BaseModel):
+    """Schema for prompt classification response"""
+    category: Dict[str, Any]
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    query_text: str
+    success: bool
+    alternatives: Optional[List[Dict[str, Any]]] = Field(
+        None, 
+        description="Alternative categories with confidence scores"
+    )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "category": {
+                    "name": "analysis",
+                    "display_name": "Data Analysis",
+                    "description": "Analyze and interpret data"
+                },
+                "confidence": 0.85,
+                "query_text": "Create a summary of quarterly sales performance",
+                "success": True,
+                "alternatives": [
+                    {"name": "generation", "confidence": 0.15}
+                ]
+            }
+        }

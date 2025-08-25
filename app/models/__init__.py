@@ -8,7 +8,7 @@ from .types import RequestStatus, UserRole, AIServiceMode, LogLevel, Environment
 from .ai_requests import AIRequestCreate, AIRequestResponse, ProcessingStatus
 from .users import UserCreate, UserResponse
 from .ai_responses import AIResponseCreate, AIResponseOut, AIResponseUpdate
-from .prompts import PromptCreate, PromptResponse, CategoryResponse, PromptClassificationRequest
+from .prompts import PromptCreate, PromptResponse, CategoryResponse, PromptClassificationRequest, ClassificationResponse
 from .health import ServiceHealth, MetricsResponse, ErrorResponse, SuccessResponse
 
 __all__ = [
@@ -35,6 +35,7 @@ __all__ = [
     "PromptResponse",
     "CategoryResponse",
     "PromptClassificationRequest",
+    "ClassificationResponse",
     # Health
     "ServiceHealth",
     "MetricsResponse",
