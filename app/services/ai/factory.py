@@ -201,3 +201,58 @@ def get_service_statistics() -> Dict[str, Any]:
             "generator": {"error": str(e)},
             "combined": {"error": str(e)}
         }
+
+
+class GigaChatFactoryCompatibility:
+    """Compatibility wrapper for legacy gigachat_factory interface"""
+    
+    def __init__(self):
+        self._factory_class = GigaChatServiceFactory
+        self._service_cache = {}
+    
+    def get_service(self, service_type: str = "generate") -> BaseGigaChatService:
+        """
+        Get service instance by type (classify/generate)
+        
+        Args:
+            service_type: Type of service - "classify" or "generate" (default)
+            
+        Returns:
+            BaseGigaChatService instance
+        """
+        if service_type not in self._service_cache:
+            try:
+                if service_type == "classify":
+                    self._service_cache[service_type] = self._factory_class.create_classifier_service()
+                    logger.info(f"Created cached {service_type} service via compatibility wrapper")
+                else:  # default to generate
+                    self._service_cache[service_type] = self._factory_class.create_generator_service()
+                    logger.info(f"Created cached {service_type} service via compatibility wrapper")
+            except Exception as e:
+                structured_logger.log_error(e, {
+                    "operation": "compatibility_get_service",
+                    "service_type": service_type
+                })
+                logger.error(f"Failed to create {service_type} service via compatibility wrapper: {e}")
+                raise
+        
+        return self._service_cache[service_type]
+    
+    def get_health(self) -> Dict[str, Any]:
+        """Get health status of all services"""
+        return get_service_health()
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get usage statistics for all services"""
+        return get_service_statistics()
+    
+    def recreate_services(self):
+        """Recreate service instances (useful for configuration changes)"""
+        logger.info("Recreating services via compatibility wrapper...")
+        self._service_cache.clear()
+        recreate_services()
+        logger.info("Services recreated via compatibility wrapper")
+
+
+# Global compatibility instance for legacy support
+gigachat_factory = GigaChatFactoryCompatibility()
