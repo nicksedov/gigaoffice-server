@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from loguru import logger
 
 from app.core.config import settings
-from app.db.session import database_manager
+from app.db.session import db_manager
 from app.services.ai.factory import gigachat_factory
 from app.services.kafka.service import kafka_service
 from app.services.prompts.manager import prompt_manager
@@ -100,14 +100,14 @@ async def startup_database():
         logger.info("Initializing database...")
         
         # Initialize database manager
-        await database_manager.initialize()
+        await db_manager.initialize()
         
         # Check database connection
-        if not database_manager.check_connection():
+        if not db_manager.check_connection():
             raise Exception("Database connection check failed")
         
         # Get database info
-        db_info = database_manager.get_db_info()
+        db_info = db_manager.get_db_info()
         logger.info(f"Database connected: {db_info.get('database_name', 'unknown')}")
         
     except Exception as e:
@@ -184,7 +184,7 @@ async def shutdown_database():
     """Cleanup database connections"""
     try:
         logger.info("Shutting down database connections...")
-        await database_manager.cleanup()
+        await db_manager.cleanup()
         
     except Exception as e:
         logger.error(f"Database shutdown error: {e}")
@@ -244,7 +244,7 @@ async def check_services_health():
     
     try:
         # Check database
-        health_status["database"] = database_manager.check_connection()
+        health_status["database"] = db_manager.check_connection()
         
         # Check AI services
         try:

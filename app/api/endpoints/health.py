@@ -9,7 +9,7 @@ from loguru import logger
 
 from app.models.health import ServiceHealth
 from app.core.config import settings
-from app.db.session import database_manager
+from app.db.session import db_manager
 from app.services.ai.factory import gigachat_factory
 from app.services.kafka.service import kafka_service
 
@@ -31,7 +31,7 @@ async def health_check():
         uptime = time.time() - app_start_time
         
         # Check database health
-        db_health = database_manager.check_connection()
+        db_health = db_manager.check_connection()
         
         # Check GigaChat service health
         try:
