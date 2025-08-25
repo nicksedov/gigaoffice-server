@@ -227,7 +227,7 @@ class FilterParams(BaseModel):
 class SortParams(BaseModel):
     """Schema for sorting parameters"""
     field: str = Field("created_at", description="Field to sort by")
-    direction: str = Field("desc", regex=r'^(asc|desc)$', description="Sort direction")
+    direction: str = Field("desc", pattern=r'^(asc|desc)$', description="Sort direction")
     
     class Config:
         json_schema_extra = {

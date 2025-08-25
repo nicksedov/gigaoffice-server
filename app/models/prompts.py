@@ -15,7 +15,7 @@ class CategoryCreate(BaseModel):
     description: Optional[str] = Field(None, max_length=1000, description="Category description")
     sort_order: int = Field(0, description="Sort order for display")
     icon: Optional[str] = Field(None, max_length=255, description="Icon name or URL")
-    color: Optional[str] = Field(None, regex=r'^#[0-9A-Fa-f]{6}$', description="Hex color code")
+    color: Optional[str] = Field(None, pattern=r'^#[0-9A-Fa-f]{6}$', description="Hex color code")
     
     @validator('name')
     def validate_name(cls, v):
@@ -43,7 +43,7 @@ class CategoryUpdate(BaseModel):
     sort_order: Optional[int] = None
     is_active: Optional[bool] = None
     icon: Optional[str] = Field(None, max_length=255)
-    color: Optional[str] = Field(None, regex=r'^#[0-9A-Fa-f]{6}$')
+    color: Optional[str] = Field(None, pattern=r'^#[0-9A-Fa-f]{6}$')
 
 
 class CategoryResponse(BaseModel):
@@ -271,7 +271,7 @@ class PromptDuplicate(BaseModel):
 
 class PromptExport(BaseModel):
     """Schema for prompt export request"""
-    format: str = Field("json", regex=r'^(json|csv)$', description="Export format")
+    format: str = Field("json", pattern=r'^(json|csv)$', description="Export format")
     category_id: Optional[int] = Field(None, description="Filter by category")
     include_inactive: bool = Field(False, description="Include inactive prompts")
     

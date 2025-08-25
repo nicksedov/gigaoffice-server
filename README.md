@@ -229,35 +229,59 @@ curl http://localhost:8000/api/health
 ### Структура проекта
 
 ```
-service/
-├── core/                    # Core application components
-│   ├── config.py           # Centralized configuration
-│   ├── exceptions.py       # Custom exceptions
-│   └── dependencies.py     # Common dependencies
-├── api/                     # API layer
-│   └── routes/
-│       ├── health.py       # Health endpoints
-│       ├── ai.py           # AI processing
-│       ├── prompts.py      # Prompt management
-│       └── metrics.py      # Metrics endpoints
-├── services/                # Business logic layer
-│   └── gigachat/
-│       ├── base.py         # Base service interface
-│       ├── factory.py      # Service factory
-│       ├── prompt_builder.py
-│       ├── response_parser.py
-│       └── implementations/
-│           ├── cloud.py    # Cloud implementation
-│           ├── mtls.py     # mTLS implementation
-│           └── dryrun.py   # Development implementation
-├── models/                  # Data models
-│   ├── base.py             # Base model classes
-│   ├── database.py         # ORM models
-│   └── schemas.py          # API schemas
-├── database/               # Database layer
-│   └── connection.py       # Database connection
-└── utils/                  # Utility functions
-    └── resource_loader.py
+app/
+├── __init__.py
+├── main.py                 # Main FastAPI application
+├── lifespan.py            # Application lifecycle management
+├── api/                   # API layer
+│   ├── __init__.py
+│   ├── router.py          # Main API router
+│   └── endpoints/         # Domain-specific endpoints
+│       ├── __init__.py
+│       ├── health.py      # Health check endpoints
+│       ├── ai.py          # AI processing endpoints
+│       ├── prompts.py     # Prompts management
+│       └── metrics.py     # Metrics and analytics
+├── core/                  # Core configuration and utilities
+│   ├── __init__.py
+│   ├── config.py          # Application configuration
+│   └── security.py        # Security utilities
+├── db/                    # Database layer
+│   ├── __init__.py
+│   ├── session.py         # Database session management
+│   ├── models.py          # SQLAlchemy ORM models
+│   └── repositories/      # Repository pattern implementation
+│       ├── __init__.py
+│       ├── base.py        # Base repository
+│       ├── ai_requests.py # AI requests repository
+│       ├── prompts.py     # Prompts repository
+│       └── users.py       # Users repository
+├── services/              # Business logic layer
+│   ├── __init__.py
+│   ├── ai/                # AI service components
+│   │   ├── __init__.py
+│   │   ├── factory.py     # Service factory
+│   │   ├── base.py        # Base service
+│   │   ├── dryrun.py      # Dry-run implementation
+│   │   ├── cloud.py       # Cloud implementation
+│   │   └── mtls.py        # mTLS implementation
+│   ├── kafka/             # Message queue services
+│   │   ├── __init__.py
+│   │   └── service.py     # Kafka service
+│   └── prompts/           # Prompt management services
+│       ├── __init__.py
+│       └── manager.py     # Prompt manager
+├── models/                # Data models
+│   ├── __init__.py
+│   ├── types.py           # Shared type definitions
+│   ├── ai_requests.py     # AI request models
+│   ├── users.py           # User models
+│   ├── prompts.py         # Prompt models
+│   └── health.py          # Health check models
+└── utils/                 # Utility modules
+    ├── __init__.py
+    ├── logger.py          # Structured logging
+    └── resource_loader.py # Resource loading utilities
 ```
 
 ### Добавление новых функций
@@ -278,7 +302,7 @@ export GIGACHAT_RUN_MODE=dryrun
 python main.py
 ```
 
-## Производственное развертывание
+## Развертывание в продакшен
 
 ### Рекомендации для продакшена
 
