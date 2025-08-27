@@ -12,7 +12,7 @@ from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from aiokafka.admin import AIOKafkaAdminClient, NewTopic
 from loguru import logger
 from dataclasses import dataclass
-from resource_loader import resource_loader
+from app.resource_loader import resource_loader
 
 @dataclass
 class QueueMessage:

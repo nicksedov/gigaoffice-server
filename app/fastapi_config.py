@@ -17,12 +17,12 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from loguru import logger
 
-from database import init_database, get_db_session
-from model_types import RequestStatus
-from model_orm import AIRequest
-from gigachat_factory import gigachat_generate_service
-from kafka_service import kafka_service
-from prompts import prompt_manager
+from app.database import init_database, get_db_session
+from app.model_types import RequestStatus
+from app.model_orm import AIRequest
+from app.gigachat_factory import gigachat_generate_service
+from app.kafka_service import kafka_service
+from app.prompts import prompt_manager
 
 # Configuration
 APP_VERSION = "1.0.0"

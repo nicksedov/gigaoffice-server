@@ -11,8 +11,8 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
-from model_orm import Base
-from resource_loader import resource_loader
+from app.model_orm import Base
+from app.resource_loader import resource_loader
 
 # Собираем параметры подключения из переменных окружения
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -223,7 +223,7 @@ def init_default_data():
     """Инициализация базовых данных"""
     try:
         with get_db_session() as db:
-            from model_orm import Prompt, User, Category
+            from app.model_orm import Prompt, User, Category
             from passlib.context import CryptContext
             
             # Create password context

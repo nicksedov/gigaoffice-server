@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from loguru import logger
 import uvicorn
 
-from fastapi_config import create_app
-from routers import health_router, ai_router, prompts_router, metrics_router
+from app.fastapi_config import create_app
+from app.routers import health_router, ai_router, prompts_router, metrics_router
 
 # Create app and register routers
 app = create_app()
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     
     # Run server
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="0.0.0.0",
         port=port,
         reload=False,

@@ -12,8 +12,8 @@ from sqlalchemy.orm import joinedload
 from loguru import logger
 from cachetools import TTLCache
 
-from database import get_db_session
-from model_orm import Prompt, Category
+from app.database import get_db_session
+from app.model_orm import Prompt, Category
 
 class PromptManager:
     """Менеджер для работы с промптами"""

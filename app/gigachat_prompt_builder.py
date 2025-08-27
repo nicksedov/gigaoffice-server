@@ -4,8 +4,8 @@ import re
 import yaml
 from datetime import datetime
 from typing import Optional, List, Dict, Literal, Any
-from resource_loader import resource_loader
 from string import Template
+from app.resource_loader import resource_loader
 
 """
 GigaChat Prompt Builder

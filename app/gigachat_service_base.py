@@ -11,9 +11,9 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from loguru import logger
-from resource_loader import resource_loader
-from prompts import prompt_manager
-from gigachat_response_parser import response_parser
+from app.resource_loader import resource_loader
+from app.prompts import prompt_manager
+from app.gigachat_response_parser import response_parser
 from langchain_core.messages import HumanMessage, SystemMessage
 from fastapi import HTTPException
 

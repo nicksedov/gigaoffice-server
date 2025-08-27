@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional, List, Any, Dict
 from pydantic import BaseModel, Field
 from uuid import UUID
-from model_types import RequestStatus, UserRole
+from app.model_types import RequestStatus, UserRole
 
 # Pydantic модели
 class CategoryResponse(BaseModel):

@@ -5,10 +5,10 @@ GigaChat Factory
 
 import os
 from loguru import logger
-from gigachat_prompt_builder import prompt_builder
-from gigachat_service_dryrun import DryRunGigaChatService
-from gigachat_service_cloud import CloudGigaChatService
-from gigachat_service_mtls import MtlsGigaChatService
+from app.gigachat_prompt_builder import prompt_builder
+from app.gigachat_service_dryrun import DryRunGigaChatService
+from app.gigachat_service_cloud import CloudGigaChatService
+from app.gigachat_service_mtls import MtlsGigaChatService
 
 SERVICE_MODES = {
     "dryrun": DryRunGigaChatService,

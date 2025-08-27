@@ -18,18 +18,18 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from loguru import logger
 
-from model_types import RequestStatus
-from model_api import (
+from app.model_types import RequestStatus
+from app.model_api import (
     AIRequestCreate, AIResponseCreate, AIResponseOut,
     PromptClassificationRequest,
     ServiceHealth, ProcessingStatus, MetricsResponse
 )
-from model_orm import AIRequest, AIResponse, Category
-from database import get_db, check_database_health
-from gigachat_factory import gigachat_classify_service, gigachat_generate_service
-from kafka_service import kafka_service
-from fastapi_config import security, app_start_time
-from prompts import prompt_manager
+from app.model_orm import AIRequest, AIResponse, Category
+from app.database import get_db, check_database_health
+from app.gigachat_factory import gigachat_classify_service, gigachat_generate_service
+from app.kafka_service import kafka_service
+from app.fastapi_config import security, app_start_time
+from app.prompts import prompt_manager
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
@@ -48,6 +48,12 @@ prompts_router = APIRouter(prefix="/api/prompts", tags=["Prompts"])
 metrics_router = APIRouter(prefix="/api", tags=["Metrics"])
 
 # Health endpoints
+@health_router.get("/ping", response_model=Dict[str, Any])
+async def ping():
+    return {
+        "status": "pong"
+    }
+
 @health_router.get("/health", response_model=ServiceHealth)
 async def health_check():
     """Проверка состояния сервиса"""
