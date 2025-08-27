@@ -74,7 +74,9 @@ def init_default_data():
     """Инициализация базовых данных"""
     try:
         with get_db_session() as db:
-            from app.model_orm import Prompt, User, Category
+            from app.models.orm.prompt import Prompt
+            from app.models.orm.user import User
+            from app.models.orm.category import Category
             from passlib.context import CryptContext
             
             # Create password context

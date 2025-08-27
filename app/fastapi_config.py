@@ -18,8 +18,8 @@ from slowapi.errors import RateLimitExceeded
 from loguru import logger
 
 from app.services.database.session import init_database, get_db_session
-from app.model_types import RequestStatus
-from app.model_orm import AIRequest
+from app.models.types.enums import RequestStatus
+from app.models.orm.ai_request import AIRequest
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services

@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
-from app.model_orm import Base
+from app.models.orm.base import Base
 from app.resource_loader import resource_loader
 
 class DatabaseManager:

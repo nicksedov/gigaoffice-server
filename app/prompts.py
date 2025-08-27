@@ -13,7 +13,8 @@ from loguru import logger
 from cachetools import TTLCache
 
 from app.services.database.session import get_db_session
-from app.model_orm import Prompt, Category
+from app.models.orm.prompt import Prompt
+from app.models.orm.category import Category
 
 class PromptManager:
     """Менеджер для работы с промптами"""

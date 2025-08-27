@@ -14,12 +14,11 @@ from slowapi.util import get_remote_address
 from loguru import logger
 from fastapi.security import HTTPAuthorizationCredentials
 
-from app.model_types import RequestStatus
-from app.model_api import (
-    AIRequestCreate, AIResponseCreate, AIResponseOut,
-    ProcessingStatus
-)
-from app.model_orm import AIRequest, AIResponse
+from app.models.types.enums import RequestStatus
+from app.models.api.ai_request import AIRequestCreate, ProcessingStatus
+from app.models.api.ai_response import AIResponseCreate, AIResponseOut
+from app.models.orm.ai_request import AIRequest
+from app.models.orm.ai_response import AIResponse
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder

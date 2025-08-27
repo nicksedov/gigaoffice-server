@@ -12,10 +12,8 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from loguru import logger
 
-from app.model_api import (
-    PromptClassificationRequest
-)
-from app.model_orm import Category
+from app.models.api.prompt import PromptClassificationRequest
+from app.models.orm.category import Category
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
