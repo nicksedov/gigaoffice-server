@@ -3,12 +3,14 @@ Database Session Management
 Context managers and dependencies for database sessions
 """
 
+import time
 from contextlib import contextmanager
 from typing import Generator
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
 from app.services.database.manager import db_manager
+from app.resource_loader import resource_loader
 
 def _get_db_session_base(auto_commit: bool = False) -> Generator[Session, None, None]:
     """
