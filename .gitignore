@@ -11,6 +11,7 @@
 # Python
 .venv
 __pycache__
+.pytest_cache
 
 # Logging
 log

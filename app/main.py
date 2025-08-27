@@ -11,7 +11,10 @@ from loguru import logger
 import uvicorn
 
 from app.fastapi_config import create_app
-from app.routers import health_router, ai_router, prompts_router, metrics_router
+from app.api.health import health_router
+from app.api.ai import ai_router
+from app.api.prompts import prompts_router
+from app.api.metrics import metrics_router
 
 # Create app and register routers
 app = create_app()

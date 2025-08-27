@@ -1,0 +1,42 @@
+"""
+Health API Router
+Router for health check endpoints
+"""
+
+from fastapi import APIRouter
+from typing import Dict, Any
+from app.model_api import ServiceHealth
+from app.fastapi_config import app_start_time
+from app.database import check_database_health
+from app.gigachat_factory import gigachat_classify_service
+from app.kafka_service import kafka_service
+
+health_router = APIRouter(prefix="/api", tags=["Health"])
+
+@health_router.get("/ping", response_model=Dict[str, Any])
+async def ping():
+    return {
+        "status": "pong"
+    }
+
+@health_router.get("/health", response_model=ServiceHealth)
+async def health_check():
+    """Проверка состояния сервиса"""
+    import time
+    uptime = time.time() - app_start_time
+    
+    db_health = check_database_health()
+    gigachat_health = gigachat_classify_service.check_service_health()
+    kafka_health = kafka_service.get_health_status()
+    
+    health_status = ServiceHealth(
+        uptime=uptime,
+        database=db_health.get("status") == "healthy",
+        gigachat=gigachat_health.get("status") == "healthy",
+        kafka=kafka_health.get("status") == "healthy",
+        queue_size=kafka_health.get("statistics", {}).get("messages_sent", 0),
+        memory_usage=0.0,
+        cpu_usage=0.0
+    )
+    
+    return health_status
