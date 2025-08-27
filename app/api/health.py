@@ -5,11 +5,9 @@ Router for health check endpoints
 
 from fastapi import APIRouter
 from typing import Dict, Any
-from app.models.api.service_metrics import ServiceHealth
-from app.models.api.health import PingResponse
+from app.models.api.health import PingResponse, ServiceHealth
 from app.fastapi_config import app_start_time
 from app.services.database.session import check_database_health
-# Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services
 
