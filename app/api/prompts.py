@@ -16,7 +16,7 @@ from app.model_api import (
     PromptClassificationRequest
 )
 from app.model_orm import Category
-from app.database import get_db
+from app.services.database.session import get_db
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services

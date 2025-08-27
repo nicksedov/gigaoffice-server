@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 from loguru import logger
 from cachetools import TTLCache
 
-from app.database import get_db_session
+from app.services.database.session import get_db_session
 from app.model_orm import Prompt, Category
 
 class PromptManager:

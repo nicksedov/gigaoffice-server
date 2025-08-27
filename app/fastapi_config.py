@@ -17,7 +17,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from loguru import logger
 
-from app.database import init_database, get_db_session
+from app.services.database.session import init_database, get_db_session
 from app.model_types import RequestStatus
 from app.model_orm import AIRequest
 # Direct imports for GigaChat services

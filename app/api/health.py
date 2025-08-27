@@ -7,7 +7,7 @@ from fastapi import APIRouter
 from typing import Dict, Any
 from app.model_api import ServiceHealth
 from app.fastapi_config import app_start_time
-from app.database import check_database_health
+from app.services.database.session import check_database_health
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services

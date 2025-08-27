@@ -133,7 +133,7 @@ GRANT ALL PRIVILEGES ON DATABASE gigaoffice TO gigaoffice;
 
 3. **Инициализация базы данных:**
 ```bash
-python -c "from service.database import init_database; init_database()"
+python -c "from app.services.database.session import init_database; init_database()"
 ```
 
 4. **Запуск сервиса:**
@@ -290,7 +290,7 @@ python main.py
 
 ### Пример nginx конфигурации
 
-```nginx
+```
 upstream gigaoffice {
     server 127.0.0.1:8000;
     server 127.0.0.1:8001;  # дополнительные экземпляры
@@ -312,7 +312,7 @@ server {
 
 ### Systemd сервис
 
-```ini
+```
 [Unit]
 Description=GigaOffice AI Service
 After=network.target postgresql.service
