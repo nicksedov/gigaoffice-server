@@ -13,7 +13,7 @@ from datetime import datetime
 from loguru import logger
 from app.resource_loader import resource_loader
 from app.prompts import prompt_manager
-from app.gigachat_response_parser import response_parser
+from app.services.gigachat.response_parser import response_parser
 from langchain_core.messages import HumanMessage, SystemMessage
 from fastapi import HTTPException
 
