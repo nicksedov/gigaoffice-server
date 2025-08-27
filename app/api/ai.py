@@ -17,6 +17,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from app.models.types.enums import RequestStatus
 from app.models.api.ai_request import AIRequestCreate, ProcessingStatus
 from app.models.api.ai_response import AIResponseCreate, AIResponseOut
+from app.models.api.ai_process import AIProcessResponse
 from app.models.orm.ai_request import AIRequest
 from app.models.orm.ai_response import AIResponse
 from app.services.database.session import get_db
@@ -42,7 +43,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 ai_router = APIRouter(prefix="/api/ai", tags=["AI Processing"])
 
-@ai_router.post("/process", response_model=Dict[str, Any])
+@ai_router.post("/process", response_model=AIProcessResponse)
 @limiter.limit("10/minute")
 async def process_ai_request(
     request: Request,
@@ -81,12 +82,12 @@ async def process_ai_request(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to queue request")
         
-        return {
-            "success": True,
-            "request_id": request_id,
-            "status": "queued",
-            "message": "Запрос добавлен в очередь обработки"
-        }
+        return AIProcessResponse(
+            success=True,
+            request_id=request_id,
+            status="queued",
+            message="Запрос добавлен в очередь обработки"
+        )
         
     except Exception as e:
         logger.error(f"Error processing AI request: {e}")

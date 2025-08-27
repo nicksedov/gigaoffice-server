@@ -1,4 +1,4 @@
-﻿openapi: 3.0.3
+openapi: 3.0.3
 info:
   title: GigaOffice AI Service API
   version: "1.0.0"
@@ -54,6 +54,13 @@ components:
         cpu_usage:
           type: number
           format: float
+
+    PingResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: pong
 
     AIRequestCreate:
       type: object
@@ -127,6 +134,76 @@ components:
           type: number
           format: float
 
+    CategoryInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        display_name:
+          type: string
+        description:
+          type: string
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+        prompt_count:
+          type: integer
+
+    PromptCategoriesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryInfo'
+
+    PromptInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        template:
+          type: string
+        category_id:
+          type: integer
+
+    CategoryDetailsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        category:
+          $ref: '#/components/schemas/CategoryInfo'
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PromptInfo'
+
+    PresetPromptInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        template:
+          type: string
+        category_id:
+          type: integer
+        category_name:
+          type: string
+        category_display_name:
+          type: string
+
     PresetPromptsResponse:
       type: object
       properties:
@@ -135,20 +212,26 @@ components:
         prompts:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-              name:
-                type: string
-              template:
-                type: string
-              category_id:
-                type: integer
-              category_name:
-                type: string
-              category_display_name:
-                type: string
+            $ref: '#/components/schemas/PresetPromptInfo'
+
+    ClassifiedCategory:
+      type: object
+      properties:
+        name:
+          type: string
+
+    PromptClassificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        query_text:
+          type: string
+        category:
+          $ref: '#/components/schemas/ClassifiedCategory'
+        confidence:
+          type: number
+          format: float
 
     MetricsResponse:
       type: object
@@ -169,6 +252,20 @@ components:
           type: integer
 
 paths:
+  /api/ping:
+    get:
+      summary: Проверка доступности сервиса
+      description: |
+        Простой эндпоинт для проверки доступности сервиса.
+      tags: [Service]
+      responses:
+        '200':
+          description: Сервис доступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+
   /api/health:
     get:
       summary: Проверка состояния сервиса
@@ -320,29 +417,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  categories:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        name:
-                          type: string
-                        display_name:
-                          type: string
-                        description:
-                          type: string
-                        is_active:
-                          type: boolean
-                        sort_order:
-                          type: integer
-                        prompt_count:
-                          type: integer
+                $ref: '#/components/schemas/PromptCategoriesResponse'
         '500':
           description: Ошибка сервера
 
@@ -364,40 +439,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  category:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      name:
-                        type: string
-                      display_name:
-                        type: string
-                      description:
-                        type: string
-                      sort_order:
-                        type: integer
-                      prompt_count:
-                        type: integer
-                  prompts:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        name:
-                          type: string
-                        description:
-                          type: string
-                        template:
-                          type: string
-                        category_id:
-                          type: integer
+                $ref: '#/components/schemas/CategoryDetailsResponse'
         '404':
           description: Категория не найдена
         '500':
@@ -422,6 +464,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PresetPromptsResponse'
+        '500':
+          description: Ошибка сервера
+
+  /api/prompts/classify:
+    post:
+      summary: Классификация пользовательского запроса
+      description: |
+        Классифицирует пользовательский запрос по предопределенным категориям.
+      tags: [Prompts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt_text:
+                  type: string
+                  description: Текст промпта для классификации
+                include_descriptions:
+                  type: boolean
+                  description: Включать описания категорий в системный промпт
+      responses:
+        '200':
+          description: Результат классификации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptClassificationResponse'
         '500':
           description: Ошибка сервера
 

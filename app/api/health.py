@@ -6,6 +6,7 @@ Router for health check endpoints
 from fastapi import APIRouter
 from typing import Dict, Any
 from app.models.api.service_metrics import ServiceHealth
+from app.models.api.health import PingResponse
 from app.fastapi_config import app_start_time
 from app.services.database.session import check_database_health
 # Direct imports for GigaChat services
@@ -19,11 +20,9 @@ from app.services.kafka.service import kafka_service
 
 health_router = APIRouter(prefix="/api", tags=["Health"])
 
-@health_router.get("/ping", response_model=Dict[str, Any])
+@health_router.get("/ping", response_model=PingResponse)
 async def ping():
-    return {
-        "status": "pong"
-    }
+    return PingResponse(status="pong")
 
 @health_router.get("/health", response_model=ServiceHealth)
 async def health_check():

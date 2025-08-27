@@ -1,7 +1,7 @@
 """Prompt API Models"""
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 
 class PromptResponse(BaseModel):
@@ -30,3 +30,36 @@ class PromptClassificationRequest(BaseModel):
     """Схема для классификации промпта"""
     prompt_text: str = Field(..., min_length=1, description="Текст промпта для классификации")
     include_descriptions: bool = Field(False, description="Включать ли описания категорий в системный промпт")
+
+class PromptInfo(BaseModel):
+    """Prompt information model"""
+    id: int
+    name: str
+    description: Optional[str]
+    template: str
+    category_id: int
+
+class PresetPromptInfo(BaseModel):
+    """Preset prompt information model"""
+    id: int
+    name: str
+    template: str
+    category_id: int
+    category_name: Optional[str]
+    category_display_name: Optional[str]
+
+class ClassifiedCategory(BaseModel):
+    """Classified category information"""
+    name: str
+
+class PromptClassificationResponse(BaseModel):
+    """Response model for prompt classification endpoint"""
+    success: bool
+    query_text: str
+    category: ClassifiedCategory
+    confidence: float
+
+class PresetPromptsResponse(BaseModel):
+    """Response model for preset prompts endpoint"""
+    status: str
+    prompts: List[PresetPromptInfo]

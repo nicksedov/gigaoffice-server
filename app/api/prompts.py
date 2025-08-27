@@ -12,7 +12,8 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from loguru import logger
 
-from app.models.api.prompt import PromptClassificationRequest
+from app.models.api.prompt import PromptClassificationRequest, PromptCategoriesResponse, CategoryDetailsResponse, PresetPromptsResponse, PromptClassificationResponse
+from app.models.api.category import CategoryInfo, PromptInfo
 from app.models.orm.category import Category
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
@@ -37,20 +38,32 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 prompts_router = APIRouter(prefix="/api/prompts", tags=["Prompts"])
 
-@prompts_router.get("/categories", response_model=Dict[str, Any])
+@prompts_router.get("/categories", response_model=PromptCategoriesResponse)
 async def get_prompt_categories_endpoint():
     """Получение списка категорий предустановленных промптов с описанием"""
     try:
         categories = await prompt_manager.get_prompt_categories()
-        return {
-            "status": "success",
-            "categories": categories
-        }
+        category_infos = [
+            CategoryInfo(
+                id=cat["id"],
+                name=cat["name"],
+                display_name=cat["display_name"],
+                description=cat["description"],
+                is_active=cat["is_active"],
+                sort_order=cat["sort_order"],
+                prompt_count=cat["prompt_count"]
+            )
+            for cat in categories
+        ]
+        return PromptCategoriesResponse(
+            status="success",
+            categories=category_infos
+        )
     except Exception as e:
         logger.error(f"Error getting prompt categories endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@prompts_router.get("/categories/{category_id}", response_model=Dict[str, Any])
+@prompts_router.get("/categories/{category_id}", response_model=CategoryDetailsResponse)
 async def get_category_details(category_id: int, db: Session = Depends(get_db)):
     """Получение подробной информации о категории"""
     try:
@@ -64,27 +77,32 @@ async def get_category_details(category_id: int, db: Session = Depends(get_db)):
         
         prompts = await prompt_manager.get_prompts_by_category(str(category_id))
         
-        return {
-            "status": "success",
-            "category": {
-                "id": category.id,
-                "name": category.name,
-                "display_name": category.display_name,
-                "description": category.description,
-                "sort_order": category.sort_order,
-                "prompt_count": len(prompts)
-            },
-            "prompts": [
-                {
-                    "id": prompt.id,
-                    "name": prompt.name,
-                    "description": prompt.description,
-                    "template": prompt.template,
-                    "category_id": prompt.category_id
-                }
-                for prompt in prompts
-            ]
-        }
+        category_info = CategoryInfo(
+            id=category.id,
+            name=category.name,
+            display_name=category.display_name,
+            description=category.description,
+            is_active=category.is_active,
+            sort_order=category.sort_order,
+            prompt_count=len(prompts)
+        )
+        
+        prompt_infos = [
+            PromptInfo(
+                id=prompt.id,
+                name=prompt.name,
+                description=prompt.description,
+                template=prompt.template,
+                category_id=prompt.category_id
+            )
+            for prompt in prompts
+        ]
+        
+        return CategoryDetailsResponse(
+            status="success",
+            category=category_info,
+            prompts=prompt_infos
+        )
         
     except HTTPException:
         raise
@@ -92,7 +110,7 @@ async def get_category_details(category_id: int, db: Session = Depends(get_db)):
         logger.error(f"Error getting category details: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@prompts_router.get("/presets", response_model=Dict[str, Any])
+@prompts_router.get("/presets", response_model=PresetPromptsResponse)
 async def get_preset_prompts(
     category: Optional[str] = None,
     db: Session = Depends(get_db)
@@ -104,26 +122,28 @@ async def get_preset_prompts(
         else:
             prompts = await prompt_manager.get_prompts()
 
-        return {
-            "status": "success",
-            "prompts": [
-                {
-                    "id": prompt.id,
-                    "name": prompt.name,
-                    "template": prompt.template,
-                    "category_id": prompt.category_id,
-                    "category_name": prompt.category_obj.name if prompt.category_obj else None,
-                    "category_display_name": prompt.category_obj.display_name if prompt.category_obj else None
-                }
-                for prompt in prompts
-            ]
-        }
+        preset_prompt_infos = [
+            {
+                "id": prompt.id,
+                "name": prompt.name,
+                "template": prompt.template,
+                "category_id": prompt.category_id,
+                "category_name": prompt.category_obj.name if prompt.category_obj else None,
+                "category_display_name": prompt.category_obj.display_name if prompt.category_obj else None
+            }
+            for prompt in prompts
+        ]
+
+        return PresetPromptsResponse(
+            status="success",
+            prompts=preset_prompt_infos
+        )
 
     except Exception as e:
         logger.error(f"Error getting preset prompts: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@prompts_router.post("/classify", response_model=Dict[str, Any])
+@prompts_router.post("/classify", response_model=PromptClassificationResponse)
 @limiter.limit("10/minute")
 async def classify_prompt(
     request: Request,
@@ -141,8 +161,15 @@ async def classify_prompt(
         Результат классификации с вероятностями для каждой категории
     """
     try:
-        result = await gigachat_classify_service.classify_query(classification_request.prompt_text) 
-        return result      
+        result = await gigachat_classify_service.classify_query(classification_request.prompt_text)
+        
+        # Convert the result to the Pydantic model
+        return PromptClassificationResponse(
+            success=result["success"],
+            query_text=result["query_text"],
+            category={"name": result["category"]["name"]},
+            confidence=result["confidence"]
+        )
     except HTTPException:
         raise
     except Exception as e:
