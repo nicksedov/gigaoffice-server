@@ -10,20 +10,32 @@ from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
 from app.services.database.manager import db_manager
 
+def _get_db_session_base(auto_commit: bool = False) -> Generator[Session, None, None]:
+    """
+    Base function for database session management
+    :param auto_commit: Whether to automatically commit transactions on success
+    """
+    db = db_manager.SessionLocal()
+    try:
+        yield db
+        if auto_commit:
+            db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        error_msg = "Database transaction error" if auto_commit else "Database session error"
+        logger.error(f"{error_msg}: {e}")
+        raise
+    finally:
+        db.close()
+
 def get_db() -> Generator[Session, None, None]:
     """
     Dependency для получения сессии базы данных
     Используется в FastAPI для dependency injection
     """
-    db = db_manager.SessionLocal()
-    try:
-        yield db
-    except SQLAlchemyError as e:
-        db.rollback()
-        logger.error(f"Database session error: {e}")
-        raise
-    finally:
-        db.close()
+    # Delegate to the base function without auto-commit
+    generator = _get_db_session_base(auto_commit=False)
+    yield from generator
 
 @contextmanager
 def get_db_session() -> Generator[Session, None, None]:
@@ -31,16 +43,9 @@ def get_db_session() -> Generator[Session, None, None]:
     Контекстный менеджер для работы с сессией базы данных
     Использовать в сервисах и утилитах
     """
-    db = db_manager.SessionLocal()
-    try:
-        yield db
-        db.commit()
-    except SQLAlchemyError as e:
-        db.rollback()
-        logger.error(f"Database transaction error: {e}")
-        raise
-    finally:
-        db.close()
+    # Delegate to the base function with auto-commit
+    generator = _get_db_session_base(auto_commit=True)
+    yield from generator
 
 def init_database():
     """Инициализация базы данных при запуске приложения"""
