@@ -6,6 +6,7 @@ Router for service metrics endpoints
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials
 from loguru import logger
 
 from app.model_api import MetricsResponse
