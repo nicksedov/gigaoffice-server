@@ -107,8 +107,8 @@ class DryRunGigaChatService(BaseGigaChatService):
     async def process_query(
         self,
         query: str,
-        input_range: Optional[str] = None,
-        category: Optional[str] = None,
+        input_range: Optional[str],
+        category: Optional[str],
         input_data: Optional[List[Dict]] = None,
         temperature: float = 0.1
     ) -> Tuple[List[List[Any]], Dict[str, Any]]:
@@ -133,19 +133,6 @@ class DryRunGigaChatService(BaseGigaChatService):
         
         self.total_tokens_used += fake_metadata["total_tokens"]
         return debug_result, fake_metadata
-
-    def get_available_models(self) -> List[str]:
-        return [self.model]
-
-    def check_service_health(self) -> Dict[str, Any]:
-        return {
-            "status": "healthy",
-            "response_time": 0.01,
-            "model": self.model,
-            "total_tokens_used": self.total_tokens_used,
-            "requests_in_last_minute": len(self.request_times),
-            "rate_limit_available": True
-        }
 
     def _should_retry_error(self, error: Exception) -> bool:
         """
