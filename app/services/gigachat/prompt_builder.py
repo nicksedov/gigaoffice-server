@@ -3,7 +3,7 @@ import json
 import re
 import yaml
 from datetime import datetime
-from typing import Optional, List, Dict, Literal, Any
+from typing import Optional, List, Dict, Any
 from string import Template
 from app.resource_loader import resource_loader
 
@@ -166,4 +166,5 @@ class GigachatPromptBuilder:
         
         return "\n".join(prompt_parts)
 
+# Create global instance
 prompt_builder = GigachatPromptBuilder()

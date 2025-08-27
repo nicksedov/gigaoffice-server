@@ -1,142 +1,21 @@
 """
-GigaOffice Service Database Configuration
-Настройка подключения к PostgreSQL базе данных
+Database Session Management
+Context managers and dependencies for database sessions
 """
 
-from app.services.database.manager import db_manager
-from app.services.database.session import get_db, get_db_session, init_database, check_database_health
-from app.services.database.repository import DatabaseRepository
-
-import os
 from contextlib import contextmanager
 from typing import Generator
-from sqlalchemy import create_engine, MetaData, text
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
-from app.model_orm import Base
-from app.resource_loader import resource_loader
-
-# Собираем параметры подключения из переменных окружения
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME", "")
-DB_USER = os.getenv("DB_USER", "")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-SQL_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
-
-# Формируем строку подключения
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-# Create engine with connection pooling
-engine = create_engine(
-    DATABASE_URL,
-    poolclass=QueuePool,
-    pool_size=20,  # Number of connections to maintain
-    max_overflow=30,  # Maximum overflow connections
-    pool_pre_ping=True,  # Validate connections before use
-    pool_recycle=3600,  # Recycle connections every hour
-    echo=os.getenv("SQL_ECHO", "false").lower() == "true"  # SQL logging
-)
-
-# Create session factory
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-    expire_on_commit=False
-)
-
-# Metadata for migrations
-metadata = MetaData()
-
-class DatabaseManager:
-    """Менеджер работы с БД и пулом соединений"""
-    def __init__(self):
-        # Приоритет переменных окружения над конфигом
-        config = resource_loader.get_config("database_config")
-        host = os.getenv("DB_HOST", config.get("host"))
-        port = os.getenv("DB_PORT", config.get("port"))
-        name = os.getenv("DB_NAME", config.get("name"))
-        user = os.getenv("DB_USER", config.get("user"))
-        password = os.getenv("DB_PASSWORD", config.get("password"))
-        echo_flag = os.getenv("DB_ECHO", str(config.get("echo", False))).lower() == "true"
-
-        url = f"postgresql://{user}:{password}@{host}:{port}/{name}"
-        self.engine = create_engine(
-            url,
-            poolclass=QueuePool,
-            pool_size=config.get("pool_size", 20),
-            max_overflow=config.get("max_overflow", 30),
-            pool_pre_ping=True,
-            pool_recycle=3600,
-            echo=echo_flag
-        )
-        self.SessionLocal = sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=self.engine,
-            expire_on_commit=False
-        )
-    
-    def create_tables(self):
-        """Создание всех таблиц"""
-        try:
-            Base.metadata.create_all(bind=self.engine)
-            logger.info("Database tables created successfully")
-        except SQLAlchemyError as e:
-            logger.error(f"Error creating database tables: {e}")
-            raise
-    
-    def drop_tables(self):
-        """Удаление всех таблиц (только для тестирования)"""
-        try:
-            Base.metadata.drop_all(bind=self.engine)
-            logger.warning("All database tables dropped")
-        except SQLAlchemyError as e:
-            logger.error(f"Error dropping database tables: {e}")
-            raise
-    
-    def check_connection(self) -> bool:
-        """Проверка подключения к базе данных"""
-        try:
-            with self.engine.connect() as connection:
-                connection.execute(text("SELECT 1"))
-            return True
-        except SQLAlchemyError as e:
-            logger.error(f"Database connection failed: {e}")
-            return False
-    
-    def get_db_info(self) -> dict:
-        """Получение информации о базе данных"""
-        try:
-            with self.engine.connect() as connection:
-                sql_query = resource_loader.load_sql("sql/database_info.sql")
-                result = connection.execute(text(sql_query)).fetchone()
-                return {
-                    "version": result.version,
-                    "database_name": result.database_name,
-                    "current_user": result.current_user,
-                    "server_addr": result.server_addr,
-                    "server_port": result.server_port,
-                    "pool_size": self.engine.pool.size(),
-                    "checked_out": self.engine.pool.checkedout(),
-                    "overflow": self.engine.pool.overflow(),
-                }
-        except SQLAlchemyError as e:
-            logger.error(f"Error getting database info: {e}")
-            return {"error": str(e)}
-
-# Create database manager instance
-db_manager = DatabaseManager()
+from app.services.database.manager import db_manager
 
 def get_db() -> Generator[Session, None, None]:
     """
     Dependency для получения сессии базы данных
     Используется в FastAPI для dependency injection
     """
-    db = SessionLocal()
+    db = db_manager.SessionLocal()
     try:
         yield db
     except SQLAlchemyError as e:
@@ -152,7 +31,7 @@ def get_db_session() -> Generator[Session, None, None]:
     Контекстный менеджер для работы с сессией базы данных
     Использовать в сервисах и утилитах
     """
-    db = SessionLocal()
+    db = db_manager.SessionLocal()
     try:
         yield db
         db.commit()
@@ -162,45 +41,6 @@ def get_db_session() -> Generator[Session, None, None]:
         raise
     finally:
         db.close()
-
-class DatabaseRepository:
-    """Базовый класс для репозиториев работы с базой данных"""
-    
-    def __init__(self, db: Session):
-        self.db = db
-    
-    def commit(self):
-        """Коммит транзакции"""
-        try:
-            self.db.commit()
-        except SQLAlchemyError as e:
-            self.db.rollback()
-            logger.error(f"Commit error: {e}")
-            raise
-    
-    def rollback(self):
-        """Откат транзакции"""
-        self.db.rollback()
-    
-    def refresh(self, obj):
-        """Обновление объекта из базы данных"""
-        self.db.refresh(obj)
-    
-    def add(self, obj):
-        """Добавление объекта в сессию"""
-        self.db.add(obj)
-    
-    def delete(self, obj):
-        """Удаление объекта"""
-        self.db.delete(obj)
-    
-    def execute_raw_sql(self, sql: str, params: dict = None):
-        """Выполнение сырого SQL запроса"""
-        try:
-            return self.db.execute(sql, params or {})
-        except SQLAlchemyError as e:
-            logger.error(f"Raw SQL execution error: {e}")
-            raise
 
 def init_database():
     """Инициализация базы данных при запуске приложения"""
@@ -336,6 +176,3 @@ def check_database_health() -> dict:
             "status": "unhealthy",
             "error": str(e)
         }
-
-# Import for time module
-import time

@@ -3,8 +3,6 @@ GigaOffice Kafka Service
 Сервис для работы с Apache Kafka для балансировки нагрузки и очередей
 """
 
-from app.services.kafka.service import kafka_service
-
 import os
 import json
 import time
@@ -222,7 +220,7 @@ class KafkaService:
                     
                 try:
                     # Обрабатываем сообщение
-                        await self._process_message(msg, message_processor)
+                    await self._process_message(msg, message_processor)
                     
                 except Exception as e:
                     logger.error(f"Error processing message: {e}")
@@ -381,22 +379,6 @@ class KafkaService:
                 "error": str(e),
                 "bootstrap_servers": self.bootstrap_servers
             }
-
-    def cleanup(self):
-        """Очистка ресурсов"""
-        try:
-            self.stop_consumer()
-            
-            if self.producer:
-                self.producer.stop()
-                
-            if self.consumer:
-                self.consumer.stop()
-                
-            logger.info("Kafka service cleaned up successfully")
-            
-        except Exception as e:
-            logger.error(f"Error during Kafka cleanup: {e}")
 
 # Create global instance
 kafka_service = KafkaService()

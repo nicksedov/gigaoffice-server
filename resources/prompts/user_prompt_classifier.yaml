@@ -31,3 +31,11 @@ examples:
       "category": "generation",
       "confidence": 0.98345
     }
+- request: |
+    Запрос: 
+    Нарисуй зимний пейзаж
+  response: |
+    {
+      "category": "uncertain",
+      "confidence": 1.00000
+    }

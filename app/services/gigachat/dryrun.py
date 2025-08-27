@@ -176,3 +176,7 @@ class DryRunGigaChatService:
             "max_tokens_per_request": 2048,
             "model": self.model
         }
+
+    def _init_client(self):
+        """Инициализация клиента (заглушка для dryrun)"""
+        pass

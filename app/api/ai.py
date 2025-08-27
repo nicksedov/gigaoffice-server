@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from loguru import logger
+from fastapi.security import HTTPAuthorizationCredentials
 
 from app.model_types import RequestStatus
 from app.model_api import (

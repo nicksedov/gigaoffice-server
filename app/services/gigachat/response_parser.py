@@ -65,4 +65,5 @@ class GigachatResponseParser:
             result_data = [[response_content.strip()]]
             return result_data
 
+# Create global instance
 response_parser = GigachatResponseParser()

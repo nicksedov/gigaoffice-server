@@ -20,7 +20,6 @@ from fastapi import HTTPException
 class BaseGigaChatService(ABC):
     """Базовый абстрактный класс для GigaChat сервисов"""
     
-class BaseGigaChatService(ABC):
     def __init__(self, prompt_builder, model=None):
         config = resource_loader.get_config("gigachat_config")
         self.model = model or os.getenv("GIGACHAT_GENERATE_MODEL", config.get("model"))
@@ -60,7 +59,6 @@ class BaseGigaChatService(ABC):
     def _count_tokens(self, text: str) -> int:
         """Примерный подсчет токенов"""
         return len(text) // 4
-    
         
     async def classify_query(
         self, 
@@ -434,4 +432,3 @@ class BaseGigaChatService(ABC):
             "max_tokens_per_request": self.max_tokens_per_request,
             "model": self.model
         }
-

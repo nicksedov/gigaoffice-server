@@ -7,7 +7,7 @@ import os
 from langchain_gigachat.chat_models import GigaChat
 from loguru import logger
 from app.resource_loader import resource_loader
-from app.gigachat_service_base import BaseGigaChatService
+from app.services.gigachat.base import BaseGigaChatService
 
 class CloudGigaChatService(BaseGigaChatService):
     """Сервис для работы с GigaChat через облачное подключение"""

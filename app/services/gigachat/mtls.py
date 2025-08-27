@@ -7,7 +7,7 @@ import os
 from langchain_gigachat.chat_models import GigaChat
 from loguru import logger
 from app.resource_loader import resource_loader
-from app.gigachat_service_base import BaseGigaChatService
+from app.services.gigachat.base import BaseGigaChatService
 
 class MtlsGigaChatService(BaseGigaChatService):
     """Сервис для работы с GigaChat через mTLS подключение"""
@@ -25,7 +25,7 @@ class MtlsGigaChatService(BaseGigaChatService):
             self.key_file_password = os.getenv("GIGACHAT_MTLS_KEY_FILE_PASSWORD")
             
             # Проверяем обязательные параметры
-            if self.verify_ssl_certs == 'true' and not self.ca_bundle_file:
+            if str(self.verify_ssl_certs).lower() == 'true' and not self.ca_bundle_file:
                 raise ValueError("GIGACHAT_MTLS_CA_BUNDLE_FILE environment variable is required for mTLS mode")
             if not self.cert_file:
                 raise ValueError("GIGACHAT_MTLS_CERT_FILE environment variable is required for mTLS mode")
@@ -33,7 +33,7 @@ class MtlsGigaChatService(BaseGigaChatService):
                 raise ValueError("GIGACHAT_MTLS_KEY_FILE environment variable is required for mTLS mode")
             
             # Проверяем существование файлов
-            if self.verify_ssl_certs == 'true' and not os.path.exists(self.ca_bundle_file):
+            if str(self.verify_ssl_certs).lower() == 'true' and not os.path.exists(self.ca_bundle_file):
                 raise FileNotFoundError(f"CA bundle file not found: {self.ca_bundle_file}")
             if not os.path.exists(self.cert_file):
                 raise FileNotFoundError(f"Certificate file not found: {self.cert_file}")
@@ -54,7 +54,7 @@ class MtlsGigaChatService(BaseGigaChatService):
             )
             
             logger.info("GigaChat client initialized successfully (mTLS mode)")
-            if self.verify_ssl_certs == 'true':
+            if str(self.verify_ssl_certs).lower() == 'true':
                 logger.info(f"Using CA bundle: {self.ca_bundle_file}")
             logger.info(f"Using certificate: {self.cert_file}")
             logger.info(f"Using key file: {self.key_file}")
