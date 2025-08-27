@@ -9,16 +9,16 @@ import time
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 from loguru import logger
+from app.services.gigachat.base import BaseGigaChatService
 
-class DryRunGigaChatService:
+class DryRunGigaChatService(BaseGigaChatService):
     """Заглушка для GigaChat с отображением переменных окружения и промптов"""
 
     def __init__(self, prompt_builder, model=None):
+        # Call parent constructor with prompt_builder and model
+        super().__init__(prompt_builder, model)
+        # Override model if needed
         self.model = model or "GigaChat-DryRun"
-        self.total_tokens_used = 0
-        self.request_times = []
-        # Используем GigachatPromptBuilder
-        self.prompt_builder = prompt_builder
         logger.info("GigaChat client initialized successfully (DRY RUN mode)")
 
     def _count_tokens(self, text: str) -> int:
@@ -147,6 +147,24 @@ class DryRunGigaChatService:
             "rate_limit_available": True
         }
 
+    def _should_retry_error(self, error: Exception) -> bool:
+        """
+        Определяет, стоит ли повторять запрос при данной ошибке для dry-run режима
+        
+        Args:
+            error: Исключение, которое произошло
+        
+        Returns:
+            True, если ошибку можно повторить, False - если критичная
+        """
+        # In dry-run mode, we don't actually make requests, so no retries needed
+        return False
+
+    def _init_client(self):
+        """Инициализация клиента (заглушка для dryrun)"""
+        # In dry run mode, we don't initialize an actual client
+        self.client = None
+
     async def process_batch_queries(
         self,
         queries: List[Dict[str, Any]],
@@ -177,6 +195,3 @@ class DryRunGigaChatService:
             "model": self.model
         }
 
-    def _init_client(self):
-        """Инициализация клиента (заглушка для dryrun)"""
-        pass
