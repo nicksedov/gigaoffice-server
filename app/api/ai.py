@@ -21,7 +21,13 @@ from app.model_api import (
 )
 from app.model_orm import AIRequest, AIResponse
 from app.database import get_db
-from app.gigachat_factory import gigachat_classify_service, gigachat_generate_service
+# Direct imports for GigaChat services
+from app.services.gigachat.prompt_builder import prompt_builder
+from app.services.gigachat.factory import create_gigachat_services
+
+# Create services in the module where needed
+gigachat_classify_service, gigachat_generate_service = create_gigachat_services(prompt_builder)
+
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
 

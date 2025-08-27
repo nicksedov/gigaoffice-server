@@ -8,7 +8,13 @@ from typing import Dict, Any
 from app.model_api import ServiceHealth
 from app.fastapi_config import app_start_time
 from app.database import check_database_health
-from app.gigachat_factory import gigachat_classify_service
+# Direct imports for GigaChat services
+from app.services.gigachat.prompt_builder import prompt_builder
+from app.services.gigachat.factory import create_gigachat_services
+
+# Create services in the module where needed
+gigachat_classify_service, _ = create_gigachat_services(prompt_builder)
+
 from app.services.kafka.service import kafka_service
 
 health_router = APIRouter(prefix="/api", tags=["Health"])
