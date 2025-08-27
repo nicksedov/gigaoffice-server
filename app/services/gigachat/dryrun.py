@@ -21,12 +21,6 @@ class DryRunGigaChatService(BaseGigaChatService):
         self.model = model or "GigaChat-DryRun"
         logger.info("GigaChat client initialized successfully (DRY RUN mode)")
 
-    def _count_tokens(self, text: str) -> int:
-        return len(text) // 4
-
-    def _add_request_time(self):
-        self.request_times.append(time.time())
-
     def _get_gigachat_env_vars(self) -> List[List[str]]:
         """Получение всех переменных окружения с префиксом GIGACHAT"""
         env_vars = []
@@ -151,34 +145,3 @@ class DryRunGigaChatService(BaseGigaChatService):
         """Инициализация клиента (заглушка для dryrun)"""
         # In dry run mode, we don't initialize an actual client
         self.client = None
-
-    async def process_batch_queries(
-        self,
-        queries: List[Dict[str, Any]],
-        max_concurrent: int = 3
-    ) -> List[Dict[str, Any]]:
-        results = []
-        for query in queries:
-            result, metadata = await self.process_query(
-                query["query"], 
-                query.get("input_data"),
-                input_range=query.get("input_range"),
-            )
-            results.append({
-                "id": query.get("id"),
-                "result": result,
-                "metadata": metadata,
-                "error": None
-            })
-        return results
-
-    def get_usage_statistics(self) -> Dict[str, Any]:
-        return {
-            "total_tokens_used": self.total_tokens_used,
-            "requests_last_minute": len(self.request_times),
-            "rate_limit_remaining": 100,
-            "max_requests_per_minute": 100,
-            "max_tokens_per_request": 2048,
-            "model": self.model
-        }
-
