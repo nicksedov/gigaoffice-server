@@ -9,7 +9,7 @@ from app.model_api import ServiceHealth
 from app.fastapi_config import app_start_time
 from app.database import check_database_health
 from app.gigachat_factory import gigachat_classify_service
-from app.kafka_service import kafka_service
+from app.services.kafka.service import kafka_service
 
 health_router = APIRouter(prefix="/api", tags=["Health"])
 

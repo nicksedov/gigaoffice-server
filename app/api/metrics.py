@@ -11,7 +11,7 @@ from loguru import logger
 
 from app.model_api import MetricsResponse
 from app.gigachat_factory import gigachat_generate_service
-from app.kafka_service import kafka_service
+from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
 
 # Authentication dependency

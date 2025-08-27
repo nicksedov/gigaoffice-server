@@ -21,7 +21,7 @@ from app.database import init_database, get_db_session
 from app.model_types import RequestStatus
 from app.model_orm import AIRequest
 from app.gigachat_factory import gigachat_generate_service
-from app.kafka_service import kafka_service
+from app.services.kafka.service import kafka_service
 from app.prompts import prompt_manager
 
 # Configuration
