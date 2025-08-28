@@ -115,7 +115,7 @@ class ChartDefinition(BaseModel):
 
 class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation"""
-    metadata: SpreadsheetMetadata = Field(default_factory=SpreadsheetData, description="Metadata section")
+    metadata: SpreadsheetMetadata = Field(default_factory=SpreadsheetMetadata, description="Metadata section")
     worksheet: WorksheetInfo = Field(default_factory=WorksheetInfo, description="Worksheet section")
     data: Dict[str, Any] = Field(..., description="Data section containing headers and rows")
     columns: List[ColumnDefinition] = Field(default_factory=list, description="Column definitions")
