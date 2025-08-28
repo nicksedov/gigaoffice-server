@@ -1,4 +1,4 @@
-﻿# GigaOffice AI Service
+# GigaOffice AI Service
 
 ## Описание проекта
 
@@ -13,6 +13,7 @@ GigaOffice AI Service — это промежуточный сервис для 
 - **Rate limiting** и мониторинг производительности
 - **PostgreSQL** для хранения данных и метрик
 - **Кэширование** часто используемых промптов
+- **Расширенная поддержка таблиц** с форматом JSON для сложных операций
 
 ## Технический стек
 
@@ -166,6 +167,102 @@ resources/
 2. **cloud** - подключение через облачное API с авторизацией по токену
 3. **mtls** - подключение через взаимную TLS аутентификацию
 
+## Расширенная поддержка таблиц Р7-Офис
+
+### Обзор
+
+Сервис теперь поддерживает расширенный формат JSON для работы с таблицами Р7-Офис, который позволяет:
+- Задавать структуру таблицы с заголовками, строками и определениями колонок
+- Применять стили к ячейкам, строкам и заголовкам
+- Добавлять формулы для вычислений
+- Создавать диаграммы на основе данных таблицы
+- Определять типы данных и форматы отображения
+
+### Формат данных
+
+Расширенный формат данных таблицы включает следующие компоненты:
+
+```json
+{
+  "metadata": {
+    "version": "1.0",
+    "format": "enhanced-spreadsheet-data",
+    "created_at": "2024-01-01T00:00:00Z",
+    "plugin_id": "example-plugin-id"
+  },
+  "worksheet": {
+    "name": "Sheet1",
+    "range": "A1",
+    "options": {
+      "auto_resize_columns": true,
+      "freeze_headers": true,
+      "auto_filter": true
+    }
+  },
+  "data": {
+    "headers": {
+      "values": ["Product", "Q1 Sales", "Q2 Sales"],
+      "style": {
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold"
+      }
+    },
+    "rows": [
+      {
+        "values": ["Product A", 1000, 1200],
+        "style": {
+          "background_color": "#F2F2F2"
+        }
+      }
+    ]
+  },
+  "columns": [
+    {
+      "index": 0,
+      "name": "Product",
+      "type": "string",
+      "format": "text",
+      "width": 150
+    }
+  ],
+  "styles": {
+    "default": {
+      "font_family": "Arial",
+      "font_size": 10,
+      "font_color": "#000000",
+      "background_color": "#FFFFFF"
+    }
+  },
+  "formulas": [
+    {
+      "cell": "D2",
+      "formula": "=SUM(B2:C2)",
+      "description": "Total Sales for Product A"
+    }
+  ],
+  "charts": [
+    {
+      "type": "column",
+      "title": "Quarterly Sales by Product",
+      "range": "A1:D3",
+      "position": {
+        "top": 100,
+        "left": 300,
+        "width": 400,
+        "height": 300
+      }
+    }
+  ]
+}
+```
+
+### API эндпоинты для работы с таблицами
+
+#### Обработка расширенных данных таблицы
+- `POST /api/spreadsheets/process` - отправка данных таблицы на обработку
+- `GET /api/spreadsheets/status/{request_id}` - статус обработки
+
 ## API Документация
 
 После запуска сервиса документация доступна по адресам:
@@ -182,6 +279,10 @@ resources/
 - `GET /api/ai/status/{request_id}` - статус обработки
 - `GET /api/ai/result/{request_id}` - получение результата
 
+#### Расширенная работа с таблицами
+- `POST /api/spreadsheets/process` - отправка данных таблицы на обработку
+- `GET /api/spreadsheets/status/{request_id}` - статус обработки таблицы
+
 #### Управление промптами
 - `GET /api/prompts/categories` - список категорий
 - `GET /api/prompts/presets` - предустановленные промпты
@@ -190,38 +291,57 @@ resources/
 #### Метрики
 - `GET /api/metrics` - статистика использования
 
-### Пример запроса
+### Пример запроса для работы с таблицами
 
 ```bash
-curl -X POST "http://localhost:8000/api/ai/process" \
+curl -X POST "http://localhost:8000/api/spreadsheets/process" \
   -H "Content-Type: application/json" \
   -d '{
-    "query_text": "Проанализируй данные продаж и найди тренды",
-    "input_range": "A1:D10",
-    "category": "analysis",
-    "input_data": [
-      ["Товар", "Январь", "Февраль", "Март"],
-      ["Товар A", 100, 120, 110],
-      ["Товар B", 80, 90, 95]
-    ]
+    "query_text": "Добавь колонку с итогами и создай диаграмму",
+    "spreadsheet_data": {
+      "metadata": {
+        "version": "1.0",
+        "format": "enhanced-spreadsheet-data"
+      },
+      "worksheet": {
+        "name": "Sales",
+        "range": "A1"
+      },
+      "data": {
+        "headers": {
+          "values": ["Product", "Q1", "Q2"]
+        },
+        "rows": [
+          {
+            "values": ["Product A", 1000, 1200]
+          },
+          {
+            "values": ["Product B", 800, 900]
+          }
+        ]
+      }
+    }
   }'
 ```
 
-## Мониторинг и логирование
+## Тестирование
 
-### Логи
-Логи записываются в файл `logs/gigaoffice.log` с ротацией каждый день.
+### Запуск тестов
 
-### Метрики
-Сервис собирает метрики:
-- Количество запросов
-- Время обработки
-- Использование токенов
-- Ошибки и их типы
+Для запуска тестов используйте pytest:
 
-### Health Check
 ```bash
-curl http://localhost:8000/api/health
+pytest tests/
+```
+
+### Структура тестов
+
+```
+tests/
+├── conftest.py                   # Конфигурация pytest
+├── test_spreadsheet_models.py    # Тесты моделей данных таблиц
+├── test_spreadsheet_api.py       # Тесты API эндпоинтов таблиц
+└── test_spreadsheet_processor.py # Тесты сервиса обработки таблиц
 ```
 
 ## Разработка
@@ -229,135 +349,23 @@ curl http://localhost:8000/api/health
 ### Структура проекта
 
 ```
-service/
-├── core/                    # Core application components
-│   ├── config.py           # Centralized configuration
-│   ├── exceptions.py       # Custom exceptions
-│   └── dependencies.py     # Common dependencies
-├── api/                     # API layer
-│   └── routes/
-│       ├── health.py       # Health endpoints
-│       ├── ai.py           # AI processing
-│       ├── prompts.py      # Prompt management
-│       └── metrics.py      # Metrics endpoints
-├── services/                # Business logic layer
-│   └── gigachat/
-│       ├── base.py         # Base service interface
-│       ├── factory.py      # Service factory
-│       ├── prompt_builder.py
-│       ├── response_parser.py
-│       └── implementations/
-│           ├── cloud.py    # Cloud implementation
-│           ├── mtls.py     # mTLS implementation
-│           └── dryrun.py   # Development implementation
-├── models/                  # Data models
-│   ├── base.py             # Base model classes
-│   ├── database.py         # ORM models
-│   └── schemas.py          # API schemas
-├── database/               # Database layer
-│   └── connection.py       # Database connection
-└── utils/                  # Utility functions
-    └── resource_loader.py
+app/
+├── api/                          # API роутеры
+│   ├── ai.py                     # Эндпоинты для ИИ обработки
+│   ├── health.py                 # Эндпоинты проверки состояния
+│   ├── metrics.py                # Эндпоинты метрик
+│   ├── prompts.py                # Эндпоинты управления промптами
+│   └── spreadsheets.py           # Эндпоинты для работы с таблицами
+├── models/                       # Модели данных
+│   ├── api/                      # Pydantic модели для API
+│   └── orm/                      # SQLAlchemy модели для БД
+├── services/                     # Бизнес-логика
+│   ├── database/                 # Работа с БД
+│   ├── gigachat/                 # Интеграция с GigaChat
+│   └── spreadsheet/              # Обработка таблиц
+└── main.py                      # Точка входа приложения
 ```
 
-### Добавление новых функций
+## Лицензия
 
-1. **Новые промпты**: добавить в `resources/prompts/default_prompts.json`
-2. **Новые категории**: добавить в `resources/prompts/prompt_categories.json`
-3. **Новые API эндпоинты**: добавить в `routers.py`
-4. **Новые модели данных**: добавить в `model_orm.py` и `model_api.py`
-
-### Тестирование
-
-```bash
-# Запуск тестов
-python -m pytest tests/
-
-# Тестирование в режиме dryrun
-export GIGACHAT_RUN_MODE=dryrun
-python main.py
-```
-
-## Производственное развертывание
-
-### Рекомендации для продакшена
-
-1. **Использовать прокси-сервер** (nginx/apache) перед приложением
-2. **Настроить SSL/TLS** для безопасности
-3. **Мониторинг** через Prometheus/Grafana
-4. **Резервное копирование** базы данных
-5. **Масштабирование** через множественные экземпляры
-
-### Пример nginx конфигурации
-
-```
-upstream gigaoffice {
-    server 127.0.0.1:8000;
-    server 127.0.0.1:8001;  # дополнительные экземпляры
-}
-
-server {
-    listen 80;
-    server_name gigaoffice.example.com;
-    
-    location / {
-        proxy_pass http://gigaoffice;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Systemd сервис
-
-```
-[Unit]
-Description=GigaOffice AI Service
-After=network.target postgresql.service
-
-[Service]
-Type=simple
-User=gigaoffice
-WorkingDirectory=/opt/gigaoffice
-Environment=PYTHONPATH=/opt/gigaoffice
-ExecStart=/opt/gigaoffice/venv/bin/python main.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-## Устранение неполадок
-
-### Частые проблемы
-
-1. **Ошибка подключения к БД**:
-   - Проверить настройки в `.env`
-   - Убедиться, что PostgreSQL запущен
-   - Проверить права доступа пользователя БД
-
-2. **Ошибки GigaChat API**:
-   - Проверить корректность credentials
-   - Убедиться в доступности GigaChat API
-   - Проверить лимиты запросов
-
-3. **Проблемы с Kafka**:
-   - Проверить, что Kafka запущен
-   - Убедиться в корректности настроек топиков
-   - Проверить права доступа consumer group
-
-### Логи и отладка
-
-```bash
-# Просмотр логов
-tail -f logs/gigaoffice.log
-
-# Увеличение уровня логирования
-export LOG_LEVEL=debug
-
-# Проверка статуса компонентов
-curl http://localhost:8000/api/health
-```
+MIT License - см. файл [LICENSE](LICENSE) для подробностей.

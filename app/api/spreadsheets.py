@@ -1,0 +1,140 @@
+"""
+Spreadsheet API Router
+Router for enhanced spreadsheet manipulation endpoints
+"""
+
+import uuid
+from typing import Dict, Any, Optional
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from loguru import logger
+
+from app.models.types.enums import RequestStatus
+from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetResponse
+from app.models.orm.ai_request import AIRequest
+from app.services.database.session import get_db
+# Direct imports for GigaChat services
+from app.services.gigachat.prompt_builder import prompt_builder
+from app.services.gigachat.factory import create_gigachat_services
+
+# Create services in the module where needed
+_, gigachat_generate_service = create_gigachat_services(prompt_builder)
+
+from app.services.kafka.service import kafka_service
+from app.fastapi_config import security
+
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address)
+
+# Authentication dependency
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current user from token (simplified implementation)"""
+    if not credentials:
+        return None
+    return {"id": 1, "username": "demo_user", "role": "user"}
+
+spreadsheet_router = APIRouter(prefix="/api/spreadsheets", tags=["Spreadsheet Processing"])
+
+@spreadsheet_router.post("/process", response_model=SpreadsheetResponse)
+@limiter.limit("10/minute")
+async def process_spreadsheet_request(
+    request: Request,
+    spreadsheet_request: SpreadsheetRequest,
+    background_tasks: BackgroundTasks,
+    current_user: Optional[Dict] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Process enhanced spreadsheet data with AI"""
+    try:
+        request_id = str(uuid.uuid4())
+        user_id = current_user.get("id", 0) if current_user else 0
+        
+        # Convert spreadsheet data to JSON for storage
+        import json
+        spreadsheet_json = json.dumps(spreadsheet_request.spreadsheet_data.dict())
+        
+        db_request = AIRequest(
+            id=request_id,
+            user_id=user_id,
+            status=RequestStatus.PENDING,
+            input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
+            query_text=spreadsheet_request.query_text,
+            category=spreadsheet_request.category,
+            input_data=[{"spreadsheet_data": spreadsheet_json}]  # Store as list for compatibility
+        )
+        db.add(db_request)
+        db.commit()
+        
+        # Send to Kafka for processing
+        success = await kafka_service.send_request(
+            request_id=request_id,
+            user_id=user_id,
+            query=spreadsheet_request.query_text,
+            input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
+            category=spreadsheet_request.category,
+            input_data=[{"spreadsheet_data": spreadsheet_json}],
+            priority=1 if current_user and current_user.get("role") == "premium" else 0
+        )
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to queue request")
+        
+        return SpreadsheetResponse(
+            success=True,
+            request_id=request_id,
+            status="queued",
+            message="Spreadsheet processing request added to queue"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error processing spreadsheet request: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@spreadsheet_router.get("/status/{request_id}", response_model=SpreadsheetResponse)
+async def get_spreadsheet_processing_status(request_id: str, db: Session = Depends(get_db)):
+    """Get the processing status of a spreadsheet request"""
+    try:
+        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
+        if not db_request:
+            raise HTTPException(status_code=404, detail="Request not found")
+        
+        progress_map = {
+            RequestStatus.PENDING: 0,
+            RequestStatus.PROCESSING: 50,
+            RequestStatus.COMPLETED: 100,
+            RequestStatus.FAILED: 0,
+            RequestStatus.CANCELLED: 0
+        }
+        
+        # Try to parse result data if available
+        result_data = None
+        if db_request.result_data:
+            try:
+                import json
+                # If result_data is a string, parse it
+                if isinstance(db_request.result_data, str):
+                    result_data = json.loads(db_request.result_data)
+                # If it's already a dict, use it directly
+                elif isinstance(db_request.result_data, dict):
+                    result_data = db_request.result_data
+            except Exception as e:
+                logger.warning(f"Could not parse result data: {e}")
+        
+        return SpreadsheetResponse(
+            success=db_request.status == RequestStatus.COMPLETED,
+            request_id=request_id,
+            status=db_request.status,
+            message=db_request.error_message or "Processing in progress",
+            result_data=result_data if db_request.status == RequestStatus.COMPLETED else None,
+            error_message=db_request.error_message if db_request.status == RequestStatus.FAILED else None
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting spreadsheet processing status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

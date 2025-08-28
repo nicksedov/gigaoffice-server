@@ -23,9 +23,11 @@ from app.models.orm.ai_request import AIRequest
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services
+from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
 
 # Create services in the module where needed
 _, gigachat_generate_service = create_gigachat_services(prompt_builder)
+spreadsheet_processor = create_spreadsheet_processor(gigachat_generate_service)  # Create spreadsheet processor
 
 from app.services.kafka.service import kafka_service
 from app.prompts import prompt_manager
@@ -55,8 +57,15 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         
         logger.info(f"Processing Kafka message: {request_id}")
         
-        # Process with GigaChat
-        result, metadata = await gigachat_generate_service.process_query(query, input_range, category, input_data)
+        # Check if this is spreadsheet data
+        if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
+            # Process as enhanced spreadsheet data
+            import json
+            spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
+            result, metadata = await spreadsheet_processor.process_spreadsheet(query, spreadsheet_data)
+        else:
+            # Process as regular data
+            result, metadata = await gigachat_generate_service.process_query(query, input_range, category, input_data)
         
         # Update database
         with get_db_session() as db:

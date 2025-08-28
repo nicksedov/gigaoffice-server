@@ -20,7 +20,8 @@ class GigachatPromptBuilder:
         'analysis':       'system_prompt_analysis.yaml',
         'transformation': 'system_prompt_transformation.yaml',
         'search':         'system_prompt_search.yaml', 
-        'generation':     'system_prompt_generation.yaml'
+        'generation':     'system_prompt_generation.yaml',
+        'spreadsheet':    'system_prompt_spreadsheet.yaml'  # Added spreadsheet prompt type
     }
 
     def __init__(self, resources_dir: str = 'resources/prompts/'):
@@ -152,8 +153,13 @@ class GigachatPromptBuilder:
 
         # 2. Исходные данные
         if input_data:
-            prompt_parts.append("ИСХОДНЫЕ ДАННЫЕ:")
-            prompt_parts.append(json.dumps(input_data, ensure_ascii=False, indent=2))
+            # Check if this is enhanced spreadsheet data
+            if len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
+                prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
+                prompt_parts.append(input_data[0]["spreadsheet_data"])
+            else:
+                prompt_parts.append("ИСХОДНЫЕ ДАННЫЕ:")
+                prompt_parts.append(json.dumps(input_data, ensure_ascii=False, indent=2))
             prompt_parts.append("")
         
         # 3. Диапазон ячеек с исходными данными
@@ -163,6 +169,38 @@ class GigachatPromptBuilder:
         
         # 4. Инструкция по формату ответа
         prompt_parts.append("Предоставь ответ в виде JSON-массива массивов.")
+        
+        return "\n".join(prompt_parts)
+
+    def prepare_spreadsheet_prompt(
+        self,
+        query: str,
+        spreadsheet_data: Dict[str, Any]
+    ) -> str:
+        """
+        Подготовка специализированного промпта для обработки расширенных данных таблиц
+        
+        Args:
+            query: Текст запроса пользователя
+            spreadsheet_data: Расширенные данные таблицы в формате JSON
+            
+        Returns:
+            str: Сформированный промпт для отправки в GigaChat
+        """
+        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+        prompt_parts = [f"ДАТА ЗАПРОСА: {timestamp_str}", ""]
+        
+        # 1. Задача
+        prompt_parts.append(f"ЗАДАЧА: {query}")
+        prompt_parts.append("")
+        
+        # 2. Расширенные данные таблицы
+        prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
+        prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, indent=2))
+        prompt_parts.append("")
+        
+        # 3. Инструкция по формату ответа
+        prompt_parts.append("Предоставь ответ в формате расширенных данных таблицы, сохраняя структуру JSON.")
         
         return "\n".join(prompt_parts)
 
