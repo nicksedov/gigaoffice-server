@@ -21,6 +21,9 @@ from app.services.database.session import get_db
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services
 
+# Import custom JSON encoder
+from app.utils.json_encoder import DateTimeEncoder
+
 # Create services in the module where needed
 _, gigachat_generate_service = create_gigachat_services(prompt_builder)
 
@@ -53,9 +56,9 @@ async def process_spreadsheet_request(
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
         
-        # Convert spreadsheet data to JSON for storage
+        # Convert spreadsheet data to JSON for storage using custom encoder
         import json
-        spreadsheet_json = json.dumps(spreadsheet_request.spreadsheet_data.dict())
+        spreadsheet_json = json.dumps(spreadsheet_request.spreadsheet_data.dict(), cls=DateTimeEncoder)
         
         db_request = AIRequest(
             id=request_id,

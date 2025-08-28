@@ -14,6 +14,9 @@ from loguru import logger
 from dataclasses import dataclass
 from app.resource_loader import resource_loader
 
+# Import custom JSON encoder
+from app.utils.json_encoder import DateTimeEncoder
+
 @dataclass
 class QueueMessage:
     """Сообщение в очереди"""
@@ -46,7 +49,7 @@ class KafkaService:
         
         # Queue settings
         self.max_queue_size = int(os.getenv("MAX_QUEUE_SIZE", config["max_queue_size"]))
-        self.max_processing_time = int(os.getenv("MAX_PROCESSING_TIME", config["max_processing_time"]))
+        self.max_processing_time = int(os.getenv("MAX_PROCESSING_TIME", config["max_queue_size"]))
         
         # Initialize components
         self.producer = None
@@ -184,11 +187,11 @@ class KafkaService:
                 "timestamp": datetime.now().isoformat()
             }
             
-            # Отправляем сообщение
+            # Отправляем сообщение используя custom encoder
             await self.producer.send_and_wait(
                 topic=self.topic_requests,
                 key=request_id.encode('utf-8'),
-                value=json.dumps(message_data, ensure_ascii=False).encode('utf-8')
+                value=json.dumps(message_data, ensure_ascii=False, cls=DateTimeEncoder).encode('utf-8')
             )
             
             self.messages_sent += 1
@@ -278,7 +281,7 @@ class KafkaService:
             await self.producer.send_and_wait(
                 topic=self.topic_responses,
                 key=request_id.encode('utf-8'),
-                value=json.dumps(response_data, ensure_ascii=False).encode('utf-8')
+                value=json.dumps(response_data, ensure_ascii=False, cls=DateTimeEncoder).encode('utf-8')
             )
             
         except Exception as e:
@@ -299,7 +302,7 @@ class KafkaService:
             
             await self.producer.send_and_wait(
                 topic=self.topic_dlq,
-                value=json.dumps(dlq_data, ensure_ascii=False).encode('utf-8')
+                value=json.dumps(dlq_data, ensure_ascii=False, cls=DateTimeEncoder).encode('utf-8')
             )
             
             logger.warning(f"Message sent to DLQ: {error_reason}")
