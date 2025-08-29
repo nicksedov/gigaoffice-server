@@ -5,6 +5,7 @@ Service for processing enhanced spreadsheet data with GigaChat
 
 import json
 import time
+import asyncio
 from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime
 from loguru import logger
@@ -35,6 +36,10 @@ class SpreadsheetProcessorService:
             Tuple[processed_result, metadata]
         """
         try:
+            # Check rate limits
+            if not self.gigachat_service._check_rate_limit():
+                raise Exception("Rate limit exceeded. Please wait before making another request.")
+            
             # Prepare the prompt specifically for spreadsheet data
             user_prompt = self.gigachat_service.prompt_builder.prepare_spreadsheet_prompt(
                 query, spreadsheet_data
@@ -44,6 +49,8 @@ class SpreadsheetProcessorService:
             
             # Count tokens
             input_tokens = self.gigachat_service._count_tokens(system_prompt + user_prompt)
+            if input_tokens > self.gigachat_service.max_tokens_per_request:
+                raise Exception(f"Input too long: {input_tokens} tokens (max: {self.gigachat_service.max_tokens_per_request})")
             
             # Prepare messages
             from langchain_core.messages import SystemMessage, HumanMessage
@@ -59,7 +66,7 @@ class SpreadsheetProcessorService:
             start_time = time.time()
             logger.info(f"Sending spreadsheet processing request to GigaChat: {query[:100]}...")
             
-            response = await self.gigachat_service.client.invoke(messages)
+            response = await asyncio.to_thread(self.gigachat_service.client.invoke, messages)
             
             processing_time = time.time() - start_time
             
