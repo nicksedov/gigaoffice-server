@@ -92,3 +92,58 @@ def test_get_spreadsheet_processing_status_completed(mock_db, client, sample_spr
     assert data["status"] == "completed"
     assert data["result_data"] is not None
     assert data["result_data"]["worksheet"]["name"] == "TestSheet"
+
+@patch('app.api.spreadsheets.db')
+def test_get_spreadsheet_result_not_found(mock_db, client):
+    """Test the /api/spreadsheets/result/{request_id} endpoint with non-existent request"""
+    # Mock the database query to return None
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+    
+    response = client.get("/api/spreadsheets/result/non-existent-id")
+    
+    assert response.status_code == 404
+    data = response.json()
+    assert "Request not found" in data["detail"]
+
+@patch('app.api.spreadsheets.db')
+def test_get_spreadsheet_result_pending(mock_db, client):
+    """Test the /api/spreadsheets/result/{request_id} endpoint with pending request"""
+    # Mock the database query to return a pending request
+    mock_request = MagicMock()
+    mock_request.id = "test-id"
+    mock_request.status = "pending"
+    mock_request.error_message = None
+    mock_request.result_data = None
+    
+    mock_db.query.return_value.filter.return_value.first.return_value = mock_request
+    
+    response = client.get("/api/spreadsheets/result/test-id")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is False
+    assert data["status"] == "pending"
+    assert "Request is still being processed" in data["message"]
+
+@patch('app.api.spreadsheets.db')
+def test_get_spreadsheet_result_completed(mock_db, client, sample_spreadsheet_data):
+    """Test the /api/spreadsheets/result/{request_id} endpoint with completed request"""
+    # Mock the database query to return a completed request
+    mock_request = MagicMock()
+    mock_request.id = "test-id"
+    mock_request.status = "completed"
+    mock_request.error_message = None
+    mock_request.result_data = sample_spreadsheet_data
+    mock_request.tokens_used = 1250
+    mock_request.processing_time = 2.3
+    
+    mock_db.query.return_value.filter.return_value.first.return_value = mock_request
+    
+    response = client.get("/api/spreadsheets/result/test-id")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["result"] is not None
+    assert data["tokens_used"] == 1250
+    assert data["processing_time"] == 2.3

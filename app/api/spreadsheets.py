@@ -4,6 +4,7 @@ Router for enhanced spreadsheet manipulation endpoints
 """
 
 import uuid
+import json
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.responses import JSONResponse
@@ -57,7 +58,6 @@ async def process_spreadsheet_request(
         user_id = current_user.get("id", 0) if current_user else 0
         
         # Convert spreadsheet data to JSON for storage using custom encoder
-        import json
         spreadsheet_json = json.dumps(spreadsheet_request.spreadsheet_data.dict(), cls=DateTimeEncoder)
         
         db_request = AIRequest(
@@ -140,4 +140,45 @@ async def get_spreadsheet_processing_status(request_id: str, db: Session = Depen
         raise
     except Exception as e:
         logger.error(f"Error getting spreadsheet processing status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@spreadsheet_router.get("/result/{request_id}")
+async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db)):
+    """Get the result of a spreadsheet processing request"""
+    try:
+        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
+        if not db_request:
+            raise HTTPException(status_code=404, detail="Request not found")
+        
+        if db_request.status != RequestStatus.COMPLETED:
+            return {
+                "success": False,
+                "status": db_request.status,
+                "message": "Request is still being processed" if db_request.status in [RequestStatus.PENDING, RequestStatus.PROCESSING] else "Request failed or was cancelled"
+            }
+        
+        # Try to parse result data if available
+        result_data = None
+        if db_request.result_data:
+            try:
+                # If result_data is a string, parse it
+                if isinstance(db_request.result_data, str):
+                    result_data = json.loads(db_request.result_data)
+                # If it's already a dict, use it directly
+                elif isinstance(db_request.result_data, dict):
+                    result_data = db_request.result_data
+            except Exception as e:
+                logger.warning(f"Could not parse result data: {e}")
+        
+        return {
+            "success": True,
+            "result": result_data,
+            "tokens_used": db_request.tokens_used,
+            "processing_time": db_request.processing_time
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting spreadsheet result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
