@@ -407,6 +407,19 @@ components:
         error_message:
           type: string
 
+    SpreadsheetResultResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        result:
+          $ref: '#/components/schemas/SpreadsheetData'
+        tokens_used:
+          type: integer
+        processing_time:
+          type: number
+          format: float
+
     CategoryInfo:
       type: object
       properties:
@@ -798,6 +811,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpreadsheetResponse'
+        '404':
+          description: Запрос не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/spreadsheets/result/{request_id}:
+    get:
+      summary: Получение результата обработки расширенных данных таблицы
+      description: |
+        Возвращает результат обработки расширенных данных таблицы, если обработка завершена.
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Результат обработки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpreadsheetResultResponse'
         '404':
           description: Запрос не найден
         '500':
