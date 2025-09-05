@@ -252,70 +252,6 @@ components:
         validation:
           $ref: '#/components/schemas/ColumnValidation'
 
-    DefaultStyle:
-      type: object
-      properties:
-        font_family:
-          type: string
-          default: "Arial"
-        font_size:
-          type: integer
-          default: 10
-        font_color:
-          type: string
-          default: "#000000"
-        background_color:
-          type: string
-          default: "#FFFFFF"
-
-    HeaderStylePreset:
-      type: object
-      properties:
-        font_weight:
-          type: string
-          default: "bold"
-        font_size:
-          type: integer
-          default: 12
-        background_color:
-          type: string
-          default: "#4472C4"
-        font_color:
-          type: string
-          default: "#FFFFFF"
-
-    AlternatingRowStyle:
-      type: object
-      properties:
-        even:
-          type: object
-          additionalProperties:
-            type: string
-        odd:
-          type: object
-          additionalProperties:
-            type: string
-
-    StyleDefinition:
-      type: object
-      properties:
-        default:
-          $ref: '#/components/schemas/DefaultStyle'
-        header:
-          $ref: '#/components/schemas/HeaderStylePreset'
-        alternating_rows:
-          $ref: '#/components/schemas/AlternatingRowStyle'
-
-    FormulaDefinition:
-      type: object
-      properties:
-        cell:
-          type: string
-        formula:
-          type: string
-        description:
-          type: string
-
     ChartPosition:
       type: object
       properties:
@@ -369,12 +305,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ColumnDefinition'
-        styles:
-          $ref: '#/components/schemas/StyleDefinition'
-        formulas:
-          type: array
-          items:
-            $ref: '#/components/schemas/FormulaDefinition'
         charts:
           type: array
           items:

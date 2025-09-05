@@ -182,7 +182,7 @@ resources/
 
 Расширенный формат данных таблицы включает следующие компоненты:
 
-```json
+```
 {
   "metadata": {
     "version": "1.0",
@@ -199,24 +199,6 @@ resources/
       "auto_filter": true
     }
   },
-  "data": {
-    "headers": {
-      "values": ["Product", "Q1 Sales", "Q2 Sales"],
-      "style": {
-        "background_color": "#4472C4",
-        "font_color": "#FFFFFF",
-        "font_weight": "bold"
-      }
-    },
-    "rows": [
-      {
-        "values": ["Product A", 1000, 1200],
-        "style": {
-          "background_color": "#F2F2F2"
-        }
-      }
-    ]
-  },
   "columns": [
     {
       "index": 0,
@@ -226,21 +208,34 @@ resources/
       "width": 150
     }
   ],
-  "styles": {
-    "default": {
-      "font_family": "Arial",
-      "font_size": 10,
-      "font_color": "#000000",
-      "background_color": "#FFFFFF"
-    }
+  "data": {
+    "headers": {
+      "values": ["Product", "Q1", "Q2"]
+    },
+    "rows": [
+      {
+        "values": ["Product A", 1000, 1200]
+      },
+      {
+        "values": ["Product B", 800, 900]
+      }
+    ],
+    "styles": {
+      "default": {
+        "font_family": "Arial",
+        "font_size": 10,
+        "font_color": "#000000",
+        "background_color": "#FFFFFF"
+      }
+    },
+    "formulas": [
+      {
+        "cell": "D2",
+        "formula": "=SUM(B2:C2)",
+        "description": "Total Sales for Product A"
+      }
+    ]
   },
-  "formulas": [
-    {
-      "cell": "D2",
-      "formula": "=SUM(B2:C2)",
-      "description": "Total Sales for Product A"
-    }
-  ],
   "charts": [
     {
       "type": "column",
@@ -293,7 +288,7 @@ resources/
 
 ### Пример запроса для работы с таблицами
 
-```bash
+```
 curl -X POST "http://localhost:8000/api/spreadsheets/process" \
   -H "Content-Type: application/json" \
   -d '{
@@ -330,7 +325,7 @@ curl -X POST "http://localhost:8000/api/spreadsheets/process" \
 
 Для запуска тестов используйте pytest:
 
-```bash
+```
 pytest tests/
 ```
 
