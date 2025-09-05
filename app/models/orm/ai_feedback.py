@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.models.orm.base import Base
 
-class AIResponse(Base):
+class AIFeedback(Base):
     __tablename__ = "ai_responses"
 
     id = Column(Integer, primary_key=True, index=True)

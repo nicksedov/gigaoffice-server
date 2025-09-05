@@ -15,11 +15,9 @@ from loguru import logger
 from fastapi.security import HTTPAuthorizationCredentials
 
 from app.models.types.enums import RequestStatus
-from app.models.api.ai_request import AIRequestCreate, ProcessingStatus
-from app.models.api.ai_response import AIResponseCreate, AIResponseOut
-from app.models.api.ai_process import AIProcessResponse
+from app.models.api.ai_response import AIFeedbackCreate, AIFeedbackOut
 from app.models.orm.ai_request import AIRequest
-from app.models.orm.ai_response import AIResponse
+from app.models.orm.ai_response import AIFeedback
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
@@ -43,128 +41,19 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 ai_router = APIRouter(prefix="/api/ai", tags=["AI Processing"])
 
-@ai_router.post("/process", response_model=AIProcessResponse)
-@limiter.limit("10/minute")
-async def process_ai_request(
-    request: Request,
-    ai_request: AIRequestCreate,
-    background_tasks: BackgroundTasks,
-    current_user: Optional[Dict] = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Обработка запроса к ИИ"""
-    try:
-        request_id = str(uuid.uuid4())
-        user_id = current_user.get("id", 0) if current_user else 0
-        
-        db_request = AIRequest(
-            id=request_id,
-            user_id=user_id,
-            status=RequestStatus.PENDING,
-            input_range=ai_request.input_range,
-            query_text=ai_request.query_text,
-            category=ai_request.category,
-            input_data=ai_request.input_data
-        )
-        db.add(db_request)
-        db.commit()
-        
-        success = await kafka_service.send_request(
-            request_id=request_id,
-            user_id=user_id,
-            query=ai_request.query_text,
-            input_range=ai_request.input_range,
-            category=ai_request.category,
-            input_data=ai_request.input_data,
-            priority=1 if current_user and current_user.get("role") == "premium" else 0
-        )
-        
-        if not success:
-            raise HTTPException(status_code=500, detail="Failed to queue request")
-        
-        return AIProcessResponse(
-            success=True,
-            request_id=request_id,
-            status="queued",
-            message="Запрос добавлен в очередь обработки"
-        )
-        
-    except Exception as e:
-        logger.error(f"Error processing AI request: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@ai_router.get("/status/{request_id}", response_model=ProcessingStatus)
-async def get_processing_status(request_id: str, db: Session = Depends(get_db)):
-    """Получение статуса обработки запроса"""
-    try:
-        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
-        if not db_request:
-            raise HTTPException(status_code=404, detail="Request not found")
-        
-        progress_map = {
-            RequestStatus.PENDING: 0,
-            RequestStatus.PROCESSING: 50,
-            RequestStatus.COMPLETED: 100,
-            RequestStatus.FAILED: 0,
-            RequestStatus.CANCELLED: 0
-        }
-        
-        status = ProcessingStatus(
-            request_id=int(request_id) if request_id.isdigit() else 0,
-            status=db_request.status,
-            progress=progress_map.get(db_request.status, 0),
-            message=db_request.error_message or "Обработка в процессе"
-        )
-        
-        return status
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting processing status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@ai_router.get("/result/{request_id}")
-async def get_ai_result(request_id: str, db: Session = Depends(get_db)):
-    """Получение результата обработки ИИ"""
-    try:
-        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
-        if not db_request:
-            raise HTTPException(status_code=404, detail="Request not found")
-        
-        if db_request.status != RequestStatus.COMPLETED:
-            return {
-                "success": False,
-                "status": db_request.status,
-                "message": "Запрос еще не завершен"
-            }
-        
-        return {
-            "success": True,
-            "result": db_request.result_data,
-            "tokens_used": db_request.tokens_used,
-            "processing_time": db_request.processing_time
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting AI result: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@ai_router.post("/response", response_model=AIResponseOut)
-async def submit_ai_response(response: AIResponseCreate, db: Session = Depends(get_db)):
-    ai_request = db.query(AIRequest).filter_by(id=response.ai_request_id).first()
+@ai_router.post("/feedback", response_model=AIFeedbackOut)
+async def submit_ai_feedback(feedback: AIFeedbackCreate, db: Session = Depends(get_db)):
+    ai_request = db.query(AIRequest).filter_by(id=feedback.ai_request_id).first()
     if not ai_request:
         raise HTTPException(status_code=404, detail="AI request not found")
     
-    ai_response = AIResponse(
-        ai_request_id=response.ai_request_id,
-        text_response=response.text_response,
-        rating=response.rating,
-        comment=response.comment
+    ai_feedback = AIFeedback(
+        ai_request_id=feedback.ai_request_id,
+        text_response=feedback.text_response,
+        rating=feedback.rating,
+        comment=feedback.comment
     )
-    db.add(ai_response)
+    db.add(ai_feedback)
     db.commit()
-    db.refresh(ai_response)
-    return ai_response
+    db.refresh(ai_feedback)
+    return ai_feedback

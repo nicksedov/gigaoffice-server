@@ -5,13 +5,6 @@ from typing import Optional, List, Any, Dict
 from pydantic import BaseModel, Field
 from uuid import UUID
 
-class AIRequestCreate(BaseModel):
-    """Схема для создания запроса к ИИ"""
-    input_range: Optional[str] = Field(None, max_length=50)
-    query_text: str = Field(..., min_length=1)
-    category: Optional[str] = None
-    input_data: Optional[List[Dict[str, Any]]] = None
-
 class AIRequestResponse(BaseModel):
     """Схема ответа запроса к ИИ"""
     id: int
@@ -27,14 +20,6 @@ class AIRequestResponse(BaseModel):
     
     class Config:
         from_attributes = True
-
-class ProcessingStatus(BaseModel):
-    """Схема статуса обработки"""
-    request_id: int
-    status: str
-    progress: int = Field(0, ge=0, le=100)  # Percentage
-    message: str = ""
-    estimated_time: Optional[int] = None  # seconds
 
 class QueueInfo(BaseModel):
     """Информация об очереди"""
