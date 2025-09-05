@@ -38,4 +38,4 @@ class AIRequest(Base):
     queue_position = Column(Integer)
     priority = Column(Integer, default=0)
 
-    responses = relationship("AIResponse", back_populates="ai_request", cascade="all, delete-orphan")
+    responses = relationship("AIFeedback", back_populates="ai_request", cascade="all, delete-orphan")

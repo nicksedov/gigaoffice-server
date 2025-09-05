@@ -27,6 +27,8 @@ from app.services.spreadsheet import create_spreadsheet_processor  # Added impor
 
 # Create services in the module where needed
 _, gigachat_generate_service = create_gigachat_services(prompt_builder)
+# Create spreadsheet processor for handling enhanced spreadsheet data
+# This processor is used by the Kafka message handler to process spreadsheet requests
 spreadsheet_processor = create_spreadsheet_processor(gigachat_generate_service)  # Create spreadsheet processor
 
 from app.services.kafka.service import kafka_service

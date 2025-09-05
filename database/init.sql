@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS ai_requests (
     priority INTEGER DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS ai_responses (
+CREATE TABLE IF NOT EXISTS ai_feedback (
     id SERIAL PRIMARY KEY,
     ai_request_id VARCHAR NOT NULL REFERENCES ai_requests(id) ON DELETE CASCADE,
     text_response TEXT NOT NULL,

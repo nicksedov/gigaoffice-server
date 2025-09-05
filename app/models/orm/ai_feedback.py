@@ -6,7 +6,7 @@ from datetime import datetime
 from app.models.orm.base import Base
 
 class AIFeedback(Base):
-    __tablename__ = "ai_responses"
+    __tablename__ = "ai_feedback"
 
     id = Column(Integer, primary_key=True, index=True)
     ai_request_id = Column(Integer, ForeignKey("ai_requests.id"), nullable=False, index=True)

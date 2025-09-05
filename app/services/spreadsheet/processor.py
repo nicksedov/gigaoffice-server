@@ -13,9 +13,24 @@ from app.services.gigachat.base import BaseGigaChatService
 from app.services.gigachat.response_parser import response_parser
 
 class SpreadsheetProcessorService:
-    """Service for processing enhanced spreadsheet data"""
+    """
+    Service for processing enhanced spreadsheet data with GigaChat AI.
+    
+    This service handles the processing of spreadsheet data using the GigaChat AI service.
+    It takes spreadsheet data in a specific JSON format, sends it to GigaChat for processing,
+    and returns enhanced spreadsheet data with features like formulas, styles, and charts.
+    
+    The service is used by the FastAPI application through the Kafka message handler
+    in fastapi_config.py, which processes messages from the Kafka queue.
+    """
     
     def __init__(self, gigachat_service: BaseGigaChatService):
+        """
+        Initialize the spreadsheet processor service.
+        
+        Args:
+            gigachat_service: An instance of a GigaChat service (cloud, mtls, or dryrun)
+        """
         self.gigachat_service = gigachat_service
     
     async def process_spreadsheet(
@@ -34,6 +49,40 @@ class SpreadsheetProcessorService:
             
         Returns:
             Tuple[processed_result, metadata]
+            
+        The spreadsheet_data should follow this structure:
+        {
+            "metadata": {
+                "version": "1.0",
+                "format": "enhanced-spreadsheet-data",
+                "created_at": "ISO timestamp",
+                "plugin_id": "gigaoffice-ai"
+            },
+            "worksheet": {
+                "name": "Sheet1",
+                "range": "A1:D10",
+                "options": {
+                    "auto_resize_columns": true,
+                    "freeze_headers": true,
+                    "auto_filter": true
+                }
+            },
+            "data": [
+                // Array of row data
+            ],
+            "columns": [
+                // Column definitions with formatting
+            ],
+            "styles": {
+                // Cell styling information
+            },
+            "formulas": [
+                // Formula definitions
+            ],
+            "charts": [
+                // Chart definitions
+            ]
+        }
         """
         try:
             # Check rate limits
@@ -155,5 +204,16 @@ class SpreadsheetProcessorService:
 
 # Factory function to create processor
 def create_spreadsheet_processor(gigachat_service):
-    """Create a spreadsheet processor with the given GigaChat service"""
+    """
+    Create a spreadsheet processor with the given GigaChat service.
+    
+    This factory function is used in fastapi_config.py to create the spreadsheet processor
+    that is used by the Kafka message handler to process spreadsheet requests.
+    
+    Args:
+        gigachat_service: An instance of a GigaChat service (cloud, mtls, or dryrun)
+        
+    Returns:
+        SpreadsheetProcessorService: An instance of the spreadsheet processor service
+    """
     return SpreadsheetProcessorService(gigachat_service)

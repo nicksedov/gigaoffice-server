@@ -63,37 +63,6 @@ class ColumnDefinition(BaseModel):
     width: Optional[int] = Field(None, description="Preferred column width in pixels")
     validation: Optional[ColumnValidation] = Field(None, description="Optional data validation rules")
 
-class DefaultStyle(BaseModel):
-    """Default styling applied to all cells"""
-    font_family: str = Field(default="Arial", description="Font family")
-    font_size: int = Field(default=10, description="Font size in points")
-    font_color: str = Field(default="#000000", description="Font color in hex format")
-    background_color: str = Field(default="#FFFFFF", description="Background color in hex format")
-
-class HeaderStylePreset(BaseModel):
-    """Special styling for header rows"""
-    font_weight: str = Field(default="bold", description="Font weight")
-    font_size: int = Field(default=12, description="Font size in points")
-    background_color: str = Field(default="#4472C4", description="Background color in hex format")
-    font_color: str = Field(default="#FFFFFF", description="Font color in hex format")
-
-class AlternatingRowStyle(BaseModel):
-    """Styling for alternating row colors"""
-    even: Dict[str, str] = Field(default_factory=lambda: {"background_color": "#F2F2F2"}, description="Style for even rows")
-    odd: Dict[str, str] = Field(default_factory=lambda: {"background_color": "#FFFFFF"}, description="Style for odd rows")
-
-class StyleDefinition(BaseModel):
-    """Complete style definition"""
-    default: DefaultStyle = Field(default_factory=DefaultStyle, description="Default styling")
-    header: HeaderStylePreset = Field(default_factory=HeaderStylePreset, description="Header styling")
-    alternating_rows: AlternatingRowStyle = Field(default_factory=AlternatingRowStyle, description="Alternating row styling")
-
-class FormulaDefinition(BaseModel):
-    """Formula definition for cells"""
-    cell: str = Field(..., description="Target cell for the formula")
-    formula: str = Field(..., description="Formula expression")
-    description: Optional[str] = Field(None, description="Human-readable description of the formula")
-
 class ChartPosition(BaseModel):
     """Position and size specifications for charts"""
     top: int = Field(..., description="Top position in pixels")
@@ -119,8 +88,6 @@ class SpreadsheetData(BaseModel):
     worksheet: WorksheetInfo = Field(default_factory=WorksheetInfo, description="Worksheet section")
     data: Dict[str, Any] = Field(..., description="Data section containing headers and rows")
     columns: List[ColumnDefinition] = Field(default_factory=list, description="Column definitions")
-    styles: StyleDefinition = Field(default_factory=StyleDefinition, description="Style definitions")
-    formulas: List[FormulaDefinition] = Field(default_factory=list, description="Formula definitions")
     charts: List[ChartDefinition] = Field(default_factory=list, description="Chart definitions")
 
 class SpreadsheetRequest(BaseModel):
