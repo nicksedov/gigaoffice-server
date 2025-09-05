@@ -48,6 +48,11 @@ class DataRow(BaseModel):
     values: List[Union[str, int, float, bool]] = Field(..., description="Row values")
     style: Optional[RowStyle] = Field(None, description="Styling for this row")
 
+class WorksheetData(BaseModel):
+    """Worksheet data structure"""
+    header: Optional[HeaderData] = Field(..., description="Header row data")
+    rows: List[DataRow] = Field(..., description="Data rows")
+
 class ColumnValidation(BaseModel):
     """Data validation rules for a column"""
     type: str = Field(..., description="Validation type (numeric, text, date, etc.)")
@@ -86,7 +91,7 @@ class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation"""
     metadata: SpreadsheetMetadata = Field(default_factory=SpreadsheetMetadata, description="Metadata section")
     worksheet: WorksheetInfo = Field(default_factory=WorksheetInfo, description="Worksheet section")
-    data: Dict[str, Any] = Field(..., description="Data section containing headers and rows")
+    data: WorksheetData = Field(default_factory=WorksheetData, description="Data section containing headers and rows")
     columns: List[ColumnDefinition] = Field(default_factory=list, description="Column definitions")
     charts: List[ChartDefinition] = Field(default_factory=list, description="Chart definitions")
 
