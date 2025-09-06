@@ -12,7 +12,7 @@ import uvicorn
 
 from app.fastapi_config import create_app
 from app.api.health import health_router
-from app.api.ai import ai_router
+from app.api.feedback import feedback_router
 from app.api.prompts import prompts_router
 from app.api.metrics import metrics_router
 from app.api.spreadsheets import spreadsheet_router  # Added import for spreadsheet router
@@ -22,7 +22,7 @@ app = create_app()
 
 # Register routers
 app.include_router(health_router)
-app.include_router(ai_router)
+app.include_router(feedback_router)
 app.include_router(prompts_router)
 app.include_router(metrics_router)
 app.include_router(spreadsheet_router)  # Added registration of spreadsheet router

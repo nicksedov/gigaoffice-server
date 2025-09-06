@@ -4,7 +4,7 @@ from .user import User
 from .prompt import Prompt
 from .category import Category
 from .ai_request import AIRequest
-from .ai_response import AIFeedback
+from .ai_feedback import AIFeedback
 from .service_metrics import ServiceMetrics
 
 __all__ = [

@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from slowapi.util import get_remote_address
 from loguru import logger
 from app.models.types.enums import RequestStatus
-from app.models.api.ai_feedback import AIFeedback,AIFeedbackCreate, AIFeedbackOut
+from app.models.api.ai_feedback import AIFeedbackCreate, AIFeedbackOut
 from app.models.orm.ai_request import AIRequest
 from app.models.orm.ai_feedback import AIFeedback
 from app.services.database.session import get_db
@@ -26,9 +26,9 @@ gigachat_classify_service, gigachat_generate_service = create_gigachat_services(
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
 
-ai_router = APIRouter(prefix="/api", tags=["AI Feedback Processing"])
+feedback_router = APIRouter(prefix="/api", tags=["AI Feedback Processing"])
 
-@ai_router.post("/feedback", response_model=AIFeedbackOut)
+@feedback_router.post("/feedback", response_model=AIFeedbackOut)
 async def submit_ai_feedback(feedback: AIFeedbackCreate, db: Session = Depends(get_db)):
     ai_request = db.query(AIRequest).filter_by(id=feedback.ai_request_id).first()
     if not ai_request:
