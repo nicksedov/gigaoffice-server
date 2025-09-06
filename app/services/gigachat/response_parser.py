@@ -113,8 +113,6 @@ class GigachatResponseParser:
                         },
                         "data": result_object,
                         "columns": [],
-                        "styles": {},
-                        "formulas": [],
                         "charts": []
                     }
             else:
@@ -132,8 +130,6 @@ class GigachatResponseParser:
                     },
                     "data": {"response": str(result_object)},
                     "columns": [],
-                    "styles": {},
-                    "formulas": [],
                     "charts": []
                 }
                 

@@ -18,7 +18,7 @@ class SpreadsheetProcessorService:
     
     This service handles the processing of spreadsheet data using the GigaChat AI service.
     It takes spreadsheet data in a specific JSON format, sends it to GigaChat for processing,
-    and returns enhanced spreadsheet data with features like formulas, styles, and charts.
+    and returns enhanced spreadsheet data with features like charts.
     
     The service is used by the FastAPI application through the Kafka message handler
     in fastapi_config.py, which processes messages from the Kafka queue.
@@ -72,12 +72,6 @@ class SpreadsheetProcessorService:
             ],
             "columns": [
                 // Column definitions with formatting
-            ],
-            "styles": {
-                // Cell styling information
-            },
-            "formulas": [
-                // Formula definitions
             ],
             "charts": [
                 // Chart definitions
@@ -150,8 +144,6 @@ class SpreadsheetProcessorService:
                         },
                         "data": response_content,
                         "columns": [],
-                        "styles": {},
-                        "formulas": [],
                         "charts": []
                     }
             except json.JSONDecodeError:
@@ -174,8 +166,6 @@ class SpreadsheetProcessorService:
                     },
                     "data": {"response": response_content},
                     "columns": [],
-                    "styles": {},
-                    "formulas": [],
                     "charts": []
                 }
             
