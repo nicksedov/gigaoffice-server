@@ -5,14 +5,14 @@ prompt: |
   Ответ предоставь в формате JSON с полями:
   - category: название лучшей категории
   - confidence: уверенность (0-1)
-  ВАЖНО: название категории должно быть одним словом, без дополнительной информации
+  ВАЖНО: используй только следующие категории: spreadsheet-analysis, spreadsheet-transformation, spreadsheet-search, spreadsheet-generation, spreadsheet-formatting, uncertain
 examples:
 - request: |
     Запрос: 
     Найди минимальное, максимальное, среднее и медианное значения в указанном диапазоне
   response: |
     {
-      "category": "analysis",
+      "category": "spreadsheet-analysis",
       "confidence": 0.97893
     }
 - request: |
@@ -20,7 +20,7 @@ examples:
     Найди 10 городов с самым большим населением в списке
   response: |
     {
-      "category": "search",
+      "category": "spreadsheet-search",
       "confidence": 0.96553
     }
 - request: |
@@ -28,8 +28,24 @@ examples:
     Сгенерируй набор данных с колонками "Имя", "Фамилия", "Пол", "Дата рождения", "Город" заданной размерности
   response: |
     {
-      "category": "generation",
+      "category": "spreadsheet-generation",
       "confidence": 0.98345
+    }
+- request: |
+    Запрос: 
+    Примени чередующиеся цвета строк для улучшения читаемости
+  response: |
+    {
+      "category": "spreadsheet-formatting",
+      "confidence": 0.95000
+    }
+- request: |
+    Запрос: 
+    Объедини поля "Имя" и "Фамилия" в одно поле "Полное имя"
+  response: |
+    {
+      "category": "spreadsheet-transformation",
+      "confidence": 0.92000
     }
 - request: |
     Запрос: 

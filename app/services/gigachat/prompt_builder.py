@@ -17,18 +17,18 @@ class GigachatPromptBuilder:
     
     PROMPT_CONFIG_FILE_MAP = {
         'classifier':     'user_prompt_classifier.yaml',
-        'analysis':       'system_prompt_analysis.yaml',
-        'transformation': 'system_prompt_transformation.yaml',
-        'search':         'system_prompt_search.yaml', 
-        'generation':     'system_prompt_generation.yaml',
-        'spreadsheet':    'system_prompt_spreadsheet.yaml'  # Added spreadsheet prompt type
+        'spreadsheet-analysis':       'system_prompt_spreadsheet_analysis.yaml',
+        'spreadsheet-transformation': 'system_prompt_spreadsheet_transformation.yaml',
+        'spreadsheet-search':         'system_prompt_spreadsheet_search.yaml', 
+        'spreadsheet-generation':     'system_prompt_spreadsheet_generation.yaml',
+        'spreadsheet-formatting':     'system_prompt_spreadsheet_formatting.yaml'
     }
 
     def __init__(self, resources_dir: str = 'resources/prompts/'):
         self.resources_dir = resources_dir
 
     def _load_system_prompt(self, prompt_type: str) -> list:
-        filename = self.PROMPT_CONFIG_FILE_MAP.get(prompt_type, self.PROMPT_CONFIG_FILE_MAP['analysis'])
+        filename = self.PROMPT_CONFIG_FILE_MAP.get(prompt_type, self.PROMPT_CONFIG_FILE_MAP['spreadsheet-analysis'])
         path = os.path.join(self.resources_dir, filename)
         with open(path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
@@ -49,12 +49,12 @@ class GigachatPromptBuilder:
 
     def prepare_system_prompt(
         self, 
-        prompt_type: str = 'analysis'
+        prompt_type: str = 'spreadsheet-analysis'
     ) -> str:
         """
         Формирует системный промпт с общей частью и релевантными примерами.
         Аргумент:
-            prompt_type: тип промпта, например 'analysis', 'transformation', 'search' или 'generation'
+            prompt_type: тип промпта, например 'spreadsheet-analysis', 'spreadsheet-transformation', 'spreadsheet-search' или 'spreadsheet-generation'
         """
         data = self._load_system_prompt(prompt_type)
         examples = data['examples']

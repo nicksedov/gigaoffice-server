@@ -93,7 +93,7 @@ class DryRunGigaChatService(BaseGigaChatService):
         fake_metadata = {
             "success": True,
             "query_text": query,
-            "category": {"name": "generation"},
+            "category": {"name": "spreadsheet-generation"},
             "confidence": 0.9
         }
         return fake_metadata
