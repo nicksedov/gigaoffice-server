@@ -265,7 +265,7 @@ examples:
       },
       "worksheet": {
         "name": "Продажи",
-        "range": "A1"
+        "range": "A1:E3"
       },
       "data": {
         "headers": {
@@ -320,7 +320,7 @@ examples:
       },
       "worksheet": {
         "name": "Продажи",
-        "range": "A1"
+        "range": "A1:F3"
       },
       "data": {
         "headers": {
@@ -384,7 +384,7 @@ examples:
       },
       "worksheet": {
         "name": "Продажи",
-        "range": "A1"
+        "range": "A1:E3"
       },
       "data": {
         "headers": {
@@ -407,7 +407,7 @@ examples:
       },
       "worksheet": {
         "name": "Продажи",
-        "range": "A1"
+        "range": "A1:E3"
       },
       "data": {
         "headers": {
@@ -449,7 +449,7 @@ examples:
       },
       "worksheet": {
         "name": "Отчет",
-        "range": "A1"
+        "range": "A1:C4"
       },
       "data": {
         "headers": {
@@ -475,7 +475,7 @@ examples:
       },
       "worksheet": {
         "name": "Отчет",
-        "range": "A1"
+        "range": "A1:C4"
       },
       "data": {
         "headers": {
