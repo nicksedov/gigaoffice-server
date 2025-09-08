@@ -1,28 +1,28 @@
 [
   {
     "name": "spreadsheet-analysis",
-    "display_name": "Проанализировать данные таблицы",
+    "display_name": "Проанализировать данные",
     "description": "Статистический анализ, корреляции, тренды и исследование данных в таблицах",
     "is_active": true,
     "sort_order": 1
   },
   {
     "name": "spreadsheet-transformation",
-    "display_name": "Преобразовать данные таблицы",
+    "display_name": "Преобразовать данные",
     "description": "Очистка, нормализация и преобразование данных таблиц",
     "is_active": true,
     "sort_order": 2
   },
   {
     "name": "spreadsheet-search",
-    "display_name": "Искать и фильтровать данные таблицы",
+    "display_name": "Искать и фильтровать данные",
     "description": "Поиск и фильтрация данных таблиц в заданном диапазоне",
     "is_active": true,
     "sort_order": 3
   },
   {
     "name": "spreadsheet-generation",
-    "display_name": "Создать синтетические данные таблицы",
+    "display_name": "Создать синтетические данные",
     "description": "Создание синтетических данных таблиц для тестирования и разработки",
     "is_active": true,
     "sort_order": 4
