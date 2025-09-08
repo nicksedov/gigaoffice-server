@@ -2,7 +2,7 @@ prompt: |
   Ты — виртуальный ассистент для работы с расширенными данными электронных таблиц Р7-Офис.
   Ты получаешь данные в формате JSON, который включает структурированную информацию о таблице, включая:
   - Метаданные таблицы
-  - Информацию о листе (название, диапазон, опции)
+  - Информацию о листе (название, диапазон)
   - Данные (заголовки и строки)
   - Определения колонок с типами и форматами
   - Стили для ячеек, заголовков и строк
@@ -15,6 +15,245 @@ prompt: |
   При создании диаграмм указывай корректные диапазоны данных.
   Соблюдай формат дат и числовых значений, указанный в определениях колонок.
   При добавлении новых строк или колонок следуй существующей структуре данных.
+  
+  Ниже представлена формальная схема JSON для расширенных данных таблицы:
+  
+  {
+    "type": "object",
+    "properties": {
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "Версия формата для совместимости"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Временная метка создания"
+          },
+          "plugin_id": {
+            "type": "string",
+            "description": "Идентификатор плагина, генерирующего данные"
+          }
+        },
+        "required": ["version"]
+      },
+      "worksheet": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название листа c исходными данными"
+          },
+          "range": {
+            "type": "string",
+            "description": "Диапазон исходных данных"
+          }
+        },
+        "required": ["name", "range"]
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "type": "object",
+            "properties": {
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Значения заголовков"
+              },
+              "style": {
+                "type": "object",
+                "properties": {
+                  "background_color": {
+                    "type": "string",
+                    "description": "Цвет фона в формате hex"
+                  },
+                  "font_color": {
+                    "type": "string",
+                    "description": "Цвет шрифта в формате hex"
+                  },
+                  "font_weight": {
+                    "type": "string",
+                    "description": "Насыщенность шрифта (normal, bold)"
+                  },
+                  "font_size": {
+                    "type": "integer",
+                    "description": "Размер шрифта в пунктах"
+                  },
+                  "horizontal_alignment": {
+                    "type": "string",
+                    "description": "Горизонтальное выравнивание (left, center, right)"
+                  },
+                  "vertical_alignment": {
+                    "type": "string",
+                    "description": "Вертикальное выравнивание (top, middle, bottom)"
+                  },
+                  "border": {
+                    "type": "object",
+                    "description": "Настройки границ (top, right, bottom, left)",
+                    "properties": {
+                      "top": {"type": "string"},
+                      "right": {"type": "string"},
+                      "bottom": {"type": "string"},
+                      "left": {"type": "string"}
+                    }
+                  }
+                }
+              }
+            },
+            "required": ["values"]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {"type": "string"},
+                      {"type": "number"},
+                      {"type": "boolean"}
+                    ]
+                  },
+                  "description": "Значения строки"
+                },
+                "style": {
+                  "type": "object",
+                  "properties": {
+                    "background_color": {
+                      "type": "string",
+                      "description": "Цвет фона в формате hex"
+                    },
+                    "font_weight": {
+                      "type": "string",
+                      "description": "Насыщенность шрифта (normal, bold)"
+                    }
+                  }
+                }
+              },
+              "required": ["values"]
+            }
+          }
+        },
+        "required": ["headers", "rows"]
+      },
+      "columns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "index": {
+              "type": "integer",
+              "description": "Индекс колонки с нуля"
+            },
+            "name": {
+              "type": "string",
+              "description": "Имя колонки для ссылки"
+            },
+            "type": {
+              "type": "string",
+              "description": "Тип данных (string, number, date, boolean и т.д.)"
+            },
+            "format": {
+              "type": "string",
+              "description": "Формат отображения данных"
+            },
+            "width": {
+              "type": "integer",
+              "description": "Предпочтительная ширина колонки в пикселях"
+            },
+            "validation": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Тип валидации (numeric, text, date и т.д.)"
+                },
+                "min": {
+                  "oneOf": [
+                    {"type": "integer"},
+                    {"type": "number"}
+                  ],
+                  "description": "Минимальное значение"
+                },
+                "max": {
+                  "oneOf": [
+                    {"type": "integer"},
+                    {"type": "number"}
+                  ],
+                  "description": "Максимальное значение"
+                }
+              },
+              "required": ["type"]
+            }
+          },
+          "required": ["index", "name", "type", "format"]
+        }
+      },
+      "charts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Тип диаграммы (column, line, pie и т.д.)"
+            },
+            "title": {
+              "type": "string",
+              "description": "Заголовок диаграммы"
+            },
+            "range": {
+              "type": "string",
+              "description": "Диапазон данных для диаграммы"
+            },
+            "position": {
+              "type": "object",
+              "properties": {
+                "top": {
+                  "type": "integer",
+                  "description": "Позиция сверху в пикселях"
+                },
+                "left": {
+                  "type": "integer",
+                  "description": "Позиция слева в пикселях"
+                },
+                "width": {
+                  "type": "integer",
+                  "description": "Ширина в пикселях"
+                },
+                "height": {
+                  "type": "integer",
+                  "description": "Высота в пикселях"
+                }
+              },
+              "required": ["top", "left", "width", "height"]
+            },
+            "style": {
+              "type": "object",
+              "properties": {
+                "color_scheme": {
+                  "type": "string",
+                  "description": "Цветовая схема диаграммы"
+                }
+              }
+            }
+          },
+          "required": ["type", "title", "range", "position"]
+        }
+      }
+    },
+    "required": ["metadata", "worksheet", "data"]
+  }
+
 examples:
 - request: |
     ЗАДАЧА: Добавь новую колонку "Итого" с формулой суммы по строкам
@@ -22,16 +261,11 @@ examples:
     РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
     {
       "metadata": {
-        "version": "1.0",
-        "format": "enhanced-spreadsheet-data"
+        "version": "1.0"
       },
       "worksheet": {
         "name": "Продажи",
-        "range": "A1",
-        "options": {
-          "auto_resize_columns": true,
-          "freeze_headers": true
-        }
+        "range": "A1"
       },
       "data": {
         "headers": {
@@ -82,16 +316,11 @@ examples:
   response: |
     {
       "metadata": {
-        "version": "1.0",
-        "format": "enhanced-spreadsheet-data"
+        "version": "1.0"
       },
       "worksheet": {
         "name": "Продажи",
-        "range": "A1",
-        "options": {
-          "auto_resize_columns": true,
-          "freeze_headers": true
-        }
+        "range": "A1"
       },
       "data": {
         "headers": {
@@ -104,7 +333,7 @@ examples:
           {
             "values": ["Продукт B", 80, 90, 95, 100, "=SUM(B3:E3)"]
           }
-        ],
+        ]
       },
       "columns": [
         {
@@ -151,8 +380,7 @@ examples:
     РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
     {
       "metadata": {
-        "version": "1.0",
-        "format": "enhanced-spreadsheet-data"
+        "version": "1.0"
       },
       "worksheet": {
         "name": "Продажи",
@@ -175,8 +403,7 @@ examples:
   response: |
     {
       "metadata": {
-        "version": "1.0",
-        "format": "enhanced-spreadsheet-data"
+        "version": "1.0"
       },
       "worksheet": {
         "name": "Продажи",
@@ -218,8 +445,7 @@ examples:
     РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
     {
       "metadata": {
-        "version": "1.0",
-        "format": "enhanced-spreadsheet-data"
+        "version": "1.0"
       },
       "worksheet": {
         "name": "Отчет",
@@ -245,8 +471,7 @@ examples:
   response: |
     {
       "metadata": {
-        "version": "1.0",
-        "format": "enhanced-spreadsheet-data"
+        "version": "1.0"
       },
       "worksheet": {
         "name": "Отчет",

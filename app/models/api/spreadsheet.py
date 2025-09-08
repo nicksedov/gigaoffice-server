@@ -7,21 +7,13 @@ from pydantic import BaseModel, Field
 class SpreadsheetMetadata(BaseModel):
     """Metadata for the enhanced spreadsheet data format"""
     version: str = Field(default="1.0", description="Format version for compatibility")
-    format: str = Field(default="enhanced-spreadsheet-data", description="Identifier for the data format type")
     created_at: datetime = Field(default_factory=datetime.now, description="Timestamp of creation")
     plugin_id: Optional[str] = Field(None, description="Identifier for the plugin generating the data")
 
-class WorksheetOptions(BaseModel):
-    """Worksheet-level options"""
-    auto_resize_columns: bool = Field(default=True, description="Auto-resize columns based on content")
-    freeze_headers: bool = Field(default=True, description="Freeze header rows")
-    auto_filter: bool = Field(default=True, description="Enable auto-filter for data")
-
 class WorksheetInfo(BaseModel):
     """Worksheet information"""
-    name: str = Field(default="Sheet1", description="Name of the worksheet to insert data into")
-    range: str = Field(default="A1", description="Starting cell reference for data insertion")
-    options: WorksheetOptions = Field(default_factory=WorksheetOptions, description="Worksheet-level options")
+    name: str = Field(default="Sheet1", description="Name of the worksheet where source data is located")
+    range: str = Field(default="A1", description="Сell range reference for source data")
 
 class HeaderStyle(BaseModel):
     """Styling for header rows"""

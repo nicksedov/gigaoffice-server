@@ -141,27 +141,11 @@ components:
         version:
           type: string
           example: "1.0"
-        format:
-          type: string
-          example: "enhanced-spreadsheet-data"
         created_at:
           type: string
           format: date-time
         plugin_id:
           type: string
-
-    WorksheetOptions:
-      type: object
-      properties:
-        auto_resize_columns:
-          type: boolean
-          default: true
-        freeze_headers:
-          type: boolean
-          default: true
-        auto_filter:
-          type: boolean
-          default: true
 
     WorksheetInfo:
       type: object
@@ -172,8 +156,6 @@ components:
         range:
           type: string
           default: "A1"
-        options:
-          $ref: '#/components/schemas/WorksheetOptions'
 
     HeaderStyle:
       type: object
