@@ -6,6 +6,7 @@ from .ai_feedback import AIFeedbackCreate, AIFeedbackOut
 from .health import PingResponse, ServiceHealth
 from .service_metrics import MetricsResponse, TokenUsage
 from .common import ErrorResponse, SuccessResponse, PaginationParams, FilterParams, SortParams
+from .spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse
 
 __all__ = [
     'UserCreate', 'UserResponse',
@@ -16,5 +17,6 @@ __all__ = [
     'ServiceHealth', 'MetricsResponse', 'TokenUsage',
     'ErrorResponse', 'SuccessResponse',
     'PaginationParams', 'FilterParams', 'SortParams',
-    'PromptInfo', 'PresetPromptInfo', 'PromptClassificationResponse'
+    'PromptInfo', 'PresetPromptInfo', 'PromptClassificationResponse',
+    'SpreadsheetRequest', 'SpreadsheetProcessResponse', 'SpreadsheetResultResponse'
 ]

@@ -84,8 +84,8 @@ class SpreadsheetData(BaseModel):
     metadata: SpreadsheetMetadata = Field(default_factory=SpreadsheetMetadata, description="Metadata section")
     worksheet: WorksheetInfo = Field(default_factory=WorksheetInfo, description="Worksheet section")
     data: WorksheetData = Field(default_factory=WorksheetData, description="Data section containing headers and rows")
-    columns: List[ColumnDefinition] = Field(default_factory=list, description="Column definitions")
-    charts: List[ChartDefinition] = Field(default_factory=list, description="Chart definitions")
+    columns: Optional[List[ColumnDefinition]] = Field(default_factory=list, description="Column definitions")
+    charts: Optional[List[ChartDefinition]] = Field(default_factory=list, description="Chart definitions")
 
 class SpreadsheetRequest(BaseModel):
     """Request model for enhanced spreadsheet processing"""
@@ -93,11 +93,19 @@ class SpreadsheetRequest(BaseModel):
     query_text: str = Field(..., description="Processing instruction for the AI")
     category: Optional[str] = Field(None, description="Category of the request")
 
-class SpreadsheetResponse(BaseModel):
-    """Response model for enhanced spreadsheet processing"""
+class SpreadsheetProcessResponse(BaseModel):
+    """Response model for initiating spreadsheet processing (without result data)"""
     success: bool = Field(..., description="Whether the request was successful")
     request_id: str = Field(..., description="Unique identifier for the request")
     status: str = Field(..., description="Status of the request")
     message: str = Field(..., description="Human-readable message")
-    result_data: Optional[SpreadsheetData] = Field(None, description="Processed spreadsheet data")
     error_message: Optional[str] = Field(None, description="Error message if processing failed")
+
+class SpreadsheetResultResponse(BaseModel):
+    """Response model for spreadsheet processing result"""
+    success: bool = Field(..., description="Whether the request was successful")
+    status: str = Field(..., description="Current status of the request")
+    message: str = Field(..., description="Human-readable message about the request status")
+    result: Optional[SpreadsheetData] = Field(None, description="Processed result data when available")
+    tokens_used: Optional[int] = Field(None, description="Number of tokens used in processing")
+    processing_time: Optional[float] = Field(None, description="Time taken to process the request in seconds")

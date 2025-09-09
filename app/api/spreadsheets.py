@@ -15,7 +15,7 @@ from slowapi.util import get_remote_address
 from loguru import logger
 
 from app.models.types.enums import RequestStatus
-from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetResponse
+from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse
 from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
@@ -43,7 +43,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 spreadsheet_router = APIRouter(prefix="/api/spreadsheets", tags=["Spreadsheet Processing"])
 
-@spreadsheet_router.post("/process", response_model=SpreadsheetResponse)
+@spreadsheet_router.post("/process", response_model=SpreadsheetProcessResponse)
 @limiter.limit("10/minute")
 async def process_spreadsheet_request(
     request: Request,
@@ -86,7 +86,7 @@ async def process_spreadsheet_request(
         if not success:
             raise HTTPException(status_code=500, detail="Failed to queue request")
         
-        return SpreadsheetResponse(
+        return SpreadsheetProcessResponse(
             success=True,
             request_id=request_id,
             status="queued",
@@ -97,7 +97,7 @@ async def process_spreadsheet_request(
         logger.error(f"Error processing spreadsheet request: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@spreadsheet_router.get("/status/{request_id}", response_model=SpreadsheetResponse)
+@spreadsheet_router.get("/status/{request_id}", response_model=SpreadsheetProcessResponse)
 async def get_spreadsheet_processing_status(request_id: str, db: Session = Depends(get_db)):
     """Get the processing status of a spreadsheet request"""
     try:
@@ -105,34 +105,19 @@ async def get_spreadsheet_processing_status(request_id: str, db: Session = Depen
         if not db_request:
             raise HTTPException(status_code=404, detail="Request not found")
         
-        progress_map = {
-            RequestStatus.PENDING: 0,
-            RequestStatus.PROCESSING: 50,
-            RequestStatus.COMPLETED: 100,
-            RequestStatus.FAILED: 0,
-            RequestStatus.CANCELLED: 0
-        }
+        # Determine message based on status
+        if db_request.status == RequestStatus.FAILED:
+            message = db_request.error_message
+        elif db_request.status == RequestStatus.COMPLETED:
+            message = "Request completed successfully"
+        else:
+            message = "Request is being processed"
         
-        # Try to parse result data if available
-        result_data = None
-        if db_request.result_data:
-            try:
-                import json
-                # If result_data is a string, parse it
-                if isinstance(db_request.result_data, str):
-                    result_data = json.loads(db_request.result_data)
-                # If it's already a dict, use it directly
-                elif isinstance(db_request.result_data, dict):
-                    result_data = db_request.result_data
-            except Exception as e:
-                logger.warning(f"Could not parse result data: {e}")
-        
-        return SpreadsheetResponse(
+        return SpreadsheetProcessResponse(
             success=db_request.status == RequestStatus.COMPLETED,
             request_id=request_id,
             status=db_request.status,
-            message=db_request.error_message,
-            result_data=result_data if db_request.status == RequestStatus.COMPLETED else None,
+            message=message,
             error_message=db_request.error_message if db_request.status == RequestStatus.FAILED else None
         )
         
@@ -142,7 +127,7 @@ async def get_spreadsheet_processing_status(request_id: str, db: Session = Depen
         logger.error(f"Error getting spreadsheet processing status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@spreadsheet_router.get("/result/{request_id}")
+@spreadsheet_router.get("/result/{request_id}", response_model=SpreadsheetResultResponse)
 async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db)):
     """Get the result of a spreadsheet processing request"""
     try:
@@ -151,11 +136,14 @@ async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db))
             raise HTTPException(status_code=404, detail="Request not found")
         
         if db_request.status != RequestStatus.COMPLETED:
-            return {
-                "success": False,
-                "status": db_request.status,
-                "message": "Request is still being processed" if db_request.status in [RequestStatus.PENDING, RequestStatus.PROCESSING] else "Request failed or was cancelled"
-            }
+            return SpreadsheetResultResponse(
+                success=False,
+                status=db_request.status,
+                message="Request is still being processed" if db_request.status in [RequestStatus.PENDING, RequestStatus.PROCESSING] else "Request failed or was cancelled",
+                result=None,
+                tokens_used=None,
+                processing_time=None
+            )
         
         # Try to parse result data if available
         result_data = None
@@ -170,12 +158,14 @@ async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db))
             except Exception as e:
                 logger.warning(f"Could not parse result data: {e}")
         
-        return {
-            "success": True,
-            "result": result_data,
-            "tokens_used": db_request.tokens_used,
-            "processing_time": db_request.processing_time
-        }
+        return SpreadsheetResultResponse(
+            success=True,
+            status=db_request.status,
+            message="Request completed successfully",
+            result=result_data,
+            tokens_used=db_request.tokens_used,
+            processing_time=db_request.processing_time
+        )
         
     except HTTPException:
         raise
