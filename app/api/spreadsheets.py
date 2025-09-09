@@ -131,7 +131,7 @@ async def get_spreadsheet_processing_status(request_id: str, db: Session = Depen
             success=db_request.status == RequestStatus.COMPLETED,
             request_id=request_id,
             status=db_request.status,
-            message=db_request.error_message or "Processing in progress",
+            message=db_request.error_message,
             result_data=result_data if db_request.status == RequestStatus.COMPLETED else None,
             error_message=db_request.error_message if db_request.status == RequestStatus.FAILED else None
         )
