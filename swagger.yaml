@@ -1,0 +1,667 @@
+openapi: 3.0.3
+info:
+  title: GigaOffice API
+  description: API for GigaOffice spreadsheet processing with AI capabilities
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+paths:
+  /api/ping:
+    get:
+      tags:
+        - Health
+      summary: Simple ping endpoint
+      description: Returns a simple pong response to check if the service is alive
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+  /api/health:
+    get:
+      tags:
+        - Health
+      summary: Detailed service health check
+      description: Returns detailed information about the service health including database, GigaChat, and Kafka status
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceHealth'
+  /api/feedback:
+    post:
+      tags:
+        - AI Feedback Processing
+      summary: Submit AI feedback
+      description: Submit feedback for an AI request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIFeedbackCreate'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIFeedbackOut'
+        '422':
+          description: Validation error
+        '500':
+          description: Internal server error
+  /api/prompts/categories:
+    get:
+      tags:
+        - Prompts
+      summary: Get prompt categories
+      description: Получение списка категорий предустановленных промптов с описанием
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptCategoriesResponse'
+        '500':
+          description: Internal server error
+  /api/prompts/categories/{category_id}:
+    get:
+      tags:
+        - Prompts
+      summary: Get category details
+      description: Получение подробной информации о категории
+      parameters:
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDetailsResponse'
+        '404':
+          description: Category not found
+        '500':
+          description: Internal server error
+  /api/prompts/presets:
+    get:
+      tags:
+        - Prompts
+      summary: Get preset prompts
+      description: Получение предустановленных промптов
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresetPromptsResponse'
+        '500':
+          description: Internal server error
+  /api/prompts/classify:
+    post:
+      tags:
+        - Prompts
+      summary: Classify a prompt
+      description: Классифицирует пользовательский промпт по предопределенным категориям
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromptClassificationRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromptClassificationResponse'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error
+        '500':
+          description: Internal server error
+  /api/metrics:
+    get:
+      tags:
+        - Metrics
+      summary: Get service metrics
+      description: Получение метрик сервиса
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            default: day
+            enum: [hour, day, week, month]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Access denied
+        '500':
+          description: Internal server error
+  /api/spreadsheets/process:
+    post:
+      tags:
+        - Spreadsheet Processing
+      summary: Process enhanced spreadsheet data
+      description: Process enhanced spreadsheet data with AI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpreadsheetRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpreadsheetResponse'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error
+        '500':
+          description: Internal server error
+  /api/spreadsheets/status/{request_id}:
+    get:
+      tags:
+        - Spreadsheet Processing
+      summary: Get processing status
+      description: Get the processing status of a spreadsheet request
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpreadsheetResponse'
+        '404':
+          description: Request not found
+        '500':
+          description: Internal server error
+  /api/spreadsheets/result/{request_id}:
+    get:
+      tags:
+        - Spreadsheet Processing
+      summary: Get processing result
+      description: Get the result of a spreadsheet processing request
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+        '404':
+          description: Request not found
+        '500':
+          description: Internal server error
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PingResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    ServiceHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          default: ok
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+          default: 1.0.0
+        uptime:
+          type: number
+          format: float
+        database:
+          type: boolean
+          default: true
+        gigachat:
+          type: boolean
+          default: true
+        kafka:
+          type: boolean
+          default: true
+        active_requests:
+          type: integer
+          default: 0
+        queue_size:
+          type: integer
+          default: 0
+        memory_usage:
+          type: number
+          format: float
+          default: 0.0
+        cpu_usage:
+          type: number
+          format: float
+          default: 0.0
+    AIFeedbackCreate:
+      type: object
+      required:
+        - ai_request_id
+        - text_response
+      properties:
+        ai_request_id:
+          type: string
+        text_response:
+          type: string
+        rating:
+          type: boolean
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+    AIFeedbackOut:
+      type: object
+      properties:
+        id:
+          type: integer
+        ai_request_id:
+          type: string
+          format: uuid
+        text_response:
+          type: string
+        rating:
+          type: boolean
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+    PromptCategoriesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryInfo'
+    CategoryInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        display_name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+        prompt_count:
+          type: integer
+    CategoryDetailsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        category:
+          $ref: '#/components/schemas/CategoryInfo'
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PromptInfo'
+    PromptInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        template:
+          type: string
+        category_id:
+          type: integer
+    PresetPromptsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        prompts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PresetPromptInfo'
+    PresetPromptInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        template:
+          type: string
+        category_id:
+          type: integer
+        category_name:
+          type: string
+          nullable: true
+        category_display_name:
+          type: string
+          nullable: true
+    PromptClassificationRequest:
+      type: object
+      required:
+        - prompt_text
+      properties:
+        prompt_text:
+          type: string
+          minLength: 1
+        include_descriptions:
+          type: boolean
+          default: false
+    PromptClassificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        query_text:
+          type: string
+        category:
+          $ref: '#/components/schemas/ClassifiedCategory'
+        confidence:
+          type: number
+          format: float
+    ClassifiedCategory:
+      type: object
+      properties:
+        name:
+          type: string
+    MetricsResponse:
+      type: object
+      properties:
+        period:
+          type: string
+          enum: [hour, day, week, month]
+        total_requests:
+          type: integer
+        successful_requests:
+          type: integer
+        failed_requests:
+          type: integer
+        avg_processing_time:
+          type: number
+          format: float
+        total_tokens_used:
+          type: integer
+    SpreadsheetRequest:
+      type: object
+      required:
+        - spreadsheet_data
+        - query_text
+      properties:
+        spreadsheet_data:
+          $ref: '#/components/schemas/SpreadsheetData'
+        query_text:
+          type: string
+        category:
+          type: string
+          nullable: true
+    SpreadsheetData:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/SpreadsheetMetadata'
+        worksheet:
+          $ref: '#/components/schemas/WorksheetInfo'
+        data:
+          $ref: '#/components/schemas/WorksheetData'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnDefinition'
+        charts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartDefinition'
+    SpreadsheetMetadata:
+      type: object
+      properties:
+        version:
+          type: string
+          default: "1.0"
+        created_at:
+          type: string
+          format: date-time
+        plugin_id:
+          type: string
+          nullable: true
+    WorksheetInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          default: "Sheet1"
+        range:
+          type: string
+          default: "A1"
+    WorksheetData:
+      type: object
+      required:
+        - rows
+      properties:
+        header:
+          $ref: '#/components/schemas/HeaderData'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataRow'
+    HeaderData:
+      type: object
+      required:
+        - values
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+        style:
+          $ref: '#/components/schemas/HeaderStyle'
+    HeaderStyle:
+      type: object
+      properties:
+        background_color:
+          type: string
+          nullable: true
+        font_color:
+          type: string
+          nullable: true
+        font_weight:
+          type: string
+          nullable: true
+        font_size:
+          type: integer
+          nullable: true
+        horizontal_alignment:
+          type: string
+          nullable: true
+        vertical_alignment:
+          type: string
+          nullable: true
+        border:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+    DataRow:
+      type: object
+      required:
+        - values
+      properties:
+        values:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: number
+              - type: boolean
+        style:
+          $ref: '#/components/schemas/RowStyle'
+    RowStyle:
+      type: object
+      properties:
+        background_color:
+          type: string
+          nullable: true
+        font_weight:
+          type: string
+          nullable: true
+    ColumnDefinition:
+      type: object
+      required:
+        - index
+        - name
+        - type
+        - format
+      properties:
+        index:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        format:
+          type: string
+        width:
+          type: integer
+          nullable: true
+        validation:
+          $ref: '#/components/schemas/ColumnValidation'
+    ColumnValidation:
+      type: object
+      properties:
+        type:
+          type: string
+        min:
+          type: number
+          nullable: true
+        max:
+          type: number
+          nullable: true
+    ChartDefinition:
+      type: object
+      required:
+        - type
+        - title
+        - range
+        - position
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        range:
+          type: string
+        position:
+          $ref: '#/components/schemas/ChartPosition'
+        style:
+          $ref: '#/components/schemas/ChartStyle'
+    ChartPosition:
+      type: object
+      required:
+        - top
+        - left
+        - width
+        - height
+      properties:
+        top:
+          type: integer
+        left:
+          type: integer
+        width:
+          type: integer
+        height:
+          type: integer
+    ChartStyle:
+      type: object
+      properties:
+        color_scheme:
+          type: string
+          default: office
+    SpreadsheetResponse:
+      type: object
+      required:
+        - success
+        - request_id
+        - status
+        - message
+      properties:
+        success:
+          type: boolean
+        request_id:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+        result_data:
+          $ref: '#/components/schemas/SpreadsheetData'
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
