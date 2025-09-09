@@ -277,7 +277,7 @@ components:
         data:
           type: object
           properties:
-            headers:
+            header:
               $ref: '#/components/schemas/HeaderData'
             rows:
               type: array
@@ -452,7 +452,7 @@ components:
           $ref: '#/components/schemas/QueueInfo'
 
 paths:
-  /api/health/ping:
+  /api/ping:
     get:
       summary: Проверка доступности сервиса
       description: |
@@ -467,7 +467,7 @@ paths:
               example:
                 status: pong
 
-  /api/health/status:
+  /api/health:
     get:
       summary: Детальный статус сервиса
       description: |
