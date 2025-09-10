@@ -6,53 +6,101 @@ import os
 import json
 import base64
 import time
+import re
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 from loguru import logger
 from app.services.gigachat.base import BaseGigaChatService
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 class MockGigaChatClient:
     """Mock client for dryrun mode that simulates GigaChat responses"""
     
+    def __init__(self, service):
+        self.service = service
+    
+    def _extract_data_from_user_prompt(self, content: str) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
+        """Extract query, input_range, and input_data from user prompt"""
+        user_query = ""
+        input_range = None
+        input_data = None
+        
+        # Extract query from ЗАДАЧА line
+        task_match = re.search(r'ЗАДАЧА:\s*(.+)', content)
+        if task_match:
+            user_query = task_match.group(1).strip()
+        
+        # Extract input range
+        range_match = re.search(r'ДИАПАЗОН ЯЧЕЕК С ИСХОДНЫМИ ДАННЫМИ:\s*(.+)', content)
+        if range_match:
+            input_range = range_match.group(1).strip()
+        
+        # Extract input data (JSON part)
+        try:
+            # Look for JSON data after "ИСХОДНЫЕ ДАННЫЕ:" or "РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:"
+            data_section_match = re.search(r'(ИСХОДНЫЕ ДАННЫЕ:|РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:)\s*\n(.+?)(?=\n\n|\Z)', content, re.DOTALL)
+            if data_section_match:
+                json_content = data_section_match.group(2).strip()
+                # Try to parse the JSON
+                input_data = json.loads(json_content)
+        except:
+            # If we can't parse the exact JSON, try to find any JSON in the content
+            try:
+                json_matches = re.findall(r'(\{.*\}|\[.*\])', content, re.DOTALL)
+                for json_match in json_matches:
+                    try:
+                        input_data = json.loads(json_match)
+                        break
+                    except:
+                        continue
+            except:
+                pass
+        
+        return user_query, input_range, input_data
+    
     def invoke(self, messages):
-        """Simulate GigaChat response"""
+        """Generate and return debug table instead of mock response"""
         # Simulate processing delay
         time.sleep(0.2)
         
-        # Create a mock AI response with properly structured data
-        mock_content = json.dumps({
+        # Extract information from messages
+        user_query = ""
+        input_range = None
+        category = None
+        input_data = None
+        
+        # Parse messages to extract user query and other data
+        for message in messages:
+            if hasattr(message, 'content'):
+                content = message.content
+                if isinstance(content, str):
+                    # Try to extract query from user prompt
+                    if content.startswith("ДАТА ЗАПРОСА:") or "ЗАДАЧА:" in content:
+                        # This is likely a user prompt, extract the data
+                        user_query, input_range, input_data = self._extract_data_from_user_prompt(content)
+                    else:
+                        # Assume it's a simple query
+                        user_query = content
+                elif isinstance(content, list):
+                    # Handle list content
+                    user_query = " ".join(str(item) for item in content)
+        
+        # Generate debug table using the service's method
+        debug_table = self.service._generate_debug_table(user_query, input_range, category, input_data)
+        
+        # Create a response with debug table
+        response_content = json.dumps({
             "metadata": {
                 "version": "1.0",
-                "format": "enhanced-spreadsheet-data",
+                "format": "debug-table",
                 "created_at": datetime.now().isoformat(),
                 "plugin_id": "gigaoffice-ai",
                 "dryrun": True
             },
-            "worksheet": {
-                "name": "MockSheet",
-                "range": "A1:D10",
-                "options": {
-                    "auto_resize_columns": True,
-                    "freeze_headers": True,
-                    "auto_filter": True
-                }
-            },
-            "data": {
-                "header": {
-                    "values": ["Column A", "Column B", "Column C", "Column D"]
-                },
-                "rows": [
-                    {"values": ["A1", "B1", "C1", "D1"]},
-                    {"values": ["A2", "B2", "C2", "D2"]},
-                    {"values": ["A3", "B3", "C3", "D3"]}
-                ]
-            },
-            "columns": [],
-            "charts": []
+            "debug_table": debug_table
         }, ensure_ascii=False)
         
-        return AIMessage(content=mock_content, id="dryrun-mock-response-id")
+        return AIMessage(content=response_content, id="dryrun-debug-response-id")
 
 class DryRunGigaChatService(BaseGigaChatService):
     """Заглушка для GigaChat с отображением переменных окружения и промптов"""
@@ -187,4 +235,4 @@ class DryRunGigaChatService(BaseGigaChatService):
     def _init_client(self):
         """Инициализация клиента (заглушка для dryrun)"""
         # In dry run mode, we initialize a mock client instead of None
-        self.client = MockGigaChatClient()
+        self.client = MockGigaChatClient(self)
