@@ -126,51 +126,6 @@ class GigachatPromptBuilder:
             "height": height,
             "is_single_cell": False
         }
-    
-    def prepare_user_prompt(
-        self, 
-        query: str, 
-        input_range: Optional[str] = None,
-        input_data: Optional[List[Dict]] = None
-    ) -> str:
-        """
-        Подготовка пользовательского промпта
-        
-        Args:
-            query: Текст запроса пользователя
-            input_data: Входные данные (опционально)
-            input_range: Диапазон ячеек с исходными данными (например, "A1:C10")
-            
-        Returns:
-            str: Сформированный промпт для отправки в GigaChat
-        """
-        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-        prompt_parts = [f"ДАТА ЗАПРОСА: {timestamp_str}", ""]
-        
-        # 1. Задача
-        prompt_parts.append(f"ЗАДАЧА: {query}")
-        prompt_parts.append("")
-
-        # 2. Исходные данные
-        if input_data:
-            # Check if this is enhanced spreadsheet data
-            if len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
-                prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
-                prompt_parts.append(input_data[0]["spreadsheet_data"])
-            else:
-                prompt_parts.append("ИСХОДНЫЕ ДАННЫЕ:")
-                prompt_parts.append(json.dumps(input_data, ensure_ascii=False, indent=2))
-            prompt_parts.append("")
-        
-        # 3. Диапазон ячеек с исходными данными
-        if input_range:
-            prompt_parts.append(f"ДИАПАЗОН ЯЧЕЕК С ИСХОДНЫМИ ДАННЫМИ: {input_range}")
-            prompt_parts.append("")
-        
-        # 4. Инструкция по формату ответа
-        prompt_parts.append("Предоставь ответ в виде JSON-массива массивов.")
-        
-        return "\n".join(prompt_parts)
 
     def prepare_spreadsheet_prompt(
         self,

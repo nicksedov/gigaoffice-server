@@ -90,15 +90,15 @@ class MockGigaChatClient:
         
         # Create a response with debug table
         response_content = json.dumps({
-            metadata: {
-                version: "1.0",
-                created_at: datetime.now().isoformat(),
+            'metadata': {
+                'version': "1.0",
+                'created_at': datetime.now().isoformat(),
             },
-            worksheet: {
-                name: "debug-table",
-                range: "A1"
-            }
-            data: debug_table
+            'worksheet': {
+                'name': "debug-table",
+                'range': "A1"
+            },
+            'data': debug_table
         }, ensure_ascii=False)
         
         return AIMessage(content=response_content, id="dryrun-debug-response-id")
@@ -138,7 +138,7 @@ class DryRunGigaChatService(BaseGigaChatService):
 
     def _generate_debug_table(self, query: str, input_range: Optional[str] = None, 
         category: Optional[str] = None,
-        input_data: Optional[List[Dict]] = None) -> Dict[str, Any]:
+        input_data: Optional[Dict] = None) -> Dict[str, Any]:
         """Генерация таблицы с отладочной информацией"""
         
         # Получаем переменные окружения
@@ -146,51 +146,51 @@ class DryRunGigaChatService(BaseGigaChatService):
         
         # Генерируем промпты используя GigachatPromptBuilder
         system_prompt = self.prompt_builder.prepare_system_prompt(category)
-        user_prompt = self.prompt_builder.prepare_user_prompt(query, input_range, input_data)
+        user_prompt = self.prompt_builder.prepare_spreadsheet_prompt(query, input_data)
         
         # Формируем таблицу
         result_rows = []
         result = {
-            header: {        
-                values: ['Параметр', 'Значение'],
-                style: {
-                    background_color: "#4472C4",
-                    font_color: "#FFFFFF",
-                    font_weight: "bold",
+            'header': {        
+                'values': ['Параметр', 'Значение'],
+                'style': {
+                    'background_color': '#4472C4',
+                    'font_color': '#FFFFFF',
+                    'font_weight': 'bold',
                 }
             },
-            rows: result_rows
+            'rows': result_rows
         }
         
         # Добавляем переменные окружения
-        result.append({
-            values: ['# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ GIGACHAT', ''],
-            style: {
-                background_color: "#E0E0E0",
+        result_rows.append({
+            'values': ['# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ GIGACHAT', ''],
+            'style': {
+                'background_color': '#E0E0E0'
             }
-        )
+        })
         for env_var in env_vars:
-            result.append({ values: env_var })
+            result_rows.append({ 'values': env_var })
         
         # Добавляем пользовательские данные
-        result.append({
-            values: ['# ПОЛЬЗОВАТЕЛЬСКИЕ ДАННЫЕ', ''],
-            style: {
-                background_color: "#E0E0E0",
+        result_rows.append({
+            'values': ['# ПОЛЬЗОВАТЕЛЬСКИЕ ДАННЫЕ', ''],
+            'style': {
+                'background_color': '#E0E0E0'
             }
-        )
-        result.append({ values: ['Промпт (запрос)', query] })
-        result.append({ values: ['Диапазон исходных данных', input_range or 'Не указан'] })
-        result.append({ values: ['Категория запроса', category or 'Не указана'] })
+        })
+        result_rows.append({ 'values': ['Промпт (запрос)', query] })
+        result_rows.append({ 'values': ['Диапазон исходных данных', input_range or 'Не указан'] })
+        result_rows.append({ 'values': ['Категория запроса', category or 'Не указана'] })
         
         # Добавляем входные данные если есть
         if input_data:
-            result.append({ values: ['Входные данные', json.dumps(input_data, ensure_ascii=False, indent=2)] })
+            result_rows.append({ 'values': ['Входные данные', json.dumps(input_data, ensure_ascii=False, indent=2)] })
         
         # Добавляем сгенерированные промпты
-        result.append({ values: ['# СГЕНЕРИРОВАННЫЕ ПРОМПТЫ', ''] })
-        result.append({ values: ['Системный промпт', system_prompt] })
-        result.append({ values: ['Пользовательский промпт', user_prompt] })
+        result_rows.append({ 'values': ['# СГЕНЕРИРОВАННЫЕ ПРОМПТЫ', ''] })
+        result_rows.append({ 'values': ['Системный промпт', system_prompt] })
+        result_rows.append({ 'values': ['Пользовательский промпт', user_prompt] })
         
         return result
 

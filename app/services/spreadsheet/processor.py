@@ -45,33 +45,7 @@ class SpreadsheetProcessorService:
         Returns:
             Tuple[processed_result, metadata]
             
-        The spreadsheet_data should follow this structure:
-        {
-            "metadata": {
-                "version": "1.0",
-                "format": "enhanced-spreadsheet-data",
-                "created_at": "ISO timestamp",
-                "plugin_id": "gigaoffice-ai"
-            },
-            "worksheet": {
-                "name": "Sheet1",
-                "range": "A1:D10",
-                "options": {
-                    "auto_resize_columns": true,
-                    "freeze_headers": true,
-                    "auto_filter": true
-                }
-            },
-            "data": [
-                // Array of row data
-            ],
-            "columns": [
-                // Column definitions with formatting
-            ],
-            "charts": [
-                // Chart definitions
-            ]
-        }
+        The spreadsheet_data should follow the structure of SpreadsheetData model class
         """
         try:
             # Check rate limits
@@ -93,8 +67,8 @@ class SpreadsheetProcessorService:
             # Check if client is initialized (for dryrun mode)
             if self.gigachat_service.client is None:
                 # Handle dryrun mode
-                logger.info("Processing in dryrun mode - generating mock response")
-                return await self._process_dryrun(query, spreadsheet_data, system_prompt, user_prompt, input_tokens)
+                logger.error("GigaChat service is unavailable")
+                raise Exception("GigaChat service is unavailable")
             
             # Prepare messages
             from langchain_core.messages import SystemMessage, HumanMessage
@@ -125,50 +99,9 @@ class SpreadsheetProcessorService:
             try:
                 result_data = json.loads(response_content)
                 # Validate that this is spreadsheet data
-                if not isinstance(result_data, dict) or "worksheet" not in result_data:
-                    # If not valid spreadsheet data, wrap in a basic structure
-                    result_data = {
-                        "metadata": {
-                            "version": "1.0",
-                            "format": "enhanced-spreadsheet-data",
-                            "created_at": datetime.now().isoformat(),
-                            "plugin_id": "gigaoffice-ai"
-                        },
-                        "worksheet": {
-                            "name": "Sheet1",
-                            "range": "A1",
-                            "options": {
-                                "auto_resize_columns": True,
-                                "freeze_headers": True,
-                                "auto_filter": True
-                            }
-                        },
-                        "data": response_content,
-                        "columns": [],
-                        "charts": []
-                    }
             except json.JSONDecodeError:
                 # If JSON parsing fails, treat as text response
-                result_data = {
-                    "metadata": {
-                        "version": "1.0",
-                        "format": "enhanced-spreadsheet-data",
-                        "created_at": datetime.now().isoformat(),
-                        "plugin_id": "gigaoffice-ai"
-                    },
-                    "worksheet": {
-                        "name": "Sheet1",
-                        "range": "A1",
-                        "options": {
-                            "auto_resize_columns": True,
-                            "freeze_headers": True,
-                            "auto_filter": True
-                        }
-                    },
-                    "data": {"response": response_content},
-                    "columns": [],
-                    "charts": []
-                }
+                result_data = SpreadsheetData()
             
             # Prepare metadata
             metadata = {
@@ -192,79 +125,6 @@ class SpreadsheetProcessorService:
         except Exception as e:
             logger.error(f"Error processing spreadsheet data: {e}")
             raise
-    
-    async def _process_dryrun(
-        self,
-        query: str,
-        spreadsheet_data: Dict[str, Any],
-        system_prompt: str,
-        user_prompt: str,
-        input_tokens: int
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        """
-        Process spreadsheet request in dryrun mode
-        """
-        import time
-        import json
-        from datetime import datetime
-        
-        start_time = time.time()
-        
-        # Simulate processing delay
-        time.sleep(0.2)
-        
-        processing_time = time.time() - start_time
-        output_tokens = self.gigachat_service._count_tokens("Mock response for dryrun mode")
-        total_tokens = input_tokens + output_tokens
-        
-        self.gigachat_service.total_tokens_used += total_tokens
-        
-        # Generate mock result data with proper structure
-        result_data = {
-            "metadata": {
-                "version": "1.0",
-                "format": "enhanced-spreadsheet-data",
-                "created_at": datetime.now().isoformat(),
-                "plugin_id": "gigaoffice-ai",
-                "dryrun": True
-            },
-            "worksheet": {
-                "name": spreadsheet_data.get("worksheet", {}).get("name", "Sheet1"),
-                "range": spreadsheet_data.get("worksheet", {}).get("range", "A1"),
-                "options": spreadsheet_data.get("worksheet", {}).get("options", {})
-            },
-            "data": {
-                "header": {
-                    "values": ["Column A", "Column B", "Column C", "Column D"]
-                },
-                "rows": [
-                    {"values": ["A1", "B1", "C1", "D1"]},
-                    {"values": ["A2", "B2", "C2", "D2"]},
-                    {"values": ["A3", "B3", "C3", "D3"]}
-                ]
-            },
-            "columns": [],
-            "charts": []
-        }
-        
-        # Prepare metadata
-        metadata = {
-            "processing_time": processing_time,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "total_tokens": total_tokens,
-            "model": self.gigachat_service.model,
-            "timestamp": datetime.now().isoformat(),
-            "request_id": "dryrun-mock-id",
-            "success": True
-        }
-        
-        logger.info(
-            f"Dryrun spreadsheet processing completed successfully in {processing_time:.2f}s, "
-            f"tokens: {total_tokens}"
-        )
-        
-        return result_data, metadata
 
 # Factory function to create processor
 def create_spreadsheet_processor(gigachat_service):

@@ -51,39 +51,7 @@ class GigachatResponseParser:
                     logger.info("Successfully extracted enhanced spreadsheet data")
                     return result_object
                 else:
-                    # If it's a dict but not spreadsheet data, wrap it
-                    logger.info("Wrapping response data in spreadsheet format")
-                    return {
-                        "metadata": {
-                            "version": "1.0",
-                            "format": "enhanced-spreadsheet-data",
-                            "plugin_id": "gigaoffice-ai"
-                        },
-                        "worksheet": {
-                            "name": "Sheet1",
-                            "range": "A1"
-                        },
-                        "data": result_object,
-                        "columns": [],
-                        "charts": []
-                    }
-            else if isinstance(result_object, list):
-                # If it's not a dict, treat as regular response
-                logger.info("Converting non-dict response to spreadsheet format")
-                return {
-                    "metadata": {
-                        "version": "1.0",
-                        "format": "enhanced-spreadsheet-data",
-                        "plugin_id": "gigaoffice-ai"
-                    },
-                    "worksheet": {
-                        "name": "Sheet1",
-                        "range": "A1"
-                    },
-                    "data": {"response": result_object},
-                    "columns": [],
-                    "charts": []
-                }
+                    raise Exception("Could not extract valid JSON from spreadsheet response")
                 
         except Exception as e:
             logger.warning(f"Error processing spreadsheet response: {e}")

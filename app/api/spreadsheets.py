@@ -67,10 +67,11 @@ async def process_spreadsheet_request(
             input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
             query_text=spreadsheet_request.query_text,
             category=spreadsheet_request.category,
-            input_data=[{"spreadsheet_data": spreadsheet_json}]  # Store as list for compatibility
+            input_data=spreadsheet_json
         )
         db.add(db_request)
         db.commit()
+          
         
         # Send to Kafka for processing
         success = await kafka_service.send_request(
