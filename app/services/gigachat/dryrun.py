@@ -20,7 +20,7 @@ class MockGigaChatClient:
         # Simulate processing delay
         time.sleep(0.2)
         
-        # Create a mock AI response
+        # Create a mock AI response with properly structured data
         mock_content = json.dumps({
             "metadata": {
                 "version": "1.0",
@@ -38,7 +38,16 @@ class MockGigaChatClient:
                     "auto_filter": True
                 }
             },
-            "data": "Mock response for dryrun mode",
+            "data": {
+                "header": {
+                    "values": ["Column A", "Column B", "Column C", "Column D"]
+                },
+                "rows": [
+                    {"values": ["A1", "B1", "C1", "D1"]},
+                    {"values": ["A2", "B2", "C2", "D2"]},
+                    {"values": ["A3", "B3", "C3", "D3"]}
+                ]
+            },
             "columns": [],
             "charts": []
         }, ensure_ascii=False)

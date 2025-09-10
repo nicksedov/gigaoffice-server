@@ -219,7 +219,7 @@ class SpreadsheetProcessorService:
         
         self.gigachat_service.total_tokens_used += total_tokens
         
-        # Generate mock result data
+        # Generate mock result data with proper structure
         result_data = {
             "metadata": {
                 "version": "1.0",
@@ -233,7 +233,16 @@ class SpreadsheetProcessorService:
                 "range": spreadsheet_data.get("worksheet", {}).get("range", "A1"),
                 "options": spreadsheet_data.get("worksheet", {}).get("options", {})
             },
-            "data": "Mock response for dryrun mode",
+            "data": {
+                "header": {
+                    "values": ["Column A", "Column B", "Column C", "Column D"]
+                },
+                "rows": [
+                    {"values": ["A1", "B1", "C1", "D1"]},
+                    {"values": ["A2", "B2", "C2", "D2"]},
+                    {"values": ["A3", "B3", "C3", "D3"]}
+                ]
+            },
             "columns": [],
             "charts": []
         }
