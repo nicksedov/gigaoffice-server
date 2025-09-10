@@ -10,6 +10,40 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 from loguru import logger
 from app.services.gigachat.base import BaseGigaChatService
+from langchain_core.messages import AIMessage
+
+class MockGigaChatClient:
+    """Mock client for dryrun mode that simulates GigaChat responses"""
+    
+    def invoke(self, messages):
+        """Simulate GigaChat response"""
+        # Simulate processing delay
+        time.sleep(0.2)
+        
+        # Create a mock AI response
+        mock_content = json.dumps({
+            "metadata": {
+                "version": "1.0",
+                "format": "enhanced-spreadsheet-data",
+                "created_at": datetime.now().isoformat(),
+                "plugin_id": "gigaoffice-ai",
+                "dryrun": True
+            },
+            "worksheet": {
+                "name": "MockSheet",
+                "range": "A1:D10",
+                "options": {
+                    "auto_resize_columns": True,
+                    "freeze_headers": True,
+                    "auto_filter": True
+                }
+            },
+            "data": "Mock response for dryrun mode",
+            "columns": [],
+            "charts": []
+        }, ensure_ascii=False)
+        
+        return AIMessage(content=mock_content, id="dryrun-mock-response-id")
 
 class DryRunGigaChatService(BaseGigaChatService):
     """Заглушка для GigaChat с отображением переменных окружения и промптов"""
@@ -143,5 +177,5 @@ class DryRunGigaChatService(BaseGigaChatService):
 
     def _init_client(self):
         """Инициализация клиента (заглушка для dryrun)"""
-        # In dry run mode, we don't initialize an actual client
-        self.client = None
+        # In dry run mode, we initialize a mock client instead of None
+        self.client = MockGigaChatClient()

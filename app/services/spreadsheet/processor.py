@@ -1,8 +1,3 @@
-"""
-Spreadsheet Processor Service
-Service for processing enhanced spreadsheet data with GigaChat
-"""
-
 import json
 import time
 import asyncio
@@ -94,6 +89,12 @@ class SpreadsheetProcessorService:
             input_tokens = self.gigachat_service._count_tokens(system_prompt + user_prompt)
             if input_tokens > self.gigachat_service.max_tokens_per_request:
                 raise Exception(f"Input too long: {input_tokens} tokens (max: {self.gigachat_service.max_tokens_per_request})")
+            
+            # Check if client is initialized (for dryrun mode)
+            if self.gigachat_service.client is None:
+                # Handle dryrun mode
+                logger.info("Processing in dryrun mode - generating mock response")
+                return await self._process_dryrun(query, spreadsheet_data, system_prompt, user_prompt, input_tokens)
             
             # Prepare messages
             from langchain_core.messages import SystemMessage, HumanMessage
@@ -191,6 +192,70 @@ class SpreadsheetProcessorService:
         except Exception as e:
             logger.error(f"Error processing spreadsheet data: {e}")
             raise
+    
+    async def _process_dryrun(
+        self,
+        query: str,
+        spreadsheet_data: Dict[str, Any],
+        system_prompt: str,
+        user_prompt: str,
+        input_tokens: int
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """
+        Process spreadsheet request in dryrun mode
+        """
+        import time
+        import json
+        from datetime import datetime
+        
+        start_time = time.time()
+        
+        # Simulate processing delay
+        time.sleep(0.2)
+        
+        processing_time = time.time() - start_time
+        output_tokens = self.gigachat_service._count_tokens("Mock response for dryrun mode")
+        total_tokens = input_tokens + output_tokens
+        
+        self.gigachat_service.total_tokens_used += total_tokens
+        
+        # Generate mock result data
+        result_data = {
+            "metadata": {
+                "version": "1.0",
+                "format": "enhanced-spreadsheet-data",
+                "created_at": datetime.now().isoformat(),
+                "plugin_id": "gigaoffice-ai",
+                "dryrun": True
+            },
+            "worksheet": {
+                "name": spreadsheet_data.get("worksheet", {}).get("name", "Sheet1"),
+                "range": spreadsheet_data.get("worksheet", {}).get("range", "A1"),
+                "options": spreadsheet_data.get("worksheet", {}).get("options", {})
+            },
+            "data": "Mock response for dryrun mode",
+            "columns": [],
+            "charts": []
+        }
+        
+        # Prepare metadata
+        metadata = {
+            "processing_time": processing_time,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": total_tokens,
+            "model": self.gigachat_service.model,
+            "timestamp": datetime.now().isoformat(),
+            "request_id": "dryrun-mock-id",
+            "success": True
+        }
+        
+        logger.info(
+            f"Dryrun spreadsheet processing completed successfully in {processing_time:.2f}s, "
+            f"tokens: {total_tokens}"
+        )
+        
+        return result_data, metadata
 
 # Factory function to create processor
 def create_spreadsheet_processor(gigachat_service):
