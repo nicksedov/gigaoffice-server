@@ -31,6 +31,7 @@ class SpreadsheetProcessorService:
     async def process_spreadsheet(
         self,
         query: str,
+        category: str,
         spreadsheet_data: Dict[str, Any],
         temperature: float = 0.1
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
@@ -39,6 +40,7 @@ class SpreadsheetProcessorService:
         
         Args:
             query: Processing instruction for the AI
+            category: Processing instruction category
             spreadsheet_data: Enhanced spreadsheet data in JSON format
             temperature: Temperature for generation (0.0 - 1.0)
             
@@ -57,7 +59,7 @@ class SpreadsheetProcessorService:
                 query, spreadsheet_data
             )
             
-            system_prompt = self.gigachat_service.prompt_builder.prepare_system_prompt('spreadsheet')
+            system_prompt = self.gigachat_service.prompt_builder.prepare_system_prompt(category)
             
             # Count tokens
             input_tokens = self.gigachat_service._count_tokens(system_prompt + user_prompt)

@@ -64,7 +64,7 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
             # Process as enhanced spreadsheet data
             import json
             spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
-            result, metadata = await spreadsheet_processor.process_spreadsheet(query, spreadsheet_data)
+            result, metadata = await spreadsheet_processor.process_spreadsheet(query, category, spreadsheet_data)
         else:
             # Process as regular data
             result, metadata = await gigachat_generate_service.process_query(query, input_range, category, input_data)
