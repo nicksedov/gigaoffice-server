@@ -142,6 +142,7 @@ class GigachatPromptBuilder:
         Returns:
             str: Сформированный промпт для отправки в GigaChat
         """
+        prompt_parts = []
         # 1. Задача
         prompt_parts.append(f"ЗАДАЧА: {query}")
         prompt_parts.append("")
