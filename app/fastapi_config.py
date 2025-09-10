@@ -65,20 +65,17 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
             import json
             spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
             result, metadata = await spreadsheet_processor.process_spreadsheet(query, category, spreadsheet_data)
-        else:
-            # Process as regular data
-            result, metadata = await gigachat_generate_service.process_query(query, input_range, category, input_data)
         
-        # Update database
-        with get_db_session() as db:
-            db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
-            if db_request:
-                db_request.status = RequestStatus.COMPLETED
-                db_request.result_data = result
-                db_request.tokens_used = metadata.get("total_tokens", 0)
-                db_request.processing_time = metadata.get("processing_time", 0)
-                db_request.completed_at = datetime.now()
-                db.commit()
+            # Update database
+            with get_db_session() as db:
+                db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
+                if db_request:
+                    db_request.status = RequestStatus.COMPLETED
+                    db_request.result_data = result
+                    db_request.tokens_used = metadata.get("total_tokens", 0)
+                    db_request.processing_time = metadata.get("processing_time", 0)
+                    db_request.completed_at = datetime.now()
+                    db.commit()
         
         logger.info(f"Request {request_id} processed successfully")
         return {

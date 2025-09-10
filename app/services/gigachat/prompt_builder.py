@@ -142,9 +142,6 @@ class GigachatPromptBuilder:
         Returns:
             str: Сформированный промпт для отправки в GigaChat
         """
-        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-        prompt_parts = [f"ДАТА ЗАПРОСА: {timestamp_str}", ""]
-        
         # 1. Задача
         prompt_parts.append(f"ЗАДАЧА: {query}")
         prompt_parts.append("")
@@ -153,9 +150,6 @@ class GigachatPromptBuilder:
         prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
         prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, indent=2))
         prompt_parts.append("")
-        
-        # 3. Инструкция по формату ответа
-        prompt_parts.append("Предоставь ответ в формате расширенных данных таблицы, сохраняя структуру JSON.")
         
         return "\n".join(prompt_parts)
 

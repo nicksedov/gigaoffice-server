@@ -71,11 +71,11 @@ class MockGigaChatClient:
         
         # Parse messages to extract user query and other data
         for message in messages:
-            if hasattr(message, 'content'):
+            if isinstance(message, HumanMessage) and hasattr(message, 'content'):
                 content = message.content
                 if isinstance(content, str):
                     # Try to extract query from user prompt
-                    if content.startswith("ДАТА ЗАПРОСА:") or "ЗАДАЧА:" in content:
+                    if "ЗАДАЧА:" in content:
                         # This is likely a user prompt, extract the data
                         user_query, input_range, input_data = self._extract_data_from_user_prompt(content)
                     else:
@@ -188,7 +188,12 @@ class DryRunGigaChatService(BaseGigaChatService):
             result_rows.append({ 'values': ['Входные данные', json.dumps(input_data, ensure_ascii=False, indent=2)] })
         
         # Добавляем сгенерированные промпты
-        result_rows.append({ 'values': ['# СГЕНЕРИРОВАННЫЕ ПРОМПТЫ', ''] })
+        result_rows.append({ 
+            'values': ['# СГЕНЕРИРОВАННЫЕ ПРОМПТЫ', ''],
+            'style': {
+                'background_color': '#E0E0E0'
+            }
+        })
         result_rows.append({ 'values': ['Системный промпт', system_prompt] })
         result_rows.append({ 'values': ['Пользовательский промпт', user_prompt] })
         
