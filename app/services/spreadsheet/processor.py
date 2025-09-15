@@ -6,6 +6,7 @@ from datetime import datetime
 from loguru import logger
 from app.services.gigachat.base import BaseGigaChatService
 from app.services.gigachat.response_parser import response_parser
+from app.models.api.spreadsheet import SpreadsheetData
 
 class SpreadsheetProcessorService:
     """
@@ -99,7 +100,7 @@ class SpreadsheetProcessorService:
             
             # Try to parse the response as JSON
             try:
-                result_data = json.loads(response_content)
+                result_data = response_parser.parse_spreadsheet_data(response_content)
                 # Validate that this is spreadsheet data
             except json.JSONDecodeError:
                 # If JSON parsing fails, treat as text response

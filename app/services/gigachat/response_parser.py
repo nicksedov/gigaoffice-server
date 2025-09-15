@@ -19,7 +19,14 @@ class GigachatResponseParser:
                 break
             try:
                 # Попытаться декодировать JSON начиная с найденной позиции
-                result, _ = decoder.raw_decode(text[start_pos:])
+                result, json_length = decoder.raw_decode(text[start_pos:])
+                
+                required_fields = ['metadata', 'worksheet', 'data']
+                missing_fields = [field for field in required_fields if field not in result]
+                if missing_fields:
+                    logger.warning(f"Skipped valid JSON entry from LLM response due to missing fields: {missing_fields}")
+                    pos = start_pos + json_length
+                    continue
                 return result
             except (json.JSONDecodeError, ValueError):
                 return None
