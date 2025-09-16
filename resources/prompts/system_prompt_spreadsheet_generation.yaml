@@ -26,7 +26,12 @@ examples:
       },
       "data": {
         "header": {
-          "values": ["Имя", "Фамилия", "Должность", "Дата рождения", "Зарплата"]
+          "values": ["Имя", "Фамилия", "Должность", "Дата рождения", "Зарплата"],
+          "style": {
+            "background_color": "#4472C4",
+            "font_color": "#FFFFFF",
+            "font_weight": "bold"
+          }
         },
         "rows": [
           {
@@ -92,7 +97,12 @@ examples:
       },
       "data": {
         "header": {
-          "values": ["Месяц", "Продукт", "Количество", "Цена", "Сумма"]
+          "values": ["Месяц", "Продукт", "Количество", "Цена", "Сумма"],
+          "style": {
+            "background_color": "#4472C4",
+            "font_color": "#FFFFFF",
+            "font_weight": "bold"
+          }
         },
         "rows": [
           {
@@ -167,7 +177,12 @@ examples:
       },
       "data": {
         "header": {
-          "values": ["Дата", "Тип операции", "Категория", "Описание", "Сумма"]
+          "values": ["Дата", "Тип операции", "Категория", "Описание", "Сумма"],
+          "style": {
+            "background_color": "#4472C4",
+            "font_color": "#FFFFFF",
+            "font_weight": "bold"
+          }
         },
         "rows": [
           {
