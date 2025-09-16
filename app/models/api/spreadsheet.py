@@ -42,7 +42,7 @@ class DataRow(BaseModel):
 
 class WorksheetData(BaseModel):
     """Worksheet data structure"""
-    headers: Optional[HeaderData] = Field(None, description="Header row data")
+    header: Optional[HeaderData] = Field(None, description="Header row data")
     rows: List[DataRow] = Field(..., description="Data rows")
 
 class ColumnValidation(BaseModel):
@@ -83,7 +83,7 @@ class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation"""
     metadata: SpreadsheetMetadata = Field(default_factory=SpreadsheetMetadata, description="Metadata section")
     worksheet: WorksheetInfo = Field(default_factory=WorksheetInfo, description="Worksheet section")
-    data: WorksheetData = Field(default_factory=WorksheetData, description="Data section containing headers and rows")
+    data: WorksheetData = Field(default_factory=WorksheetData, description="Data section containing header and rows")
     columns: Optional[List[ColumnDefinition]] = Field(default_factory=list, description="Column definitions")
     charts: Optional[List[ChartDefinition]] = Field(default_factory=list, description="Chart definitions")
 

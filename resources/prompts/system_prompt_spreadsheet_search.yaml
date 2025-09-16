@@ -26,7 +26,7 @@ examples:
         "range": "A1:C7"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Дата", "Продукт", "Сумма"]
         },
         "rows": [
@@ -81,7 +81,7 @@ examples:
         "range": "A1:C4"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Дата", "Продукт", "Сумма"]
         },
         "rows": [
@@ -130,7 +130,7 @@ examples:
         "range": "A1:C10"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Код", "Название", "Цена"]
         },
         "rows": [
@@ -188,7 +188,7 @@ examples:
         "range": "A1:C5"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Код", "Название", "Цена"]
         },
         "rows": [
@@ -240,7 +240,7 @@ examples:
         "range": "A1:D10"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Номер", "Дата", "Клиент", "Сумма"]
         },
         "rows": [
@@ -301,7 +301,7 @@ examples:
         "range": "A1:D4"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Номер", "Дата", "Клиент", "Сумма"]
         },
         "rows": [

@@ -20,7 +20,7 @@ examples:
         "range": "A1:C6"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Продукт", "Количество", "Цена"]
         },
         "rows": [
@@ -72,7 +72,7 @@ examples:
         "range": "A1:C6"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Продукт", "Количество", "Цена"]
         },
         "rows": [
@@ -133,7 +133,7 @@ examples:
         "range": "A1:D5"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Дата", "Продукт", "Количество", "Цена"]
         },
         "rows": [
@@ -188,7 +188,7 @@ examples:
         "range": "A1:D6"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Дата", "Продукт", "Количество", "Цена"]
         },
         "rows": [
@@ -256,7 +256,7 @@ examples:
         "range": "A1:B13"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Месяц", "Продажи"]
         },
         "rows": [
@@ -323,7 +323,7 @@ examples:
         "range": "A1:C14"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Месяц", "Продажи", "Тренд"]
         },
         "rows": [

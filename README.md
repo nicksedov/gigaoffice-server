@@ -209,7 +209,7 @@ resources/
     }
   ],
   "data": {
-    "headers": {
+    "header": {
       "values": ["Product", "Q1", "Q2"]
     },
     "rows": [
@@ -303,7 +303,7 @@ curl -X POST "http://localhost:8000/api/spreadsheets/process" \
         "range": "A1"
       },
       "data": {
-        "headers": {
+        "header": {
           "values": ["Product", "Q1", "Q2"]
         },
         "rows": [
