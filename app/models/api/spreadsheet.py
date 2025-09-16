@@ -56,7 +56,7 @@ class ColumnDefinition(BaseModel):
     index: int = Field(..., description="Zero-based column index")
     name: str = Field(..., description="Column name for reference")
     type: str = Field(..., description="Data type (string, number, date, boolean, etc.)")
-    format: str = Field(..., description="Display format for the data")
+    format: Optional[str] = Field(None, description="Display format for the data")
     width: Optional[int] = Field(None, description="Preferred column width in pixels")
     validation: Optional[ColumnValidation] = Field(None, description="Optional data validation rules")
 
