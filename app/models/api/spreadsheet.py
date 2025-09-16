@@ -42,7 +42,7 @@ class DataRow(BaseModel):
 
 class WorksheetData(BaseModel):
     """Worksheet data structure"""
-    header: Optional[HeaderData] = Field(..., description="Header row data")
+    headers: Optional[HeaderData] = Field(None, description="Header row data")
     rows: List[DataRow] = Field(..., description="Data rows")
 
 class ColumnValidation(BaseModel):

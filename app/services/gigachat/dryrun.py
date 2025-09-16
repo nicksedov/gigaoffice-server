@@ -151,7 +151,7 @@ class DryRunGigaChatService(BaseGigaChatService):
         # Формируем таблицу
         result_rows = []
         result = {
-            'header': {        
+            'headers': {        
                 'values': ['Параметр', 'Значение'],
                 'style': {
                     'background_color': '#4472C4',
