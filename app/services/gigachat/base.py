@@ -120,25 +120,34 @@ class BaseGigaChatService(ABC):
     def get_available_models(self) -> List[str]:
         """Получение списка доступных моделей"""
         try:
-            # Note: This is a placeholder as langchain-gigachat might not expose model listing
+            # Use the actual GigaChat client to get available models if possible
+            if hasattr(self.client, 'models') and callable(getattr(self.client, 'models', None)):
+                # Try to get models from the client
+                models = self.client.models()
+                if isinstance(models, list):
+                    return models
+                elif hasattr(models, 'data') and isinstance(models.data, list):
+                    return [model.id for model in models.data if hasattr(model, 'id')]
+            
+            # Fallback to default list if client method is not available
             return ["GigaChat", "GigaChat-Pro", "GigaChat-Max"]
         except Exception as e:
-            logger.error(f"Failed to get available models: {e}")
+            logger.warning(f"Failed to get available models from API, using defaults: {e}")
             return [self.model]
     
     def check_service_health(self) -> Dict[str, Any]:
         """Проверка состояния сервиса GigaChat"""
         try:
-            # Simple health check with a minimal request
+            # Use a lightweight API endpoint for instant health check
             start_time = time.time()
             
-            messages = [
-                SystemMessage(content="Ты - AI ассистент."),
-                HumanMessage(content="Ответь одним словом: 'Работаю'")
-            ]
-            
-            response = self.client.invoke(messages)
+            # Attempt to get available models (lightweight operation)
+            models = self.get_available_models()
             response_time = time.time() - start_time
+            
+            # Verify we got a valid response
+            if not models or not isinstance(models, list):
+                raise Exception("Invalid response from models endpoint")
             
             return {
                 "status": "healthy",
@@ -150,13 +159,35 @@ class BaseGigaChatService(ABC):
             }
             
         except Exception as e:
-            logger.error(f"GigaChat health check failed: {e}")
-            return {
-                "status": "unhealthy",
-                "error": str(e),
-                "model": self.model,
-                "total_tokens_used": self.total_tokens_used
-            }
+            # Fallback to original implementation
+            logger.warning(f"Lightweight health check failed, using fallback: {e}")
+            try:
+                start_time = time.time()
+                
+                messages = [
+                    SystemMessage(content="Ты - AI ассистент."),
+                    HumanMessage(content="Ответь одним словом: 'Работаю'")
+                ]
+                
+                response = self.client.invoke(messages)
+                response_time = time.time() - start_time
+                
+                return {
+                    "status": "healthy",
+                    "response_time": response_time,
+                    "model": self.model,
+                    "total_tokens_used": self.total_tokens_used,
+                    "requests_in_last_minute": len(self.request_times),
+                    "rate_limit_available": self._check_rate_limit()
+                }
+            except Exception as fallback_error:
+                logger.error(f"GigaChat health check failed: {fallback_error}")
+                return {
+                    "status": "unhealthy",
+                    "error": str(fallback_error),
+                    "model": self.model,
+                    "total_tokens_used": self.total_tokens_used
+                }
     
     def get_usage_statistics(self) -> Dict[str, Any]:
         """Получение статистики использования"""
