@@ -15,12 +15,13 @@ class WorksheetInfo(BaseModel):
     name: str = Field(default="Sheet1", description="Name of the worksheet where source data is located")
     range: str = Field(default="A1", description="Сell range reference for source data")
 
-class HeaderStyle(BaseModel):
-    """Styling for header rows"""
+class CellStyle(BaseModel):
+    """Unified styling for all spreadsheet cells"""
     background_color: Optional[str] = Field(None, description="Background color in hex format")
     font_color: Optional[str] = Field(None, description="Font color in hex format")
     font_weight: Optional[str] = Field(None, description="Font weight (normal, bold)")
     font_size: Optional[int] = Field(None, description="Font size in points")
+    font_style: Optional[str] = Field(None, description="Font style (normal, italic)")
     horizontal_alignment: Optional[str] = Field(None, description="Horizontal alignment (left, center, right)")
     vertical_alignment: Optional[str] = Field(None, description="Vertical alignment (top, middle, bottom)")
     border: Optional[Dict[str, str]] = Field(None, description="Border settings (top, right, bottom, left)")
@@ -28,17 +29,12 @@ class HeaderStyle(BaseModel):
 class HeaderData(BaseModel):
     """Header row definition"""
     values: List[str] = Field(..., description="Header values")
-    style: Optional[HeaderStyle] = Field(None, description="Styling for the header row")
-
-class RowStyle(BaseModel):
-    """Styling for data rows"""
-    background_color: Optional[str] = Field(None, description="Background color in hex format")
-    font_weight: Optional[str] = Field(None, description="Font weight (normal, bold)")
+    style: Optional[CellStyle] = Field(None, description="Styling for the header row")
 
 class DataRow(BaseModel):
     """Data row definition"""
     values: List[Union[str, int, float, bool]] = Field(..., description="Row values")
-    style: Optional[RowStyle] = Field(None, description="Styling for this row")
+    style: Optional[CellStyle] = Field(None, description="Styling for this row")
 
 class WorksheetData(BaseModel):
     """Worksheet data structure"""

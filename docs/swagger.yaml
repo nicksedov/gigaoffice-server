@@ -282,7 +282,7 @@ components:
           description: Сell range reference for source data
       description: Worksheet information
 
-    HeaderStyle:
+    CellStyle:
       type: object
       properties:
         background_color:
@@ -301,6 +301,10 @@ components:
           type: integer
           nullable: true
           description: Font size in points
+        font_style:
+          type: string
+          nullable: true
+          description: Font style (normal, italic)
         horizontal_alignment:
           type: string
           nullable: true
@@ -315,7 +319,7 @@ components:
           additionalProperties:
             type: string
           description: Border settings (top, right, bottom, left)
-      description: Styling for header rows
+      description: Unified styling for all spreadsheet cells
 
     HeaderData:
       type: object
@@ -327,21 +331,8 @@ components:
           items:
             type: string
         style:
-          $ref: '#/components/schemas/HeaderStyle'
+          $ref: '#/components/schemas/CellStyle'
       description: Header row definition
-
-    RowStyle:
-      type: object
-      properties:
-        background_color:
-          type: string
-          nullable: true
-          description: Background color in hex format
-        font_weight:
-          type: string
-          nullable: true
-          description: Font weight (normal, bold)
-      description: Styling for data rows
 
     DataRow:
       type: object
@@ -357,7 +348,7 @@ components:
               - type: number
               - type: boolean
         style:
-          $ref: '#/components/schemas/RowStyle'
+          $ref: '#/components/schemas/CellStyle'
       description: Data row definition
 
     WorksheetData:
