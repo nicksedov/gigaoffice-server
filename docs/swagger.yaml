@@ -314,9 +314,9 @@ components:
           nullable: true
           description: Vertical alignment (top, middle, bottom)
         border:
-          type: object
+          type: array
           nullable: true
-          additionalProperties:
+          items:
             type: string
           description: Border settings (top, right, bottom, left)
       description: Unified styling for all spreadsheet cells
