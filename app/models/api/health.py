@@ -7,6 +7,7 @@ from datetime import datetime
 class PingResponse(BaseModel):
     """Response model for ping endpoint"""
     status: str
+    version: str
     timestamp: datetime = Field(default_factory=datetime.now)
 
 class ServiceHealth(BaseModel):
