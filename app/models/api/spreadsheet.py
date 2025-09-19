@@ -24,7 +24,7 @@ class CellStyle(BaseModel):
     font_style: Optional[str] = Field(None, description="Font style (normal, italic)")
     horizontal_alignment: Optional[str] = Field(None, description="Horizontal alignment (left, center, right)")
     vertical_alignment: Optional[str] = Field(None, description="Vertical alignment (top, middle, bottom)")
-    border: Optional[List[str]] = Field(None, description="Border settings (top, right, bottom, left)")
+    border: Optional[str|List[str]] = Field(None, description="Border settings (top, right, bottom, left)")
 
 class HeaderData(BaseModel):
     """Header row definition"""
