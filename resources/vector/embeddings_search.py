@@ -46,7 +46,7 @@ def main():
         host="localhost",
         port=5432
     )
-    print(search_common_headers("Имя", conn, "header_embeddings"))
+    print(search_common_headers("имя пользователя", conn, "header_embeddings"))
 
 if __name__ == "__main__":
     main()
