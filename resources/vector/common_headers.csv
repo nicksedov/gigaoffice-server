@@ -1,506 +1,583 @@
-russian,русский
-english,английский
-имя,name
-фамилия,surname
-отчество,
-возраст,age
-дата,date
-цена,price
-количество,quantity
-сумма,amount
-адрес,address
-телефон,phone
-почта,email
-номер,id
-статус,status
-категория,category
-описание,description
-название,title
-комментарий,comment
-код,code
-тип,type
-вес,weight
-объем,volume
-длина,length
-ширина,width
-высота,height
-размер,size
-стоимость,cost
-общая,total
-ссылка,link
-отдел,department
-стаж,experience
-должность,position
-сотрудник,employee
-табельный номер,personnel number
-рейтинг,rating
-уровень,level
-команда,team
-руководитель,supervisor
-менеджер,manager
-подразделение,division
-график,schedule
-зарплата,salary
-оклад,wage
-премия,premium
-бонус,bonus
-дата приема,hire date
-дата увольнения,termination date
-статус сотрудника,employee status
-тип занятости,employment type
-работник,worker
-работодатель,employer
-персонал,personnel
-штат,staff
-рабочее время,work time
-отпуск,vacation
-больничный,leave
-компенсация,compensation
-счет,account
-баланс,balance
-кредит,credit
-дебет,debit
-процент,interest
-валюта,currency
-транзакция,transaction
-платеж,payment
-вклад,deposit
-ссуда,loan
-облигация,bond
-акция,stock
-дивиденд,dividend
-комиссия,commission
-ликвидность,liquidity
-реквизиты,requisites
-инн,
-бик,
-кпп,
-огрн,
-окпо,
-оквэд,
-доход,income
-ущерб,expense
-прибыль,profit
-убыток,loss
-актив,asset
-пассив,liability
-капитал,capital
-инвестиция,investment
-биржа,exchange
-портфель,portfolio
-котировка,quote
-курс,rate
-денежный поток,cash flow
-выручка,revenue
-расход,issue
-бюджет,budget
-налог,tax
-налогообложение,taxation
-налогоплательщик,taxpayer
-налоговая база,tax base
-налоговая ставка,tax rate
-налоговый период,tax period
-налоговая декларация,tax return
-налоговые льготы,tax benefits
-налоговый вычет,tax deduction
-налоговая нагрузка,tax burden
-налоговое планирование,tax planning
-налоговое администрирование,tax administration
-налоговое резидентство,tax residency
-налоговый агент,tax agent
-налоговый учет,tax accounting
-подоходный налог,income tax
-налог на прибыль,corporate tax
-ндс,vat
-налог на добавленную стоимость,value added tax
-налог на имущество,property tax
-земельный налог,land tax
-транспортный налог,vehicle tax
-налог на дарение,gift tax
-налог на наследство,inheritance tax
-экологический налог,environmental tax
-акцизный налог,excise tax
-таможенная пошлина,customs duty
-социальный налог,social tax
-подоходный подход,withholding tax
-налоговый кредит,tax credit
-входящий ндс,input vat
-исходящий ндс,output vat
-к доплате ндс,vat payable
-к возмещению ндс,vat refund
-освобождение от ндс,vat exemption
-нулевая ставка ндс,zero vat rate
-отчетный период,reporting period
-налоговая отчетность,tax reporting
-камеральная проверка,desk audit
-выездная проверка,field audit
-доначисление,additional assessment
-пеня,penalty
-штраф,fine
-просрочка,overdue
-недоимка,tax arrears
-переплата,overpayment
-зачет,offset
-возврат,refund
-рассрочка,installment
-отсрочка,deferment
-справка о доходах,income certificate
-справка о налогах,tax certificate
-выписка из егрюл,company extract
-выписка из егрип,sole proprietor extract
-справка о состоянии расчетов,tax account statement
-уведомление,notification
-требование,demand
-решение,decision
-постановление,ruling
-усн,simplified taxation
-упрощенная система,simplified system
-енвд,imputed income tax
-единый налог,unified tax
-патентная система,patent system
-есхн,agricultural tax
-единый сельхозналог,unified agricultural tax
-двойное налогообложение,double taxation
-соглашение об избежании,tax treaty
-трансфертное ценообразование,transfer pricing
-контролируемая сделка,controlled transaction
-взаимозависимые лица,related parties
-постоянное представительство,permanent establishment
-валютное законодательство,currency legislation
-налоговая разница,tax difference
-временная разница,temporary difference
-постоянная разница,permanent difference
-отложенный налог,deferred tax
-текущий налог,current tax
-налоговые обязательства,tax liability
-налоговые активы,tax assets
-камеральный контроль,desk control
-выездной контроль,field control
-налоговое консультирование,tax consulting
-налоговое планирование,tax planning
-налоговая оптимизация,tax optimization
-налоговое правонарушение,tax violation
-налоговое преступление,tax crime
-самостоятельное исправление,voluntary correction
-срок подачи,filing deadline
-срок уплаты,payment deadline
-продление срока,extension
-истечение срока,expiration
-срок давности,statute of limitations
-онлайн касса,online cash register
-фискальный накопитель,fiscal drive
-эцп,digital signature
-электронная подпись,digital signature
-электронный документооборот,electronic workflow
-маркировка товаров,product labeling
-прослеживаемость,traceability
-медиана,median
-мода,mode
-дисперсия,variance
-стандарт,standard
-отклонение,deviation
-корреляция,correlation
-регрессия,regression
-выборка,sample
-частота,frequency
-вероятность,probability
-индекс,index
-коэффициент,coefficient
-среднее,mean
-вариация,variation
-квартиль,quartile
-артикул,sku
-штрихкод,barcode
-подкатегория,subcategory
-бренд,brand
-модель,model
-розничная цена,retail price
-оптовая цена,wholesale price
-себестоимость,
-поставщик,supplier
-производитель,manufacturer
-страна происхождения,origin
-размеры,dimensions
-цвет,color
-материал,material
-статус товара,product status
-склад,warehouse
-местоположение,location
-ячейка,bin
-полка,shelf
-проход,aisle
-приход,receipt
-перемещение,transfer
-корректировка,adjustment
-в наличии,on hand
-доступно,available
-зарезервировано,reserved
-выделено,allocated
-заказ,order
-отгрузка,shipment
-доставка,delivery
-комплектование,picking
-упаковка,packing
-инвентаризация,stocktake
-физический подсчет,physical count
-оборот,turnover
-скорость оборота,velocity
-номер партии,batch number
-срок годности,expiration date
-серийный номер,serial
-сервер,server
-маршрутизатор,router
-коммутатор,switch
-брандмауэр,firewall
-рабочая станция,workstation
-процессор,cpu
-оперативная память,ram
-накопитель,storage
-ip адрес,ip address
-mac адрес,mac address
-подсеть,subnet
-шлюз,gateway
-dns,dns
-dhcp,dhcp
-vlan,vlan
-лицензия,license
-версия,version
-патч,patch
-обновление,update
-дата установки,installation date
-инвентарный номер,asset tag
-дата покупки,purchase date
-гарантия,warranty
-амортизация,depreciation
-узел,node
-концентратор,hub
-мост,bridge
-повторитель,repeater
-точка доступа,access point
-сертификат,certificate
-шифрование,encryption
-аутентификация,authentication
-авторизация,authorization
-количество,count
-значение,value
-справка,reference
-ссылка,url
-идентификатор,uri
-фамилия,lastname
-имя,first name
-фамилия,last name
-почта,mail
-сбор,fee
-кадры,hr
-кадровые ресурсы,human resources
-код товара,upc
-европейский код,ean
-поставщик,vendor
-активный,active
-снято с производства,discontinued
-сезонный,seasonal
-циклический подсчет,cycle count
 abc классификация,abc classification
-номер партии,lot number
-видеокарта,gpu
-Russian,English
-время,time
-час,hour
-минута,minute
-секунда,second
-день,day
-неделя,week
-месяц,month
-год,year
-квартал,quarter
-период,period
-начало,start
-конец,end
-начальная дата,start date
-конечная дата,end date
-срок,term
-продолжительность,duration
-интервал,interval
-таймштамп,timestamp
-создано,created
-обновлено,updated
-изменено,modified
-уникальный идентификатор,unique id
-первичный ключ,primary key
-внешний ключ,foreign key
+cookies,cookies
+ctr,ctr
+dhcp,dhcp
+discord,discord
+dns,dns
+english,английский
+facebook,facebook
 guid,guid
-uuid,uuid
-хэш,hash
-токен,token
-сессия,session
-пользователь,user
-клиент,client
-заказчик,customer
-поставщик id,supplier id
-клиент id,customer id
-страна,country
-регион,region
-область,state
-город,city
-улица,street
-дом,house
-квартира,apartment
-почтовый индекс,postal code
-координаты,coordinates
-широта,latitude
-долгота,longitude
-часовой пояс,timezone
-мобильный,mobile
-факс,fax
-сайт,website
-социальные сети,social media
-скайп,skype
-telegram,telegram
-whatsapp,whatsapp
-маржа,margin
-рентабельность,profitability
+instagram,inatagram
+ip,ip
+ip адрес,ip address
+kpi,kpi
+lan,lan
+mac адрес,mac address
 roi,roi
-налог с продаж,sales tax
-скидка,discount
-наценка,markup
-себестоимость единицы,unit cost
-цена за единицу,unit price
-итого,subtotal
-к оплате,total due
-предоплата,prepayment
-задолженность,debt
-кредиторская задолженность,payables
-дебиторская задолженность,receivables
-приоритет,priority
-важность,importance
-срочность,urgency
-качество,quality
-оценка,score
-отзыв,review
-отметка,mark
-балл,point
-процент выполнения,completion rate
-готовность,readiness
-отправитель,sender
-получатель,recipient
-курьер,courier
-трек номер,tracking number
-способ доставки,delivery method
-транспорт,transport
-водитель,driver
-маршрут,route
-пункт назначения,destination
-отправление,departure
-прибытие,arrival
-производственная линия,production line
-смена,shift
-партия,batch
-дефект,defect
-брак,reject
-годные,good parts
-контроль качества,quality control
-испытание,test
-сертификация,certification
-пациент,patient
-диагноз,diagnosis
-симптом,symptom
-лечение,treatment
-лекарство,medicine
-дозировка,dosage
+russian,русский
+signal,signal
+team id,team id
+telegram,telegram
+uri,uri
+uuid,uuid
+viber,viber
+vlan,vlan
+whatsapp,whatsapp
+автор,author
+авторизация,authorization
+адрес,address
+адрес доставки,shipping address
+адрес регистрации,registration address
+актив,asset
+активный,active
+акцизный налог,excise tax
+акция,stock
 аллергия,allergy
-группа крови,blood type
+амортизация,depreciation
+аномалия,anomaly
+артикул,sku
+аттестация,appraisal
+аудит,audit
+аутентификация,authentication
+баланс,balance
+балл,point
+бик,
+биржа,exchange
+блокировка,lock
+больничный,leave
+бонус,bonus
+бонусная карта,loyalty card
+брак,reject
+брандмауэр,firewall
+браузер,browser
+бренд,brand
+бюджет,budget
+бюджет проекта,project budget
+в наличии,on hand
+важность,importance
+вакансия,vacancy
+валюта,currency
+валютное законодательство,currency legislation
+вариация,variation
+вероятность,probability
+версия,version
+вес,weight
 вес тела,body weight
-температура,temperature
-давление,pressure
-студент,student
-преподаватель,teacher
-предмет,subject
-оценка,grade
-экзамен,exam
-семестр,semester
+веха,milestone
+взаимозависимые лица,related parties
+вид,kind
+вид,view
+видеокарта,gpu
+вклад,deposit
+владелец,owner
+внешний ключ,foreign key
+водитель,driver
+возврат,refund
+возврат,return
+возраст,age
+воронка,funnel
+временная разница,temporary difference
+время,time
+входящий ндс,input vat
+выборка,sample
+выброс,outlier
+выделено,allocated
+выездная проверка,field audit
+выездной контроль,field control
+выписка из егрип,sole proprietor extract
+выписка из егрюл,company extract
+выручка,revenue
+высота,height
+гарантийный талон,warranty card
+гарантия,warranty
+год,year
+годные,good parts
+город,city
+готовность,readiness
+гражданство,citizenship
+график,schedule
+громкость,volume
 группа,group
-факультет,faculty
-специальность,major
+группа крови,blood type
+давление,pressure
+дата,date
+дата выдачи,issue date
+дата изменения,modification date
+дата обновления,update date
+дата окончания,end date
+дата подписания,signing date
+дата покупки,purchase date
+дата приема,hire date
+дата рождения,birth date
+дата создания,creation date
+дата увольнения,termination date
+дата установки,installation date
+двойное налогообложение,double taxation
+дебет,debit
+дебиторская задолженность,receivables
+денежный поток,cash flow
+день,day
+дефект,defect
+диапазон,range
+диагноз,diagnosis
+дивиденд,dividend
+дисперсия,variance
+длина,length
+договор,contract
+дозировка,dosage
+документ,document
+долг,debt
+долгота,longitude
+должность,position
+дом,house
+домен,domain
+доначисление,additional assessment
+доставка,delivery
+доступ,access
+доступно,available
+доход,income
+европейский код,ean
+единый налог,unified tax
+единый сельхозналог,unified agricultural tax
+енвд,imputed income tax
+есхн,agricultural tax
+задача,task
+задолженность,debt
+заказ,order
+заказчик,customer
+замечания,notes
+зарезервировано,reserved
+зарплата,salary
+зачет,offset
+земельный налог,land tax
+значение,value
+идентификатор,identifier
+изготовитель,manufacturer
+изменение,change
+изменено,modified
+изображение,image
+имя,name
+имя,first name
+имя файла,file name
+инвентаризация,stocktake
+инвентарный номер,asset tag
+инвестиция,investment
+индекс,index
+инн,tax id
+интервал,interval
+интервью,interview
+испытание,test
+истечение срока,expiration
+исходящий ндс,output vat
+итого,subtotal
+итого,total
+к доплате ндс,vat payable
+к оплате,total due
+кадровые ресурсы,human resources
+кадры,hr
+камеральная проверка,desk audit
+камеральный контроль,desk control
 кампания,campaign
 канал,channel
-сегмент,segment
-таргет,target
-конверсия,conversion
-клик,click
-показ,impression
-ctr,ctr
-лид,lead
-воронка,funnel
 кандидат,candidate
-вакансия,vacancy
-резюме,resume
-интервью,interview
-навык,skill
-компетенция,competency
-обучение,training
-развитие,development
-аттестация,appraisal
-проект,project
-задача,task
-этап,phase
-веха,milestone
-ресурс,resource
-бюджет проекта,project budget
-риск,risk
-решение,solution
-результат,result
-ревизия,revision
-изменение,change
-автор,author
-рецензент,reviewer
-утверждающий,approver
-документ,document
-файл,file
-папка,folder
-путь,path
-пароль,password
-логин,login
-роль,role
-права,permissions
-доступ,access
-блокировка,lock
-разблокировка,unlock
-аудит,audit
-лог,log
-событие,event
-показатель,metric
-kpi,kpi
-тренд,trend
-прогноз,forecast
-план,plan
-факт,actual
-процентиль,percentile
-выброс,outlier
-аномалия,anomaly
-домен,domain
-хост,host
-порт,port
-протокол,protocol
-cookies,cookies
-сессия,session
-браузер,browser
-устройство,device
-операционная система,os
-разрешение экрана,screen resolution
-пост,post
-лайк,like
-подписчик,follower
-подписка,subscription
-уведомление,notification
-сообщение,message
-чат,chat
-форум,forum
-тема,thread
+капитал,capital
 касса,cash register
-сдача,change
-возврат,return
-гарантийный талон,warranty card
-промокод,promo code
-бонусная карта,loyalty card
+категория,category
+качество,quality
+квартал,quarter
+квартиль,quartile
+квартира,apartment
+кем выдан,issued by
+клиент,client
+клиент id,customer id
+клик,click
+код,code
+код валюты,currency code
+код города,city code
+код организации,organization code
+код подразделения,division code
+код региона,region code
+код страны,country code
+код товара,upc
+количество,quantity
+количество,count
+количество услуг,service quantity
+команда,team
+комиссия,commission
+комментарий,comment
+коммутатор,switch
+компенсация,compensation
+компетенция,competency
+комплектование,picking
+конверсия,conversion
+конец,end
+конечная дата,end date
+контактное лицо,contact person
+контролируемая сделка,controlled transaction
+контроль качества,quality control
+концентратор,hub
+координаты,coordinates
+корень,root
+корректировка,adjustment
+корреляция,correlation
+котировка,quote
+коэффициент,coefficient
+кпп,
+кредит,credit
+кредиторская задолженность,payables
+курс,rate
+курьер,courier
+лайк,like
+лекарство,medicine
+лечение,treatment
+лид,lead
+ликвидность,liquidity
+лицензия,license
+лог,log
+логин,login
+логотип,logo
+макс,max
+максимальный,maximal
+максимум,maximum
+маржа,margin
+маркировка товаров,product labeling
+маршрут,route
+маршрутизатор,router
+материал,material
+медиана,median
+менеджер,manager
+место рождения,place of birth
+местоположение,location
+месяц,month
+мин,min
+минимальный,minimal
+минимум,minimum
+минута,minute
+мобильный,mobile
+мода,mode
+модель,model
+мост,bridge
+навык,skill
+название,title
+накопитель,storage
 накопительная скидка,cumulative discount
-владелец,owner
+налог,tax
+налог на дарение,gift tax
+налог на добавленную стоимость,value added tax
+налог на имущество,property tax
+налог на наследство,inheritance tax
+налог на прибыль,corporate tax
+налог с продаж,sales tax
+налоговая база,tax base
+налоговая декларация,tax return
+налоговая нагрузка,tax burden
+налоговая оптимизация,tax optimization
+налоговая отчетность,tax reporting
+налоговая разница,tax difference
+налоговая ставка,tax rate
+налоговое администрирование,tax administration
+налоговое консультирование,tax consulting
+налоговое планирование,tax planning
+налоговое правонарушение,tax violation
+налоговое преступление,tax crime
+налоговое резидентство,tax residency
+налоговые активы,tax assets
+налоговые льготы,tax benefits
+налоговые обязательства,tax liability
+налоговый агент,tax agent
+налоговый вычет,tax deduction
+налоговый кредит,tax credit
+налоговый период,tax period
+налоговый учет,tax accounting
+налогообложение,taxation
+налогоплательщик,taxpayer
+наценка,markup
+национальность,nationality
+начало,start
+начальная дата,start date
+ндс,vat
+неделя,week
+недоимка,tax arrears
+номер,id
+номер договора,contract number
+номер документа,document number
+номер заказа,order number
+номер партии,batch number
+номер партии,lot number
+номер паспорта,passport number
+номер счета,invoice number
+номер телефона,phone number
+нулевая ставка ндс,zero vat rate
+область,state
+облигация,bond
+обновление,update
+обновлено,updated
+оборот,turnover
+образование,education
+обучение,training
+общая,total
+объем,volume
+огрн,
+оквэд,
+оклад,wage
+окпо,
+окружение,environment
+онлайн касса,online cash register
+оперативная память,ram
+операционная система,os
+описание,description
+описание услуги,service description
+оптовая цена,wholesale price
+освобождение от ндс,vat exemption
+отгрузка,shipment
+отдел,department
+отзыв,review
+отклонение,deviation
+отложенный налог,deferred tax
+отметка,mark
+отправитель,sender
+отправление,departure
+отпуск,vacation
+отсрочка,deferment
+отчество,patronymic
+отчетный период,reporting period
+оценка,score
+оценка,grade
+папка,folder
+пароль,password
+партия,batch
+пассив,liability
+патентная система,patent system
+патч,patch
+пациент,patient
+пеня,penalty
+первичный ключ,primary key
+перемещение,transfer
+переплата,overpayment
+период,period
+персонал,personnel
+план,plan
+платеж,payment
+повторитель,repeater
+подкатегория,subcategory
+подоходный налог,income tax
+подоходный подход,withholding tax
+подписка,subscription
+подписчик,follower
+подпись,signature
+подразделение,division
+подсеть,subnet
+показ,impression
+показатель,metric
+пол,gender
+пол,sex
+полка,shelf
+получатель,recipient
+пользователь,user
+порт,port
+портфель,portfolio
+пост,post
+поставщик,supplier
+поставщик,vendor
+поставщик id,supplier id
+постановление,ruling
+постоянная разница,permanent difference
+постоянное представительство,permanent establishment
+почта,email
+почта,mail
+почтовый индекс,postal code
+права,permissions
+предмет,subject
+предоплата,prepayment
+премия,premium
+преподаватель,teacher
+прибыль,profit
+прибытие,arrival
+приоритет,priority
+приход,receipt
+причина,reason
+прогноз,forecast
+продление срока,extension
+продолжительность,duration
+проект,project
+производитель,manufacturer
+производственная линия,production line
+промокод,promo code
+прослеживаемость,traceability
+просрочка,overdue
+протокол,protocol
+проход,aisle
+процент,interest
+процент выполнения,completion rate
+процентиль,percentile
+процессор,cpu
+пункт назначения,destination
+путь,path
+работник,worker
+работодатель,employer
+рабочая станция,workstation
+рабочее время,work time
+рабочее место,workplace
+разблокировка,unlock
+развитие,development
+размер,size
+размер файла,file size
+размеры,dimensions
+разрешение,permission
+разрешение,resolution
+разрешение экрана,screen resolution
+рассрочка,installment
+расход,issue
+ревизия,revision
+регион,region
+регрессия,regression
+результат,result
+резюме,resume
+рейтинг,rating
+реквизиты,requisites
+рентабельность,profitability
+ресурс,resource
+рецензент,reviewer
+решение,decision
+решение,solution
+риск,risk
+розничная цена,retail price
+роль,role
+руководитель,supervisor
+сайт,website
+сайт компании,company website
+самостоятельное исправление,voluntary correction
+сбер id,sber id
+сбербизнес id,sberbuisness id
+сберчат,sberchat
+сбор,fee
+сдача,change
+себестоимость,cost price
+себестоимость единицы,unit cost
+сегмент,segment
+сезонный,seasonal
+секунда,second
+семестр,semester
+сервер,server
+серийный номер,serial
+серия паспорта,passport series
+сертификат,certificate
+сертификация,certification
+сессия,session
+симптом,symptom
+скайп,skype
+скидка,discount
+склад,warehouse
+скорость оборота,velocity
+смена,shift
+снято с производства,discontinued
+событие,event
+согласование,accept
+согласующий,approving
+соглашение об избежании,tax treaty
+создано,created
+сообщение,message
+сотрудник,employee
+социальные сети,social media
+социальный налог,social tax
+специальность,major
+способ доставки,delivery method
+справка,reference
+справка о доходах,income certificate
+справка о налогах,tax certificate
+справка о состоянии расчетов,tax account statement
+среда,environment
+среднее,mean
+срок,term
+срок годности,expiration date
+срок давности,statute of limitations
+срок действия,validity period
+срок подачи,filing deadline
+срок уплаты,payment deadline
+срочность,urgency
+ссуда,loan
+ссылка,link
+ссылка,url
+стаж,experience
+стандарт,standard
+статус,status
+статус оплаты,payment status
+статус сотрудника,employee status
+статус товара,product status
+стоимость,cost
+страна,country
+страна происхождения,origin
+страна регистрации,country of registration
+студент,student
+сумма,amount
+счет,account
+табельный номер,personnel number
+таймштамп,timestamp
+таможенная пошлина,customs duty
+таргет,target
+текущий налог,current tax
+телефон,phone
+тема,thread
+температура,temperature
+тип,type
+тип документа,document type
+тип занятости,employment type
+тип услуги,service type
+тип файла,file type
+токен,token
+точка доступа,access point
+транзакция,transaction
+транспорт,transport
+транспортный налог,vehicle tax
+трансфертное ценообразование,transfer pricing
+требование,demand
+трек номер,tracking number
+тренд,trend
+убыток,loss
+уведомление,notification
+узел,node
+улица,street
+уникальный идентификатор,unique id
+упаковка,packing
+упрощенная система,simplified system
+уровень,level
+усн,simplified taxation
+устройство,device
+утверждающий,approver
+ущерб,expense
+файл,file
+факс,fax
+факт,actual
+факультет,faculty
+фамилия,surname
+фамилия,lastname
+фамилия,last name
+физический подсчет,physical count
+фискальный накопитель,fiscal drive
+форум,forum
+фото,photo
+хост,host
+хэш,hash
+цвет,color
+цена,price
+цена за единицу,unit price
+циклический подсчет,cycle count
+час,hour
+часовой пояс,timezone
+частота,frequency
+чат,chat
+шаг,step
+ширина,width
+широта,latitude
+шифрование,encryption
+шлюз,gateway
+штат,staff
+штраф,fine
+штрихкод,barcode
+экзамен,exam
+экологический налог,environmental tax
+электронная подпись,digital signature
+электронный документооборот,electronic workflow
+этап,phase
+эцп,digital signature
+ячейка,bin
