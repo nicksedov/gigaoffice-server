@@ -1,4 +1,4 @@
-abc классификация,abc classification
+﻿abc классификация,abc classification
 cookies,cookies
 ctr,ctr
 dhcp,dhcp
@@ -118,8 +118,8 @@ whatsapp,whatsapp
 денежный поток,cash flow
 день,day
 дефект,defect
-диапазон,range
 диагноз,diagnosis
+диапазон,range
 дивиденд,dividend
 дисперсия,variance
 длина,length
@@ -132,11 +132,15 @@ whatsapp,whatsapp
 дом,house
 домен,domain
 доначисление,additional assessment
+дополнение,addition
+дополнительное соглашение,additional agreement
 доставка,delivery
 доступ,access
 доступно,available
 доход,income
 европейский код,ean
+единицы,units
+единицы измерения,units
 единый налог,unified tax
 единый сельхозналог,unified agricultural tax
 енвд,imputed income tax
@@ -201,7 +205,7 @@ whatsapp,whatsapp
 код товара,upc
 количество,quantity
 количество,count
-количество услуг,service quantity
+количество попыток,attempt count
 команда,team
 комиссия,commission
 комментарий,comment
@@ -245,6 +249,7 @@ whatsapp,whatsapp
 маршрутизатор,router
 материал,material
 медиана,median
+медианный доход,median income
 менеджер,manager
 место рождения,place of birth
 местоположение,location
@@ -354,6 +359,7 @@ whatsapp,whatsapp
 первичный ключ,primary key
 перемещение,transfer
 переплата,overpayment
+переход,transition
 период,period
 персонал,personnel
 план,plan
@@ -396,6 +402,7 @@ whatsapp,whatsapp
 приоритет,priority
 приход,receipt
 причина,reason
+провайдер,provider
 прогноз,forecast
 продление срока,extension
 продолжительность,duration
@@ -409,6 +416,9 @@ whatsapp,whatsapp
 проход,aisle
 процент,interest
 процент выполнения,completion rate
+процент ошибок,error rate
+процент роста,growth rate
+процент снижения,decline rate
 процентиль,percentile
 процессор,cpu
 пункт назначения,destination
@@ -423,6 +433,7 @@ whatsapp,whatsapp
 размер,size
 размер файла,file size
 размеры,dimensions
+размещение,placement
 разрешение,permission
 разрешение,resolution
 разрешение экрана,screen resolution
@@ -459,6 +470,7 @@ whatsapp,whatsapp
 секунда,second
 семестр,semester
 сервер,server
+сервис,service
 серийный номер,serial
 серия паспорта,passport series
 сертификат,certificate
@@ -477,6 +489,7 @@ whatsapp,whatsapp
 соглашение об избежании,tax treaty
 создано,created
 сообщение,message
+состояние,state
 сотрудник,employee
 социальные сети,social media
 социальный налог,social tax
@@ -488,6 +501,7 @@ whatsapp,whatsapp
 справка о состоянии расчетов,tax account statement
 среда,environment
 среднее,mean
+средний балл,average score
 срок,term
 срок годности,expiration date
 срок давности,statute of limitations
@@ -500,6 +514,7 @@ whatsapp,whatsapp
 ссылка,url
 стаж,experience
 стандарт,standard
+стандартное отклонение,standard deviation
 статус,status
 статус оплаты,payment status
 статус сотрудника,employee status
@@ -541,6 +556,7 @@ whatsapp,whatsapp
 упаковка,packing
 упрощенная система,simplified system
 уровень,level
+услуга,service
 усн,simplified taxation
 устройство,device
 утверждающий,approver
@@ -557,6 +573,7 @@ whatsapp,whatsapp
 форум,forum
 фото,photo
 хост,host
+хостинг,hosting
 хэш,hash
 цвет,color
 цена,price
