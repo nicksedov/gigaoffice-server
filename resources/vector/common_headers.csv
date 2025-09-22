@@ -1,5 +1,5 @@
-﻿abc классификация,abc classification
-cookies,cookies
+﻿csat,csat
+csi,csi
 ctr,ctr
 dhcp,dhcp
 discord,discord
@@ -13,6 +13,7 @@ ip адрес,ip address
 kpi,kpi
 lan,lan
 mac адрес,mac address
+nps,nps
 roi,roi
 russian,русский
 signal,signal
@@ -442,6 +443,7 @@ whatsapp,whatsapp
 ревизия,revision
 регион,region
 регрессия,regression
+резерв,reserve
 результат,result
 резюме,resume
 рейтинг,rating
@@ -570,6 +572,7 @@ whatsapp,whatsapp
 фамилия,last name
 физический подсчет,physical count
 фискальный накопитель,fiscal drive
+Фискальный признак,
 форум,forum
 фото,photo
 хост,host

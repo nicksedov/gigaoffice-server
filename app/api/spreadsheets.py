@@ -15,7 +15,7 @@ from slowapi.util import get_remote_address
 from loguru import logger
 
 from app.models.types.enums import RequestStatus
-from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse, SpreadsheetSearchRequest, SearchResultItem
+from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse, SpreadsheetSearchRequest, SearchResult, SearchResultItem
 from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
@@ -177,7 +177,7 @@ async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db))
         logger.error(f"Error getting spreadsheet result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@spreadsheet_router.post("/data/search", response_model=List[SearchResultItem])
+@spreadsheet_router.post("/data/search", response_model=List[SearchResult])
 @limiter.limit("10/minute")
 async def search_spreadsheet_data(
     request: Request,
@@ -201,19 +201,19 @@ async def search_spreadsheet_data(
         
         # Search for each string
         for search_string in search_strings:
-            # Perform vector search
-            results = vector_search_service.search_headers(search_string, limit)
             
+            # Perform vector search
+            results = vector_search_service.fulltext_search(search_string, "header_embeddings", limit)
+            item_search_results = []
             # Convert to SearchResultItem objects
-            for header, score in results:
-                # Determine language (simplified implementation)
-                language = "ru" if any(ord(char) > 1000 for char in header) else "en"
-                
-                all_results.append(SearchResultItem(
+            for header, language, score in results:
+                item_search_results.append(SearchResultItem(
                     text=header,
                     language=language,
                     score=score
                 ))
+            search_result = SearchResult(search_text=search_string, search_results=item_search_results)
+            all_results.append(search_result)   
         
         return all_results
             

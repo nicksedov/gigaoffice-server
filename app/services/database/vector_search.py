@@ -2,14 +2,21 @@
 Vector Search Service
 Service for performing vector similarity searches in the database
 """
-
+import re
 from typing import List, Tuple, Union
 from sqlalchemy.orm import Session
 from loguru import logger
 import psycopg2
-
+from typing import List, Tuple, Union
+from sentence_transformers import SentenceTransformer
 from app.services.database.manager import db_manager
-from resources.vector.embeddings_search import search_common_headers, ru_embedder
+from app.utils.lemmatization import lemmatization_service
+
+
+MODEL_NAME = "ai-forever/FRIDA"
+
+# Инициализация модели один раз при старте приложения
+_ru_model = SentenceTransformer(MODEL_NAME)
 
 class VectorSearchService:
     """Service for performing vector similarity searches in the database"""
@@ -18,11 +25,64 @@ class VectorSearchService:
         """Initialize the vector search service"""
         pass
     
-    def search_headers(
+
+    def _embedder(self, text: str) -> List[float]:
+        """
+        Получает эмбеддинг для строки.
+        
+        Args:
+            text: Текст для векторизации
+            
+        Returns:
+            Векторное представление текста как список чисел с плавающей точкой
+        """
+        return _ru_model.encode([text])[0].tolist()
+
+    def _single_search_query(
+        self,
+        query: str,
+        conn: psycopg2.extensions.connection,
+        embedding_table: str,
+        limit: int = 3
+    ) -> List[Tuple[str, str, float]]:
+        """
+        Выполняет полнотекстовый поиск по заголовкам с использованием векторного поиска pgvector.
+
+        Args:
+            query: Строка для поиска.
+            conn: psycopg2 подключение к PostgreSQL.
+            embedding_table: Имя таблицы с эмбеддингами (например, 'header_embeddings').
+            limit: Максимальное количество результатов.
+            
+        Returns:
+            Список кортежей (header, score) отсортированный по релевантности.
+        """
+
+        # Lemmatize Russian queries before generating embedding
+        preprocessed_query = query.lower()
+        language = 'ru' if re.search(r'[а-яё]', preprocessed_query) else 'en'
+        if language == 'ru':
+            preprocessed_query = lemmatization_service.lemmatize(preprocessed_query)
+        
+        query_embedding =self._embedder(preprocessed_query)
+        with conn.cursor() as cur:
+            sql = f"""
+                SELECT header, language, 1 - (embedding <=> %s::vector) AS score
+                FROM {embedding_table}
+                ORDER BY embedding <=> %s::vector
+                LIMIT %s
+            """
+            cur.execute(sql, (query_embedding, query_embedding, limit))
+            results = cur.fetchall()
+            # Return only header and score, ignoring language for compatibility
+            return results
+
+    def fulltext_search(
         self, 
         query: Union[str, List[str]], 
-        limit: int = 10
-    ) -> List[Tuple[str, float]]:
+        embedding_table: str,
+        limit: int = 3
+    ) -> List[Tuple[str, str, float]]:
         """
         Search for headers using vector embeddings
         
@@ -48,7 +108,7 @@ class VectorSearchService:
                 # Search for each string
                 for search_string in search_strings:
                     # Perform vector search
-                    results = search_common_headers(search_string, conn, "header_embeddings", limit)
+                    results = self._single_search_query(search_string, conn, embedding_table, limit)
                     all_results.extend(results)
                 
                 return all_results
@@ -58,18 +118,6 @@ class VectorSearchService:
         except Exception as e:
             logger.error(f"Error performing vector search: {e}")
             raise
-    
-    def get_embedding(self, text: str) -> List[float]:
-        """
-        Get vector embedding for a text string
-        
-        Args:
-            text: Text to embed
-            
-        Returns:
-            Vector embedding as list of floats
-        """
-        return ru_embedder(text)
 
 # Create singleton instance
 vector_search_service = VectorSearchService()

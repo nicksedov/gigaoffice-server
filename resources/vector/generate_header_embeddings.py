@@ -2,19 +2,108 @@ import psycopg2
 import csv
 from sentence_transformers import SentenceTransformer
 import re
+from typing import Optional
+from loguru import logger
+
 
 HEADERS_CSV_FILE = "common_headers.csv"
 EMBEDDING_TABLE = "header_embeddings"
 
-#MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
-#MODEL_DIMENSION=768
-
 MODEL_NAME = "ai-forever/FRIDA"
 MODEL_DIMENSION=1536
 
-#MODEL_NAME = "sentence-transformers/paraphrase-MiniLM-L6-v2"
-#MODEL_DIMENSION=384
+"""
+Lemmatization Service
+Service for text lemmatization for Russian language
+"""
 
+
+try:
+    from pymystem3 import Mystem
+    MYSTEM_AVAILABLE = True
+except ImportError:
+    MYSTEM_AVAILABLE = False
+    logger.warning("pymystem3 not available, Russian lemmatization will be disabled")
+
+class LemmatizationError(Exception):
+    """Exception raised for errors in the lemmatization process"""
+    pass
+
+class MystemLemmatizer:
+    """Implementation using pymystem3 for Russian text lemmatization"""
+    
+    def __init__(self):
+        """Initialize the Russian lemmatizer"""
+        if not MYSTEM_AVAILABLE:
+            raise LemmatizationError("pymystem3 not available")
+        self.mystem = Mystem()
+    
+    def lemmatize(self, text: str) -> str:
+        """
+        Lemmatize Russian text
+        
+        Args:
+            text: Text to lemmatize
+            
+        Returns:
+            Lemmatized text
+        """
+        try:
+            # Mystem returns a list, we join it back to a string
+            lemmatized = self.mystem.lemmatize(text)
+            # Remove newline characters that Mystem sometimes adds
+            result = ''.join(lemmatized).strip()
+            return result
+        except Exception as e:
+            logger.error(f"Error during Russian lemmatization: {e}")
+            raise LemmatizationError(f"Failed to lemmatize Russian text: {e}")
+
+class LemmatizationService:
+    """Unified interface for lemmatizing text with language detection"""
+    
+    def __init__(self, config: Optional[dict] = None):
+        """
+        Initialize the lemmatization service
+        
+        Args:
+            config: Configuration dictionary with lemmatization settings
+        """
+        # Initialize lemmatizers
+        self._lemmatizer = None
+
+        try:
+            if MYSTEM_AVAILABLE:
+                self._lemmatizer = MystemLemmatizer()
+        except Exception as e:
+            logger.warning(f"Failed to initialize Russian lemmatizer: {e}")
+    
+    def lemmatize(self, text: str) -> str:
+        """
+        Lemmatize text
+        
+        Args:
+            text: Text to lemmatize
+            
+        Returns:
+            lemmatized_text
+        """
+     
+        # Return early if text is empty
+        if not text.strip():
+            return text
+        
+        try:
+            return self._lemmatizer.lemmatize(text)
+            
+        except Exception as e:
+            logger.error(f"Error during lemmatization: {e}")
+            # Fallback to original text in case of error
+            return text
+
+# Create singleton instance
+lemmatization_service = LemmatizationService()
+
+# =======================================================================
 def read_headers_from_csv(filename):
     """
     Читает заголовки из CSV файла и возвращает список уникальных терминов
@@ -56,7 +145,6 @@ def main():
     print(f"Найдено {len(headers)} уникальных терминов в CSV файле")
     
     # Generate lemmatized versions of headers and determine languages
-    from app.utils.lemmatization import lemmatization_service
     lemmatized_headers = []
     languages = []
     
@@ -66,9 +154,11 @@ def main():
         languages.append(language)
         
         # Lemmatize header
-        lemmatization_result = lemmatization_service.lemmatize(header, language)
-        lemmatized_header = lemmatization_result['lemmatized_text']
-        lemmatized_headers.append(lemmatized_header)
+        if language == 'ru':
+            lemmatized_header = lemmatization_service.lemmatize(header)
+            lemmatized_headers.append(lemmatized_header)
+        else:
+            lemmatized_headers.append(header)
     
     # Генерируем эмбеддинги from lemmatized headers instead of raw headers
     embeddings = model.encode(lemmatized_headers, normalize_embeddings=True)
@@ -107,6 +197,4 @@ def main():
     print(f"Всего в таблице: {len(headers)} терминов")
 
 if __name__ == "__main__":
-    # Выберите нужную версию:
-    main()  # Простая версия - только эмбеддинги
-    #main_with_pairs()  # Расширенная версия - эмбеддинги + связи между терминами
+    main()

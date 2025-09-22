@@ -115,3 +115,7 @@ class SearchResultItem(BaseModel):
     text: str = Field(..., description="Matched text from the database")
     language: str = Field(..., description="Language of the matched text")
     score: float = Field(..., description="Similarity score (0-1, where 1 is most similar)")
+
+class SearchResult(BaseModel):
+    search_text: str = Field(..., description="Search prompt text")
+    search_results: List[SearchResultItem] = Field(default_factory=list, description="Search result items")
