@@ -1,0 +1,7 @@
+{
+  "lemmatization": {
+    "enabled": true,
+    "russian_backend": "pymystem3",
+    "english_backend": "nltk"
+  }
+}

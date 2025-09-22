@@ -70,3 +70,7 @@ environs
 
 # Data caching
 cachetools
+
+# Lemmatization
+pymystem3
+nltk

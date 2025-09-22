@@ -41,7 +41,12 @@ def search_common_headers(
     """
     distance = "<->"
 
-    query_embedding = ru_embedder(query)
+    # Lemmatize the query before generating embedding
+    from app.utils.lemmatization import lemmatization_service
+    lemmatization_result = lemmatization_service.lemmatize(query)
+    lemmatized_query = lemmatization_result['lemmatized_text']
+    
+    query_embedding = ru_embedder(lemmatized_query)
     with conn.cursor() as cur:
         sql = f"""
             SELECT header, language, 1 - (embedding {distance} %s::vector) AS score

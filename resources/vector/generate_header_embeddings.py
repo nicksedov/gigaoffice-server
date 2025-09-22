@@ -1,6 +1,7 @@
 import psycopg2
 import csv
 from sentence_transformers import SentenceTransformer
+import re
 
 HEADERS_CSV_FILE = "common_headers.csv"
 EMBEDDING_TABLE = "header_embeddings"
@@ -54,8 +55,23 @@ def main():
     headers = read_headers_from_csv(HEADERS_CSV_FILE)
     print(f"Найдено {len(headers)} уникальных терминов в CSV файле")
     
-    # Генерируем эмбеддинги
-    embeddings = model.encode(headers, normalize_embeddings=True)
+    # Generate lemmatized versions of headers and determine languages
+    from app.utils.lemmatization import lemmatization_service
+    lemmatized_headers = []
+    languages = []
+    
+    for header in headers:
+        # Determine language
+        language = 'ru' if re.search(r'[а-яё]', header.lower()) else 'en'
+        languages.append(language)
+        
+        # Lemmatize header
+        lemmatization_result = lemmatization_service.lemmatize(header, language)
+        lemmatized_header = lemmatization_result['lemmatized_text']
+        lemmatized_headers.append(lemmatized_header)
+    
+    # Генерируем эмбеддинги from lemmatized headers instead of raw headers
+    embeddings = model.encode(lemmatized_headers, normalize_embeddings=True)
     print(f"Сгенерировано {len(embeddings)} эмбеддингов")
 
     with conn, conn.cursor() as cur:
@@ -65,6 +81,7 @@ def main():
             CREATE TABLE {EMBEDDING_TABLE} (
                 id SERIAL PRIMARY KEY,
                 header TEXT UNIQUE NOT NULL,
+                lemmatized_header TEXT,
                 embedding VECTOR({MODEL_DIMENSION}), -- размерность зависит от используемой модели
                 language VARCHAR(2) -- 'ru', 'en'
             );
@@ -73,18 +90,13 @@ def main():
             CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_cosine_ops);
             """
         )
-        # Определяем язык для каждого термина
-        import re
         
         inserted_count = 0
-        for header, emb in zip(headers, embeddings):
-            # Простое определение языка по наличию кириллических символов
-            language = 'ru' if re.search(r'[а-яё]', header.lower()) else 'en'
-            
+        for header, lemmatized_header, emb, language in zip(headers, lemmatized_headers, embeddings, languages):
             cur.execute(
-                f"""INSERT INTO {EMBEDDING_TABLE} (header, embedding, language) 
-                   VALUES (%s, %s, %s) ON CONFLICT (header) DO NOTHING""",
-                (header, emb.tolist(), language)
+                f"""INSERT INTO {EMBEDDING_TABLE} (header, lemmatized_header, embedding, language) 
+                   VALUES (%s, %s, %s, %s) ON CONFLICT (header) DO NOTHING""",
+                (header, lemmatized_header, emb.tolist(), language)
             )
             
             # Проверяем, была ли вставлена запись
