@@ -2,8 +2,12 @@ import psycopg2
 from typing import List, Tuple, Union
 from sentence_transformers import SentenceTransformer
 
+#MODEL_NAME="sentence-transformers/all-mpnet-base-v2"
+#MODEL_NAME="sentence-transformers/paraphrase-MiniLM-L6-v2"
+MODEL_NAME = "ai-forever/FRIDA"
+
 # Инициализация модели один раз при старте приложения
-_ru_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+_ru_model = SentenceTransformer(MODEL_NAME)
 
 def ru_embedder(text: str) -> List[float]:
     """
@@ -22,7 +26,7 @@ def search_common_headers(
     conn: psycopg2.extensions.connection,
     embedding_table: str,
     limit: int = 10
-) -> List[Tuple[str, float]]:
+) -> List[Tuple[str, str, float]]:
     """
     Выполняет полнотекстовый поиск по заголовкам с использованием векторного поиска pgvector.
 
@@ -46,36 +50,7 @@ def search_common_headers(
         cur.execute(sql, (query_embedding, query_embedding, limit))
         results = cur.fetchall()
         # Return only header and score, ignoring language for compatibility
-        return [(row[0], row[2]) for row in results]
-
-def search_headers_with_language(
-    query: str,
-    conn: psycopg2.extensions.connection,
-    embedding_table: str,
-    limit: int = 10
-) -> List[Tuple[str, str, float]]:
-    """
-    Выполняет полнотекстовый поиск по заголовкам с возвратом языка.
-
-    Args:
-        query: Строка для поиска.
-        conn: psycopg2 подключение к PostgreSQL.
-        embedding_table: Имя таблицы с эмбеддингами (например, 'header_embeddings').
-        limit: Максимальное количество результатов.
-        
-    Returns:
-        Список кортежей (header, language, score) отсортированный по релевантности.
-    """
-    query_embedding = ru_embedder(query)
-    with conn.cursor() as cur:
-        sql = f"""
-            SELECT header, language, 1 - (embedding <=> %s::vector) AS score
-            FROM {embedding_table}
-            ORDER BY embedding <=> %s::vector
-            LIMIT %s
-        """
-        cur.execute(sql, (query_embedding, query_embedding, limit))
-        return cur.fetchall()
+        return results
 
 def main():
     # Подключение к БД
@@ -86,7 +61,7 @@ def main():
         host="localhost",
         port=5432
     )
-    print(search_common_headers("имя пользователя", conn, "header_embeddings"))
+    print(search_common_headers("имя пользователя", conn, "header_embeddings", 3))
 
 if __name__ == "__main__":
     main()
