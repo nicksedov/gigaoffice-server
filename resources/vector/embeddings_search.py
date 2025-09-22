@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 from sentence_transformers import SentenceTransformer
 
 # Инициализация модели один раз при старте приложения
-_ru_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+_ru_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
 def ru_embedder(text: str) -> List[float]:
     """

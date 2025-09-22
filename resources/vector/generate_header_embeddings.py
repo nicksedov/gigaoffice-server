@@ -4,7 +4,8 @@ from sentence_transformers import SentenceTransformer
 
 HEADERS_CSV_FILE = "common_headers.csv"
 EMBEDDING_TABLE = "header_embeddings"  # Имя вашей таблицы
-MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
+MODEL_DIMENSION=768
 
 def read_headers_from_csv(filename):
     """
@@ -77,8 +78,8 @@ def main():
             CREATE TABLE IF NOT EXISTS {EMBEDDING_TABLE} (
                 id SERIAL PRIMARY KEY,
                 header TEXT UNIQUE NOT NULL,
-                embedding VECTOR(384), -- размерность зависит от используемой модели
-                language VARCHAR(10) -- 'ru', 'en'
+                embedding VECTOR({MODEL_DIMENSION}), -- размерность зависит от используемой модели
+                language VARCHAR(2) -- 'ru', 'en'
             )
             """
         )
