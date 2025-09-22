@@ -1,4 +1,4 @@
-﻿# GigaOffice Service Requirements
+# GigaOffice Service Requirements
 # Python dependencies for the GigaOffice intermediate service
 
 # Web framework
@@ -19,6 +19,7 @@ langchain-gigachat
 gigachat
 langchain
 langchain-community
+sentence-transformers
 
 # HTTP client
 requests
@@ -68,4 +69,4 @@ healthcheck
 environs
 
 # Data caching
-cachetools	
+cachetools

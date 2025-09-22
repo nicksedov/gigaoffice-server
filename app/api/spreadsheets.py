@@ -5,8 +5,8 @@ Router for enhanced spreadsheet manipulation endpoints
 
 import uuid
 import json
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
+from typing import Dict, Any, Optional, Union, List
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request, Query
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -15,7 +15,7 @@ from slowapi.util import get_remote_address
 from loguru import logger
 
 from app.models.types.enums import RequestStatus
-from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse
+from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse, SpreadsheetSearchRequest, SearchResultItem
 from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
@@ -30,6 +30,9 @@ _, gigachat_generate_service = create_gigachat_services(prompt_builder)
 
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
+
+# Import for vector search functionality
+from app.services.database.vector_search import vector_search_service
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
@@ -172,4 +175,50 @@ async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db))
         raise
     except Exception as e:
         logger.error(f"Error getting spreadsheet result: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@spreadsheet_router.post("/data/search", response_model=List[SearchResultItem])
+@limiter.limit("10/minute")
+async def search_spreadsheet_data(
+    request: Request,
+    search_request: SpreadsheetSearchRequest,
+    domain: str = Query(..., description="Domain area for search. Currently only supports 'header'"),
+    limit: int = Query(..., description="Number of most relevant results to return per search string"),
+    current_user: Optional[Dict] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Search spreadsheet data using vector embeddings"""
+    try:
+        # Validate domain parameter
+        if domain != "header":
+            raise HTTPException(status_code=400, detail="Invalid domain parameter. Only 'header' is supported.")
+        
+        # Prepare search strings
+        search_strings = search_request.data if isinstance(search_request.data, list) else [search_request.data]
+        
+        # Collect all results
+        all_results = []
+        
+        # Search for each string
+        for search_string in search_strings:
+            # Perform vector search
+            results = vector_search_service.search_headers(search_string, limit)
+            
+            # Convert to SearchResultItem objects
+            for header, score in results:
+                # Determine language (simplified implementation)
+                language = "ru" if any(ord(char) > 1000 for char in header) else "en"
+                
+                all_results.append(SearchResultItem(
+                    text=header,
+                    language=language,
+                    score=score
+                ))
+        
+        return all_results
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error searching spreadsheet data: {e}")
         raise HTTPException(status_code=500, detail=str(e))

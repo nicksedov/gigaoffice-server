@@ -105,3 +105,13 @@ class SpreadsheetResultResponse(BaseModel):
     result: Optional[SpreadsheetData] = Field(None, description="Processed result data when available")
     tokens_used: Optional[int] = Field(None, description="Number of tokens used in processing")
     processing_time: Optional[float] = Field(None, description="Time taken to process the request in seconds")
+
+class SpreadsheetSearchRequest(BaseModel):
+    """Request model for spreadsheet data search"""
+    data: Union[str, List[str]] = Field(..., description="Search string or list of search strings")
+
+class SearchResultItem(BaseModel):
+    """Search result item with text, language and similarity score"""
+    text: str = Field(..., description="Matched text from the database")
+    language: str = Field(..., description="Language of the matched text")
+    score: float = Field(..., description="Similarity score (0-1, where 1 is most similar)")
