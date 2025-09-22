@@ -39,12 +39,14 @@ def search_common_headers(
     Returns:
         Список кортежей (header, score) отсортированный по релевантности.
     """
+    distance = "<->"
+
     query_embedding = ru_embedder(query)
     with conn.cursor() as cur:
         sql = f"""
-            SELECT header, language, 1 - (embedding <=> %s::vector) AS score
+            SELECT header, language, 1 - (embedding {distance} %s::vector) AS score
             FROM {embedding_table}
-            ORDER BY embedding <=> %s::vector
+            ORDER BY embedding {distance} %s::vector
             LIMIT %s
         """
         cur.execute(sql, (query_embedding, query_embedding, limit))
@@ -61,7 +63,7 @@ def main():
         host="localhost",
         port=5432
     )
-    print(search_common_headers("имя пользователя", conn, "header_embeddings", 3))
+    print(search_common_headers("пользователь", conn, "header_embeddings", 3))
 
 if __name__ == "__main__":
     main()

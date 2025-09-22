@@ -69,7 +69,8 @@ def main():
                 language VARCHAR(2) -- 'ru', 'en'
             );
 
-            CREATE INDEX ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_l2_ops);
+            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_l2_ops);
+            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_cosine_ops);
             """
         )
         # Определяем язык для каждого термина
