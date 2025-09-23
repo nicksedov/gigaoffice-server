@@ -553,6 +553,54 @@ components:
           nullable: true
       description: Response model for spreadsheet processing result
 
+    SpreadsheetSearchRequest:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+      description: Request model for spreadsheet data search
+
+    SearchResultItem:
+      type: object
+      required:
+        - text
+        - language
+        - score
+      properties:
+        text:
+          type: string
+          description: Matched text from the database
+        language:
+          type: string
+          description: Language of the matched text
+        score:
+          type: number
+          format: float
+          description: Similarity score (0-1, where 1 is most similar)
+      description: Search result item with text, language and similarity score
+
+    SearchResult:
+      type: object
+      required:
+        - search_text
+        - search_results
+      properties:
+        search_text:
+          type: string
+          description: Search prompt text
+        search_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultItem'
+          description: Search result items
+      description: Search result
+
 paths:
   /api/ping:
     get:
@@ -828,5 +876,51 @@ paths:
                 $ref: '#/components/schemas/SpreadsheetResultResponse'
         '404':
           description: Request not found
+        '500':
+          description: Internal server error
+
+  /api/spreadsheets/data/search:
+    post:
+      tags:
+        - Spreadsheet Processing
+      summary: Search spreadsheet data
+      description: |
+        Performs semantic search on spreadsheet headers using vector embeddings to find the most similar matches. Currently only supports searching in the "header" domain.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: domain
+          in: query
+          required: true
+          description: Domain area for search. Currently only supports 'header'
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: true
+          description: Number of most relevant results to return per search string
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpreadsheetSearchRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Invalid domain parameter
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error
         '500':
           description: Internal server error
