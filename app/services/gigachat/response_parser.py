@@ -5,7 +5,7 @@ from loguru import logger
 
 class GigachatResponseParser:
 
-    def parse_object(self, text: str) -> Optional[Any]:
+    def parse_object(self, text: str, required_fields: List[str] = None) -> Optional[Any]:
         decoder = json.JSONDecoder()
         pos = 0
         
@@ -20,13 +20,12 @@ class GigachatResponseParser:
             try:
                 # Попытаться декодировать JSON начиная с найденной позиции
                 result, json_length = decoder.raw_decode(text[start_pos:])
-                
-                required_fields = ['metadata', 'worksheet', 'data']
-                missing_fields = [field for field in required_fields if field not in result]
-                if missing_fields:
-                    logger.warning(f"Skipped valid JSON entry from LLM response due to missing fields: {missing_fields}")
-                    pos = start_pos + json_length
-                    continue
+                if required_fields:
+                    missing_fields = [field for field in required_fields if field not in result]
+                    if missing_fields:
+                        logger.warning(f"Skipped valid JSON entry from LLM response due to missing fields: {missing_fields}")
+                        pos = start_pos + json_length
+                        continue
                 return result
             except (json.JSONDecodeError, ValueError):
                 return None
@@ -45,7 +44,7 @@ class GigachatResponseParser:
         """
         try:
             # Try to extract JSON object from response
-            result_object = self.parse_object(response_content)
+            result_object = self.parse_object(response_content, ['metadata', 'worksheet', 'data'])
             
             if result_object is None:
                 logger.warning("Could not extract valid JSON from spreadsheet response")

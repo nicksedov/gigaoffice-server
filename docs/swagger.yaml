@@ -220,18 +220,11 @@ components:
         query_text:
           type: string
         category:
-          $ref: '#/components/schemas/ClassifiedCategory'
+          type: string
         confidence:
           type: number
           format: float
       description: Response for prompt classification
-
-    ClassifiedCategory:
-      type: object
-      properties:
-        name:
-          type: string
-      description: Classified category information
 
     # Metrics schemas
     MetricsResponse:

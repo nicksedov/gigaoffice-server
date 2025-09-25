@@ -167,7 +167,7 @@ async def classify_prompt(
         return PromptClassificationResponse(
             success=result["success"],
             query_text=result["query_text"],
-            category={"name": result["category"]["name"]},
+            category=result["category"]["name"],
             confidence=result["confidence"]
         )
     except HTTPException:

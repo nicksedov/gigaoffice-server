@@ -69,7 +69,7 @@ async def process_spreadsheet_request(
             status=RequestStatus.PENDING,
             input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
             query_text=spreadsheet_request.query_text,
-            category=spreadsheet_request.category,
+            category=spreadsheet_request.category if spreadsheet_request.category else 'uncertain',
             input_data=spreadsheet_json
         )
         db.add(db_request)

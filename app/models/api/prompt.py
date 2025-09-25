@@ -48,15 +48,11 @@ class PresetPromptInfo(BaseModel):
     category_name: Optional[str]
     category_display_name: Optional[str]
 
-class ClassifiedCategory(BaseModel):
-    """Classified category information"""
-    name: str
-
 class PromptClassificationResponse(BaseModel):
     """Response model for prompt classification endpoint"""
     success: bool
     query_text: str
-    category: ClassifiedCategory
+    category: str
     confidence: float
 
 class PresetPromptsResponse(BaseModel):

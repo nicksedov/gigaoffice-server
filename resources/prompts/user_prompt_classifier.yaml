@@ -9,11 +9,19 @@ prompt: |
 examples:
 - request: |
     Запрос: 
-    Найди минимальное, максимальное, среднее и медианное значения в указанном диапазоне
+    Найди минимальное, максимальное, среднее и медианное значения
   response: |
     {
       "category": "spreadsheet-analysis",
       "confidence": 0.97893
+    }
+- request: |
+    Запрос: 
+    Посчитай среднюю зарплату
+  response: |
+    {
+      "category": "spreadsheet-analysis",
+      "confidence": 0.96855
     }
 - request: |
     Запрос: 
