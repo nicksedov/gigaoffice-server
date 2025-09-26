@@ -1,12 +1,18 @@
-﻿base64,base64
+﻿auc,auc
+base64,base64
 csat,csat
 csi,csi
 ctr,ctr
+dau,dau
 dhcp,dhcp
 discord,discord
 dns,dns
+dropout,dropout
 english,английский
+esg рейтинг,esg rating
+f1-метрика,f1 score
 facebook,facebook
+gain,gain
 guid,guid
 i кв,q1
 id заказа,order id
@@ -22,9 +28,21 @@ instagram,inatagram
 ip,ip
 ip адрес,ip address
 iv кв,q4
+ks-статистика,ks statistic
 lan,lan
+lift,lift
+log loss,log loss
+ltv,ltv
 mac адрес,mac address
+mae,mae
+mau,mau
+mcc,mcc
+mse,mse
 nps,nps
+p-значение,p-value
+r2-коэффициент,r2 score
+rmse,rmse
+roc auc,roc auc
 roi,roi
 russian,русский
 signal,signal
@@ -37,6 +55,7 @@ utm канал,utm medium
 uuid,uuid
 viber,viber
 vlan,vlan
+wau,wau
 whatsapp,whatsapp
 автор,author
 авторизация,authorization
@@ -45,6 +64,7 @@ whatsapp,whatsapp
 адрес регистрации,registration address
 адрес электронной почты,email address
 актив,asset
+активация,activation
 активен,is active
 активный,active
 актуальность,relevance
@@ -52,7 +72,9 @@ whatsapp,whatsapp
 акция,stock
 аллергии,allergies
 аллергия,allergy
+альфа,alpha
 амортизация,depreciation
+амплитуда,range
 аннотация,annotation
 аномалия,anomaly
 арендатор,tenant
@@ -66,6 +88,7 @@ whatsapp,whatsapp
 баланс,balance
 баланс счета,account balance
 балл,point
+белок,protein
 бик,
 биржа,exchange
 блок,block
@@ -83,15 +106,19 @@ whatsapp,whatsapp
 в наличии,on hand
 важность,importance
 вакансия,vacancy
+валидационная выборка,validation split
 валюта,currency
 вариант,variant
 вариант,choice
 вариант,option
 вариация,variation
+ввп,gdp
 вероятность,probability
+вероятность dropout,dropout rate
 версия,version
 вес,weight
 вес тела,body weight
+ветер,wind
 веха,milestone
 взаимозависимые лица,related parties
 вид,kind
@@ -99,12 +126,16 @@ whatsapp,whatsapp
 видеокарта,gpu
 видимость,visibility
 видимый,visible
+витамин,vitamin
 вклад,deposit
 владелец,owner
+влажность,humidity
 вместимость,capacity
 внешний ключ,foreign key
 вовлеченность,engagement
 водитель,driver
+водительское удостоверение,driver's license
+военный билет,
 возврат,refund
 возврат,return
 возраст,age
@@ -132,6 +163,8 @@ whatsapp,whatsapp
 выручка,revenue
 высота,height
 выход продукции,yield
+вязкость,viscosity
+гамма,gamma
 гарантийный талон,warranty card
 гарантия,warranty
 гипотеза,hypothesis
@@ -166,6 +199,7 @@ whatsapp,whatsapp
 дата создания,creation date
 дата увольнения,termination date
 дата установки,installation date
+дата-центр,datacenter
 двойное налогообложение,double taxation
 дебет,debit
 дебиторская задолженность,receivables
@@ -173,6 +207,7 @@ whatsapp,whatsapp
 денежный поток,cash flow
 день,day
 департамент,department
+дети,children
 дефект,defect
 диагноз,diagnosis
 диаметр,diameter
@@ -216,7 +251,10 @@ whatsapp,whatsapp
 емкость,capacity
 енвд,imputed income tax
 есхн,agricultural tax
+железо,iron
+жиры,fat
 заголовок,header
+загранпаспорт,
 загрузки,downloads
 задача,task
 задолженность,debt
@@ -228,6 +266,8 @@ whatsapp,whatsapp
 запас,inventory
 запись,entry
 запись,record
+запрос,request
+запрос,query
 зарезервировано,reserved
 зарплата,salary
 затраты,expenses
@@ -260,16 +300,21 @@ whatsapp,whatsapp
 испытание,test
 истечение срока,expiration
 источник лида,lead source
-исходящий ндс,output vat
 исход,outcome
+исходящий ндс,output vat
 итерация,iteration
 итог,result
 итого,subtotal
 итого,total
+йод,iodine
 к доплате ндс,vat payable
 к оплате,total due
+кабинет,office
 кадровые ресурсы,human resources
 кадры,hr
+калий,potassium
+калории,calories
+кальций,calcium
 камеральная проверка,desk audit
 камеральный контроль,desk control
 кампания,campaign
@@ -277,6 +322,7 @@ whatsapp,whatsapp
 кандидат,candidate
 капитал,capital
 капитализация,capitalization
+каппа коэна,cohen's kappa
 каско,
 касса,cash register
 каталог,catalog
@@ -286,7 +332,9 @@ whatsapp,whatsapp
 квартиль,quartile
 квартира,apartment
 кем выдан,issued by
+кислотность,acidity
 класс,class
+кластер,cluster
 клиент,client
 клик,click
 клиника,clinic
@@ -303,13 +351,16 @@ whatsapp,whatsapp
 кодировка,encoding
 количество,quantity
 количество,count
+количество оценщиков,num estimators
 количество попыток,attempt count
+количество соседей,n neighbors
 колонка,column
 команда,team
 комиссия,commission
 комментарии,comments
 комментарий,comment
 коммутатор,switch
+комната,room
 компания,company
 компенсация,compensation
 компетенция,competency
@@ -320,6 +371,7 @@ whatsapp,whatsapp
 конечная дата,end date
 контакт экстренной связи,emergency contact
 контактное лицо,contact person
+контейнер,container
 контрагент,counterparty
 контракт,contraсt
 контраст,contrast
@@ -334,6 +386,7 @@ whatsapp,whatsapp
 корреляция,correlation
 котировка,quote
 коэффициент,coefficient
+коэффициент,ratio
 коэффициент брака,defect rate
 коэффициент кликабельности,click-through rate
 коэффициент конверсии,conversion rate
@@ -342,7 +395,11 @@ whatsapp,whatsapp
 кредит,credit
 кредитные часы,credit hours
 кредитный лимит,credit limit
+кредитный рейтинг,credit score
 кредиторская задолженность,payables
+криптовалюта,cryptocurrency
+кросс-энтропия,cross-entropy
+кузов,body
 курс,rate
 курс обмена,exchange rate
 курьер,courier
@@ -360,19 +417,26 @@ whatsapp,whatsapp
 логотип,logo
 лот,lot
 льготы,benefits
+лямбда,lambda
+магний,magnesium
 макс,max
+максимальная глубина,max depth
 максимальный,maximal
 максимум,maximum
+марганец,manganese
 маржа,margin
 маржа прибыли,profit margin
 маркер,marker
 маркировка товаров,product labeling
 маршрут,route
-маршрутизатор,router
+маршрутизатор,
+масштаб,scale
 материал,material
+матрица ошибок,confusion matrix
 медиана,median
 медианный доход,median income
 медицинская карта,medical record
+медь,copper
 менеджер,manager
 менеджер по продажам,sales rep
 мессенджер,messenger
@@ -381,20 +445,25 @@ whatsapp,whatsapp
 месяц,month
 метка,label
 метка,tag
+микросервис,microservice
 мин,min
 минимальный,minimal
 минимальный платеж,minimum payment
 минимум,minimum
+минимум образцов в листе,min samples leaf
+минимум образцов для разделения,min samples split
 минута,minute
 мобильный,mobile
 мода,mode
 модель,model
 модуль,module
+моментум,momentum
 мост,bridge
 мощность,capacity
 мощность,power
 муниципалитет,municipality
 навык,skill
+нагрев,heat
 название,title
 название кампании,campaign name
 назначенный агент,assigned agent
@@ -432,10 +501,15 @@ whatsapp,whatsapp
 налоговый учет,tax accounting
 налогообложение,taxation
 налогоплательщик,taxpayer
+напряжение,voltage
+население,population
+насыщенность,saturation
+натрий,sodium
 наценка,markup
 национальность,nationality
 начало,start
 начальная дата,start date
+начальный lr,learning rate init
 ндс,vat
 неделя,week
 недоимка,tax arrears
@@ -488,11 +562,16 @@ whatsapp,whatsapp
 описание услуги,service description
 определение,definition
 оптовая цена,wholesale price
+организация,organization
 осаго,
+осадки,precipitation
 освобождение от ндс,vat exemption
 основание,base
 основание,foundation
 особенности,features
+ответ,answer
+ответ,response
+ответ,reply
 ответ на контрольный вопрос,security answer
 ответственность,responsibility
 ответственный,responsible
@@ -532,9 +611,14 @@ whatsapp,whatsapp
 патентная система,patent system
 патч,patch
 пациент,patient
+пенсионное удосотверение,
 пеня,penalty
 первичный ключ,primary key
+перевод,translation
+перевод,transfer
 перевозчик,carrier
+переговорная,meeting room
+перемешивание,shuffle
 перемещение,transfer
 переплата,overpayment
 переход,transition
@@ -542,10 +626,13 @@ whatsapp,whatsapp
 период,period
 персонал,personnel
 план,plan
+планировка,layout
 платеж,payment
+плательщик,payer
 площадь,area
 повтор,repeat
 подкатегория,subcategory
+подобие,similarity
 подоходный налог,income tax
 подоходный подход,withholding tax
 подписка,subscription
@@ -553,6 +640,8 @@ whatsapp,whatsapp
 подпись,signature
 подразделение,division
 подразделение,branch
+подробности,details
+подробные сведения,detailed information
 подрядчик,contractor
 подсеть,subnet
 подчиненные,direct reports
@@ -568,6 +657,7 @@ whatsapp,whatsapp
 политика,policy
 полка,shelf
 полное имя,full name
+полнота,recall
 получатель,recipient
 пользователь,user
 помещение,room
@@ -581,6 +671,7 @@ whatsapp,whatsapp
 постановление,resolution
 постоянная разница,permanent difference
 постоянное представительство,permanent establishment
+потребление,consumption
 почта,email
 почта,mail
 почтовый индекс,postal code
@@ -591,6 +682,7 @@ whatsapp,whatsapp
 предоплата,prepayment
 премия,premium
 преподаватель,teacher
+прецизионность,precision
 прибыль,profit
 прибытие,arrival
 привилегия,privilege
@@ -601,16 +693,20 @@ whatsapp,whatsapp
 причина,reason
 провайдер,provider
 провинция,province
+проводимость,conductivity
 прогноз,forecast
 продление срока,extension
 продолжительность,duration
 продуктивность,productivity
 проект,project
+прозрачность,transparency
 производитель,manufacturer
 производительность,performance
 производственная линия,production line
+производство,production
 промежуток,spacing
 промокод,promo code
+пропорция,proportion
 прослеживаемость,traceability
 просмотры,views
 просмотры страниц,page views
@@ -627,6 +723,8 @@ whatsapp,whatsapp
 процентная ставка,interest rate
 процессор,cpu
 псевдоним,nickname
+птс,
+пульс,heart rate
 пункт назначения,destination
 путь,path
 работник,worker
@@ -640,23 +738,33 @@ whatsapp,whatsapp
 раздел,section
 раздел,partition
 размер,size
+размер пакета,batch size
+размер скрытого слоя,hidden layer size
 размер файла,file size
+размерность,dimensions
 размеры,dimensions
 размещение,placement
 разрешение,permission
 разрешение,resolution
 разрешение экрана,screen resolution
 район,district
+ранняя остановка,early stopping
+расположение,layout
 распоряжение,order
 рассрочка,installment
 расстояние,distance
+расстояние жаккара,jaccard distance
 расход,issue
 расшифровка,transcript
 ревизия,revision
 регион,region
+регистр,registry
+регистратор,registrar
 регламент,regulation
 регрессия,regression
+регуляризация весов,weight decay
 регулярность,regularity
+реестр,registry
 резерв,reserve
 резервная копия,backup
 результат,result
@@ -666,11 +774,13 @@ whatsapp,whatsapp
 рейтинг,rating
 реквизиты,requisites
 рекомендация,recommendation
+рекомендуемая суточная доза,rda
 релиз,release
 рентабельность,profitability
 ресурс,resource
 рецензент,reviewer
 рецепт,prescription
+решатель,solver
 решение,decision
 решение,solution
 риск,risk
@@ -678,16 +788,22 @@ whatsapp,whatsapp
 роль,role
 рост,height
 рост,growth
+руководитель,director
+руководитель,executive
+руководитель,head
 руководитель,supervisor
 сайт,website
 сайт компании,company website
 самостоятельное исправление,voluntary correction
+сахар,sugar
 сбер id,sber id
 сбербизнес id,sberbuisness id
 сберчат,sberchat
 сбор,fee
 сборочная линия,assembly line
+свидетельстов о рождении,
 сводка,summary
+связность,connectivity
 связь,relationship
 сдача,change
 себестоимость,cost price
@@ -696,13 +812,17 @@ whatsapp,whatsapp
 сезон,season
 сезонный,seasonal
 сезонный фактор,seasonal factor
-секция,section
+секрет,secret
 сектор,sector
 секунда,second
+секция,section
+селен,selenium
+семейное положение,marital status
 семестр,semester
 сервер,server
 сервис,service
 серийный номер,serial
+серия и номер паспорта,
 серия паспорта,passport series
 сертификат,certificate
 сертификация,certification
@@ -714,9 +834,11 @@ whatsapp,whatsapp
 склад,warehouse
 скорость,speed
 скорость оборота,velocity
+скорость обучения,learning rate
 слоган,tagline
 сложность,complexity
 смена,shift
+снилс,
 сноска,footnote
 снято с производства,discontinued
 событие,event
@@ -727,17 +849,25 @@ whatsapp,whatsapp
 создано,created
 создано пользователем,created by
 сообщение,message
+соотношение сторон,aspect ratio
+сопротивление,resistance
 состояние,state
 сотрудник,employee
 социальные сети,social media
 социальный налог,social tax
 специальность,major
+специфичность,specificity
 способ доставки,delivery method
 справка,reference
 справка,certificate
 среда,environment
 среднее,mean
+среднее значение,mean value
+среднестатистический,average
 средний балл,average score
+средний возраст,average age
+средний доход,average income
+средняя точность,average precision
 срок,term
 срок годности,expiration date
 срок давности,statute of limitations
@@ -762,6 +892,7 @@ whatsapp,whatsapp
 статус сотрудника,employee status
 статус товара,product status
 стационарный телефон,landline
+стиль,style
 стоимость,cost
 стоимость клика,cost per click
 стоимость сделки,deal value
@@ -775,6 +906,7 @@ whatsapp,whatsapp
 страховой брокер,insurance broker
 страховой полис,insurance policy
 строка,row
+стс,
 студент,student
 ступень,degree
 сумма,amount
@@ -787,6 +919,7 @@ whatsapp,whatsapp
 таймштамп,timestamp
 таможенная пошлина,customs duty
 таргет,target
+твердость,hardness
 тег,tag
 текущий налог,current tax
 телефон,phone
@@ -794,6 +927,8 @@ whatsapp,whatsapp
 тема,thread
 тема,topic
 температура,temperature
+теплопроводность,thermal conductivity
+терпение,patience
 территория,territory
 территория,area
 техническое обслуживание,maintenance
@@ -810,6 +945,7 @@ whatsapp,whatsapp
 товар,product
 токен,token
 точка доступа,access point
+точность,accuracy
 транзакция,transaction
 транскрипция,transcription
 транспорт,transport
@@ -820,7 +956,7 @@ whatsapp,whatsapp
 тренд,trend
 убыток,loss
 уведомление,notification
-уреренность,confidence
+углеводы,carbohydrates
 угол,angle
 удалено,deleted
 удовлетворенность,satisfaction
@@ -831,6 +967,8 @@ whatsapp,whatsapp
 уникальный идентификатор,unique id
 упаковка,packing
 упрощенная система,simplified system
+упругость,elasticity
+уреренность,confidence
 уровень,level
 уровень доступа,access level
 условие,condition
@@ -838,9 +976,12 @@ whatsapp,whatsapp
 усн,simplified taxation
 устройство,device
 утверждающий,approver
+уф-индекс,uv index
+участник,contributor
 учебный год,academic year
 учебный план,curriculum
 ущерб,expense
+фабрика,factory
 файл,file
 факс,fax
 факт,actual
@@ -852,24 +993,35 @@ whatsapp,whatsapp
 фискальный накопитель,fiscal drive
 фискальный признак,fiscal basis
 флаг,flag
+формат,format
 форум,forum
+фосфор,phosphorus
 фото,photo
 фреймворк,framework
+функция потерь,loss function
+хеш,hash
+хештег,hashtag
 хост,host
 хостинг,hosting
+хранилище,storage
 хэш,hash
 цвет,color
-цена,price
-цена за единицу,unit price
 цель,objective
 цель,target
+цена,price
+цена за единицу,unit price
 цикл,cycle
 циклический подсчет,cycle count
+цинк,zinc
+цод,datacenter
 час,hour
 часовой пояс,timezone
 частота,frequency
 чат,chat
+численность,size
 число,total
+чистота,purity
+чувствительность,sensitivity
 шаг,step
 ширина,width
 широта,latitude
@@ -883,11 +1035,15 @@ whatsapp,whatsapp
 экологический налог,environmental tax
 электронная подпись,digital signature
 электронный документооборот,electronic workflow
+электропроводность,electrical conductivity
 элемент,element
+эпохи,epochs
 этаж,floor
 этап,phase
 эффективность,efficiency
 эцп,digital signature
+ядро,kernel
+язык,language
 яркость,brightness
 ярлык,label
 ячейка,bin
