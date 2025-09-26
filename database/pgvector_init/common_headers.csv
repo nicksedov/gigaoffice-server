@@ -10,7 +10,6 @@ guid,guid
 instagram,inatagram
 ip,ip
 ip адрес,ip address
-kpi,kpi
 lan,lan
 mac адрес,mac address
 nps,nps
@@ -52,6 +51,7 @@ whatsapp,whatsapp
 брандмауэр,firewall
 браузер,browser
 бренд,brand
+брутто,gross
 бюджет,budget
 бюджет проекта,project budget
 в наличии,on hand
@@ -82,6 +82,8 @@ whatsapp,whatsapp
 входящий ндс,input vat
 выборка,sample
 выброс,outlier
+выгода,benefit
+выгодоприобретатель,beneficiary
 выделено,allocated
 выездная проверка,field audit
 выездной контроль,field control
@@ -122,6 +124,7 @@ whatsapp,whatsapp
 диагноз,diagnosis
 диапазон,range
 дивиденд,dividend
+дисконт,discount
 дисперсия,variance
 длина,length
 договор,contract
@@ -130,6 +133,7 @@ whatsapp,whatsapp
 долг,debt
 долгота,longitude
 должность,position
+доля,fraction
 дом,house
 домен,domain
 доначисление,additional assessment
@@ -153,10 +157,12 @@ whatsapp,whatsapp
 замечания,notes
 зарезервировано,reserved
 зарплата,salary
+затраты,expenses
 зачет,offset
 земельный налог,land tax
 значение,value
 идентификатор,identifier
+идентификатор клиента,customer id
 изготовитель,manufacturer
 изменение,change
 изменено,modified
@@ -186,6 +192,7 @@ whatsapp,whatsapp
 канал,channel
 кандидат,candidate
 капитал,capital
+каско,
 касса,cash register
 категория,category
 качество,quality
@@ -194,7 +201,6 @@ whatsapp,whatsapp
 квартира,apartment
 кем выдан,issued by
 клиент,client
-клиент id,customer id
 клик,click
 код,code
 код валюты,currency code
@@ -228,6 +234,7 @@ whatsapp,whatsapp
 котировка,quote
 коэффициент,coefficient
 кпп,
+кпэ,kpi
 кредит,credit
 кредиторская задолженность,payables
 курс,rate
@@ -265,6 +272,7 @@ whatsapp,whatsapp
 мост,bridge
 навык,skill
 название,title
+наименование,name
 накопитель,storage
 накопительная скидка,cumulative discount
 налог,tax
@@ -304,6 +312,8 @@ whatsapp,whatsapp
 ндс,vat
 неделя,week
 недоимка,tax arrears
+нетто,net
+нетто-премия,net premium
 номер,id
 номер договора,contract number
 номер документа,document number
@@ -313,7 +323,6 @@ whatsapp,whatsapp
 номер паспорта,passport number
 номер счета,invoice number
 номер телефона,phone number
-нулевая ставка ндс,zero vat rate
 область,state
 облигация,bond
 обновление,update
@@ -334,6 +343,7 @@ whatsapp,whatsapp
 описание,description
 описание услуги,service description
 оптовая цена,wholesale price
+осаго,
 освобождение от ндс,vat exemption
 отгрузка,shipment
 отдел,department
@@ -365,7 +375,7 @@ whatsapp,whatsapp
 персонал,personnel
 план,plan
 платеж,payment
-повторитель,repeater
+повтор,repeat
 подкатегория,subcategory
 подоходный налог,income tax
 подоходный подход,withholding tax
@@ -414,7 +424,6 @@ whatsapp,whatsapp
 прослеживаемость,traceability
 просрочка,overdue
 протокол,protocol
-проход,aisle
 процент,interest
 процент выполнения,completion rate
 процент ошибок,error rate
@@ -498,9 +507,7 @@ whatsapp,whatsapp
 специальность,major
 способ доставки,delivery method
 справка,reference
-справка о доходах,income certificate
-справка о налогах,tax certificate
-справка о состоянии расчетов,tax account statement
+справка,certificate
 среда,environment
 среднее,mean
 средний балл,average score
@@ -514,6 +521,10 @@ whatsapp,whatsapp
 ссуда,loan
 ссылка,link
 ссылка,url
+ставка,rate
+ставка ндс,vat rate
+ставка по депозиту,deposit rate
+ставка по кредиту,loan rate
 стаж,experience
 стандарт,standard
 стандартное отклонение,standard deviation
@@ -525,6 +536,11 @@ whatsapp,whatsapp
 страна,country
 страна происхождения,origin
 страна регистрации,country of registration
+страховая стоимость,insurable value
+страховка,insurance
+страховой агент,insurance agent
+страховой брокер,insurance broker
+страховой полис,insurance policy
 студент,student
 сумма,amount
 счет,account
