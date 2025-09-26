@@ -1,4 +1,5 @@
-﻿csat,csat
+﻿base64,base64
+csat,csat
 csi,csi
 ctr,ctr
 dhcp,dhcp
@@ -7,9 +8,20 @@ dns,dns
 english,английский
 facebook,facebook
 guid,guid
+i кв,q1
+id заказа,order id
+id пользователя,user id
+id поставщика,supplier id
+id продукта,product id
+id сотрудника,employee id
+id студента,student id
+id тикета,ticket id
+ii кв,q2
+iii кв,q3
 instagram,inatagram
 ip,ip
 ip адрес,ip address
+iv кв,q4
 lan,lan
 mac адрес,mac address
 nps,nps
@@ -19,6 +31,9 @@ signal,signal
 team id,team id
 telegram,telegram
 uri,uri
+utm источник,utm source
+utm кампания,utm campaign
+utm канал,utm medium
 uuid,uuid
 viber,viber
 vlan,vlan
@@ -28,21 +43,32 @@ whatsapp,whatsapp
 адрес,address
 адрес доставки,shipping address
 адрес регистрации,registration address
+адрес электронной почты,email address
 актив,asset
+активен,is active
 активный,active
+актуальность,relevance
 акцизный налог,excise tax
 акция,stock
+аллергии,allergies
 аллергия,allergy
 амортизация,depreciation
+аннотация,annotation
 аномалия,anomaly
+арендатор,tenant
 артикул,sku
+артикул,article
 аттестация,appraisal
 аудит,audit
+аудитория,audience
 аутентификация,authentication
+база данных,database
 баланс,balance
+баланс счета,account balance
 балл,point
 бик,
 биржа,exchange
+блок,block
 блокировка,lock
 больничный,leave
 бонус,bonus
@@ -58,7 +84,9 @@ whatsapp,whatsapp
 важность,importance
 вакансия,vacancy
 валюта,currency
-валютное законодательство,currency legislation
+вариант,variant
+вариант,choice
+вариант,option
 вариация,variation
 вероятность,probability
 версия,version
@@ -69,19 +97,30 @@ whatsapp,whatsapp
 вид,kind
 вид,view
 видеокарта,gpu
+видимость,visibility
+видимый,visible
 вклад,deposit
 владелец,owner
+вместимость,capacity
 внешний ключ,foreign key
+вовлеченность,engagement
 водитель,driver
 возврат,refund
 возврат,return
 возраст,age
 воронка,funnel
+воронка продаж,pipeline
 временная разница,temporary difference
 время,time
+время начала,start time
+время окончания,end time
+время отклика,response time
+время решения,resolution time
+встреча,meeting
 входящий ндс,input vat
 выборка,sample
 выброс,outlier
+вывод,conclusion
 выгода,benefit
 выгодоприобретатель,beneficiary
 выделено,allocated
@@ -89,28 +128,40 @@ whatsapp,whatsapp
 выездной контроль,field control
 выписка из егрип,sole proprietor extract
 выписка из егрюл,company extract
+выпуск,issue
 выручка,revenue
 высота,height
+выход продукции,yield
 гарантийный талон,warranty card
 гарантия,warranty
+гипотеза,hypothesis
+глубина,depth
 год,year
 годные,good parts
+годовая плата,annual fee
 город,city
 готовность,readiness
 гражданство,citizenship
 график,schedule
+грейд,grade
 громкость,volume
+грузоподъёмность,lifting capacity
 группа,group
 группа крови,blood type
 давление,pressure
+дальность,distance
 дата,date
 дата выдачи,issue date
+дата закрытия,close date
 дата изменения,modification date
+дата истечения,expiry date
 дата обновления,update date
 дата окончания,end date
+дата платежа,due date
 дата подписания,signing date
 дата покупки,purchase date
 дата приема,hire date
+дата регистрации,registration date
 дата рождения,birth date
 дата создания,creation date
 дата увольнения,termination date
@@ -118,15 +169,24 @@ whatsapp,whatsapp
 двойное налогообложение,double taxation
 дебет,debit
 дебиторская задолженность,receivables
+действует до,valid until
 денежный поток,cash flow
 день,day
+департамент,department
 дефект,defect
 диагноз,diagnosis
+диаметр,diameter
 диапазон,range
 дивиденд,dividend
 дисконт,discount
 дисперсия,variance
+дистанция,distance
+дистрибутив,distribution kit
 длина,length
+длительность,duration
+длительность сессии,session duration
+доверенность,procuration
+доверитель,principal
 договор,contract
 дозировка,dosage
 документ,document
@@ -140,35 +200,55 @@ whatsapp,whatsapp
 дополнение,addition
 дополнительное соглашение,additional agreement
 доставка,delivery
+доставка,shipping
+достаточность,sufficiency
 доступ,access
 доступно,available
+доступность,availability
+доступный кредит,available credit
 доход,income
+доходность,yield
 европейский код,ean
-единицы,units
-единицы измерения,units
+единица,unit
+единица измерения,units
 единый налог,unified tax
 единый сельхозналог,unified agricultural tax
+емкость,capacity
 енвд,imputed income tax
 есхн,agricultural tax
+заголовок,header
+загрузки,downloads
 задача,task
 задолженность,debt
 заказ,order
 заказчик,customer
+заключение,conclusion
+залог,pledge
 замечания,notes
+запас,inventory
+запись,entry
+запись,record
 зарезервировано,reserved
 зарплата,salary
 затраты,expenses
 зачет,offset
+звезды,stars
+здание,building
 земельный налог,land tax
 значение,value
+значимость,significance
+зона,zone
 идентификатор,identifier
 идентификатор клиента,customer id
+избыточность,redundancy
 изготовитель,manufacturer
 изменение,change
 изменено,modified
+изменено пользователем,modified by
 изображение,image
 имя,name
 имя,first name
+имя пользователя,username
 имя файла,file name
 инвентаризация,stocktake
 инвентарный номер,asset tag
@@ -179,7 +259,11 @@ whatsapp,whatsapp
 интервью,interview
 испытание,test
 истечение срока,expiration
+источник лида,lead source
 исходящий ндс,output vat
+исход,outcome
+итерация,iteration
+итог,result
 итого,subtotal
 итого,total
 к доплате ндс,vat payable
@@ -192,31 +276,41 @@ whatsapp,whatsapp
 канал,channel
 кандидат,candidate
 капитал,capital
+капитализация,capitalization
 каско,
 касса,cash register
+каталог,catalog
 категория,category
 качество,quality
 квартал,quarter
 квартиль,quartile
 квартира,apartment
 кем выдан,issued by
+класс,class
 клиент,client
 клик,click
+клиника,clinic
+ключ,key
 код,code
 код валюты,currency code
 код города,city code
+код курса,course code
 код организации,organization code
 код подразделения,division code
 код региона,region code
 код страны,country code
 код товара,upc
+кодировка,encoding
 количество,quantity
 количество,count
 количество попыток,attempt count
+колонка,column
 команда,team
 комиссия,commission
+комментарии,comments
 комментарий,comment
 коммутатор,switch
+компания,company
 компенсация,compensation
 компетенция,competency
 комплект,set
@@ -224,9 +318,15 @@ whatsapp,whatsapp
 конверсия,conversion
 конец,end
 конечная дата,end date
+контакт экстренной связи,emergency contact
 контактное лицо,contact person
+контрагент,counterparty
+контракт,contraсt
+контраст,contrast
 контролируемая сделка,controlled transaction
 контроль качества,quality control
+контрольный вопрос,security question
+конфигурация,configuration
 концентратор,hub
 координаты,coordinates
 корень,root
@@ -234,46 +334,72 @@ whatsapp,whatsapp
 корреляция,correlation
 котировка,quote
 коэффициент,coefficient
+коэффициент брака,defect rate
+коэффициент кликабельности,click-through rate
+коэффициент конверсии,conversion rate
 кпп,
 кпэ,kpi
 кредит,credit
+кредитные часы,credit hours
+кредитный лимит,credit limit
 кредиторская задолженность,payables
 курс,rate
+курс обмена,exchange rate
 курьер,courier
+кэшбэк,cashback
 лайк,like
+лайки,likes
 лекарство,medicine
 лечение,treatment
 лид,lead
 ликвидность,liquidity
+лимит,limit
 лицензия,license
 лог,log
 логин,login
 логотип,logo
+лот,lot
+льготы,benefits
 макс,max
 максимальный,maximal
 максимум,maximum
 маржа,margin
+маржа прибыли,profit margin
+маркер,marker
 маркировка товаров,product labeling
 маршрут,route
 маршрутизатор,router
 материал,material
 медиана,median
 медианный доход,median income
+медицинская карта,medical record
 менеджер,manager
+менеджер по продажам,sales rep
+мессенджер,messenger
 место рождения,place of birth
 местоположение,location
 месяц,month
+метка,label
+метка,tag
 мин,min
 минимальный,minimal
+минимальный платеж,minimum payment
 минимум,minimum
 минута,minute
 мобильный,mobile
 мода,mode
 модель,model
+модуль,module
 мост,bridge
+мощность,capacity
+мощность,power
+муниципалитет,municipality
 навык,skill
 название,title
+название кампании,campaign name
+назначенный агент,assigned agent
 наименование,name
+накладная,invoice
 накопитель,storage
 накопительная скидка,cumulative discount
 налог,tax
@@ -316,51 +442,90 @@ whatsapp,whatsapp
 нетто,net
 нетто-премия,net premium
 номер,id
+номер,number
+номер версии,version number
+номер детали,partnumber
 номер договора,contract number
 номер документа,document number
 номер заказа,order number
+номер отслеживания,tracking number
 номер партии,batch number
 номер партии,lot number
 номер паспорта,passport number
+номер сборки,build number
 номер счета,invoice number
 номер телефона,phone number
+норма,norm
+область,domain
 область,state
+область,area
 облигация,bond
 обновление,update
 обновлено,updated
+обозначение,mark
 оборот,turnover
 образование,education
+обратная связь,feedback
 обучение,training
 общая,total
+объект,object
+объект,facility
 объем,volume
+ограничение,constraint
+ограничение,limit
 огрн,
+ожидаемое время прибытия,eta
+окато,
 оквэд,
 оклад,wage
 окпо,
 окружение,environment
-онлайн касса,online cash register
+окуд,
+онлайн,online
 оперативная память,ram
 операционная система,os
 описание,description
 описание услуги,service description
+определение,definition
 оптовая цена,wholesale price
 осаго,
 освобождение от ндс,vat exemption
+основание,base
+основание,foundation
+особенности,features
+ответ на контрольный вопрос,security answer
+ответственность,responsibility
+ответственный,responsible
 отгрузка,shipment
 отдел,department
+отделение,department
 отзыв,review
 отклонение,deviation
 отложенный налог,deferred tax
 отметка,mark
+отображаемое имя,display name
 отправитель,sender
+отправка,shipment
 отправление,departure
 отпуск,vacation
 отсрочка,deferment
+отступ,indent
+отступ,offset
 отчество,patronymic
+отчет,report
 отчетный период,reporting period
+офис,office
+охват,coverage
+охват,reach
+оценка,estimation
 оценка,score
-оценка,grade
+оценка качества,quality score
+оценка лида,lead score
+оценка результативности,performance rating
+падение,fall
+палата,ward
 папка,folder
+параметр,parameter
 пароль,password
 партия,batch
 пассив,liability
@@ -369,13 +534,16 @@ whatsapp,whatsapp
 пациент,patient
 пеня,penalty
 первичный ключ,primary key
+перевозчик,carrier
 перемещение,transfer
 переплата,overpayment
 переход,transition
+периметр,perimeter
 период,period
 персонал,personnel
 план,plan
 платеж,payment
+площадь,area
 повтор,repeat
 подкатегория,subcategory
 подоходный налог,income tax
@@ -384,54 +552,81 @@ whatsapp,whatsapp
 подписчик,follower
 подпись,signature
 подразделение,division
+подразделение,branch
+подрядчик,contractor
 подсеть,subnet
+подчиненные,direct reports
+позиция,item
 показ,impression
 показатель,metric
+показатель кликабельности,click through rate
+показатель отказов,bounce rate
+покрытие,coverage
 пол,gender
 пол,sex
+полезная нагрузка,payload
+политика,policy
 полка,shelf
+полное имя,full name
 получатель,recipient
 пользователь,user
+помещение,room
 порт,port
 портфель,portfolio
+последнее изменение,last modified
+последовательность,sequence
 пост,post
 поставщик,supplier
 поставщик,vendor
-поставщик id,supplier id
-постановление,ruling
+постановление,resolution
 постоянная разница,permanent difference
 постоянное представительство,permanent establishment
 почта,email
 почта,mail
 почтовый индекс,postal code
 права,permissions
+правило,rule
+предзаказ,preorder
 предмет,subject
 предоплата,prepayment
 премия,premium
 преподаватель,teacher
 прибыль,profit
 прибытие,arrival
+привилегия,privilege
+признак,attribute
+примечание,note
 приоритет,priority
 приход,receipt
 причина,reason
 провайдер,provider
+провинция,province
 прогноз,forecast
 продление срока,extension
 продолжительность,duration
+продуктивность,productivity
 проект,project
 производитель,manufacturer
+производительность,performance
 производственная линия,production line
+промежуток,spacing
 промокод,promo code
 прослеживаемость,traceability
+просмотры,views
+просмотры страниц,page views
 просрочка,overdue
+простой,downtime
 протокол,protocol
+профессия,occupation
 процент,interest
 процент выполнения,completion rate
 процент ошибок,error rate
 процент роста,growth rate
 процент снижения,decline rate
 процентиль,percentile
+процентная ставка,interest rate
 процессор,cpu
+псевдоним,nickname
 пункт назначения,destination
 путь,path
 работник,worker
@@ -439,8 +634,11 @@ whatsapp,whatsapp
 рабочая станция,workstation
 рабочее время,work time
 рабочее место,workplace
+радиус,radius
 разблокировка,unlock
 развитие,development
+раздел,section
+раздел,partition
 размер,size
 размер файла,file size
 размеры,dimensions
@@ -448,24 +646,38 @@ whatsapp,whatsapp
 разрешение,permission
 разрешение,resolution
 разрешение экрана,screen resolution
+район,district
+распоряжение,order
 рассрочка,installment
+расстояние,distance
 расход,issue
+расшифровка,transcript
 ревизия,revision
 регион,region
+регламент,regulation
 регрессия,regression
+регулярность,regularity
 резерв,reserve
+резервная копия,backup
 результат,result
+результативность,performance
 резюме,resume
+резюме,summary
 рейтинг,rating
 реквизиты,requisites
+рекомендация,recommendation
+релиз,release
 рентабельность,profitability
 ресурс,resource
 рецензент,reviewer
+рецепт,prescription
 решение,decision
 решение,solution
 риск,risk
 розничная цена,retail price
 роль,role
+рост,height
+рост,growth
 руководитель,supervisor
 сайт,website
 сайт компании,company website
@@ -474,11 +686,18 @@ whatsapp,whatsapp
 сбербизнес id,sberbuisness id
 сберчат,sberchat
 сбор,fee
+сборочная линия,assembly line
+сводка,summary
+связь,relationship
 сдача,change
 себестоимость,cost price
 себестоимость единицы,unit cost
 сегмент,segment
+сезон,season
 сезонный,seasonal
+сезонный фактор,seasonal factor
+секция,section
+сектор,sector
 секунда,second
 семестр,semester
 сервер,server
@@ -487,19 +706,26 @@ whatsapp,whatsapp
 серия паспорта,passport series
 сертификат,certificate
 сертификация,certification
+серьезность,severity
 сессия,session
 симптом,symptom
 скайп,skype
 скидка,discount
 склад,warehouse
+скорость,speed
 скорость оборота,velocity
+слоган,tagline
+сложность,complexity
 смена,shift
+сноска,footnote
 снято с производства,discontinued
 событие,event
 согласование,accept
 согласующий,approving
 соглашение об избежании,tax treaty
+содержание,content
 создано,created
+создано пользователем,created by
 сообщение,message
 состояние,state
 сотрудник,employee
@@ -526,14 +752,20 @@ whatsapp,whatsapp
 ставка ндс,vat rate
 ставка по депозиту,deposit rate
 ставка по кредиту,loan rate
+стадия,stage
 стаж,experience
 стандарт,standard
 стандартное отклонение,standard deviation
 статус,status
+статус доставки,delivery status
 статус оплаты,payment status
 статус сотрудника,employee status
 статус товара,product status
+стационарный телефон,landline
 стоимость,cost
+стоимость клика,cost per click
+стоимость сделки,deal value
+столица,capital
 страна,country
 страна происхождения,origin
 страна регистрации,country of registration
@@ -542,25 +774,44 @@ whatsapp,whatsapp
 страховой агент,insurance agent
 страховой брокер,insurance broker
 страховой полис,insurance policy
+строка,row
 студент,student
+ступень,degree
 сумма,amount
+схема,schema
 счет,account
+счет-фактура,invoice
 табельный номер,personnel number
+таблица,table
+таймаут,timeout
 таймштамп,timestamp
 таможенная пошлина,customs duty
 таргет,target
+тег,tag
 текущий налог,current tax
 телефон,phone
+тема,subject
 тема,thread
+тема,topic
 температура,temperature
+территория,territory
+территория,area
+техническое обслуживание,maintenance
+техобслуживание,maintenance
+тикер,ticker
+тикет,ticket
 тип,type
 тип документа,document type
 тип занятости,employment type
+тип проблемы,issue type
 тип услуги,service type
 тип файла,file type
+ткань,fabric
+товар,product
 токен,token
 точка доступа,access point
 транзакция,transaction
+транскрипция,transcription
 транспорт,transport
 транспортный налог,vehicle tax
 трансфертное ценообразование,transfer pricing
@@ -569,16 +820,26 @@ whatsapp,whatsapp
 тренд,trend
 убыток,loss
 уведомление,notification
+уреренность,confidence
+угол,angle
+удалено,deleted
+удовлетворенность,satisfaction
+удовлетворенность клиента,customer satisfaction
 узел,node
 улица,street
+уникальные посетители,unique visitors
 уникальный идентификатор,unique id
 упаковка,packing
 упрощенная система,simplified system
 уровень,level
+уровень доступа,access level
+условие,condition
 услуга,service
 усн,simplified taxation
 устройство,device
 утверждающий,approver
+учебный год,academic year
+учебный план,curriculum
 ущерб,expense
 файл,file
 факс,fax
@@ -589,20 +850,26 @@ whatsapp,whatsapp
 фамилия,last name
 физический подсчет,physical count
 фискальный накопитель,fiscal drive
-Фискальный признак,
+фискальный признак,fiscal basis
+флаг,flag
 форум,forum
 фото,photo
+фреймворк,framework
 хост,host
 хостинг,hosting
 хэш,hash
 цвет,color
 цена,price
 цена за единицу,unit price
+цель,objective
+цель,target
+цикл,cycle
 циклический подсчет,cycle count
 час,hour
 часовой пояс,timezone
 частота,frequency
 чат,chat
+число,total
 шаг,step
 ширина,width
 широта,latitude
@@ -610,11 +877,18 @@ whatsapp,whatsapp
 шлюз,gateway
 штат,staff
 штраф,fine
+штраф за просрочку,late fee
 штрихкод,barcode
 экзамен,exam
 экологический налог,environmental tax
 электронная подпись,digital signature
 электронный документооборот,electronic workflow
+элемент,element
+этаж,floor
 этап,phase
+эффективность,efficiency
 эцп,digital signature
+яркость,brightness
+ярлык,label
 ячейка,bin
+ячейка,cell
