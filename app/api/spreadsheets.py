@@ -3,6 +3,7 @@ Spreadsheet API Router
 Router for enhanced spreadsheet manipulation endpoints
 """
 
+import os
 import uuid
 import json
 from typing import Dict, Any, Optional, Union, List
@@ -36,6 +37,9 @@ from app.services.database.vector_search import vector_search_service
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
+
+# Support for full-text search
+db_vector_support = os.getenv("DB_VECTOR_SUPPORT", "false").lower() == "true"
 
 # Authentication dependency
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -193,14 +197,6 @@ async def search_spreadsheet_data(
         if domain != "header":
             raise HTTPException(status_code=400, detail="Invalid domain parameter. Only 'header' is supported.")
         
-        # Validate search_mode parameter
-        valid_search_modes = ["fulltext", "fast"]
-        if search_request.search_mode not in valid_search_modes:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Invalid search_mode. Must be one of: {', '.join(valid_search_modes)}"
-            )
-        
         # Validate limit parameter
         if limit < 1 or limit > 100:
             raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
@@ -208,6 +204,8 @@ async def search_spreadsheet_data(
         # Prepare search strings
         search_strings = search_request.data if isinstance(search_request.data, list) else [search_request.data]
         
+        search_mode = "fulltext" if db_vector_support else "fast"
+
         # Collect all results
         all_results = []
         
@@ -217,7 +215,7 @@ async def search_spreadsheet_data(
             results = vector_search_service.search(
                 search_string, 
                 "header_embeddings", 
-                search_request.search_mode, 
+                search_mode, 
                 limit
             )
             item_search_results = []

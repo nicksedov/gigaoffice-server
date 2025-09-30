@@ -109,14 +109,6 @@ class SpreadsheetResultResponse(BaseModel):
 class SpreadsheetSearchRequest(BaseModel):
     """Request model for spreadsheet data search"""
     data: Union[str, List[str]] = Field(..., description="Search string or list of search strings")
-    search_mode: str = Field(default="fulltext", description="Search algorithm mode: 'fulltext' for vector-based semantic search or 'fast' for direct lemmatization matching")
-    
-    @field_validator('search_mode')
-    @classmethod
-    def validate_search_mode(cls, v):
-        if v not in ['fulltext', 'fast']:
-            raise ValueError("search_mode must be either 'fulltext' or 'fast'")
-        return v
 
 class SearchResultItem(BaseModel):
     """Search result item with text, language and similarity score"""
