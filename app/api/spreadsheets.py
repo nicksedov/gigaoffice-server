@@ -187,11 +187,23 @@ async def search_spreadsheet_data(
     current_user: Optional[Dict] = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Search spreadsheet data using vector embeddings"""
+    """Search spreadsheet data using vector embeddings or fast lemmatization matching"""
     try:
         # Validate domain parameter
         if domain != "header":
             raise HTTPException(status_code=400, detail="Invalid domain parameter. Only 'header' is supported.")
+        
+        # Validate search_mode parameter
+        valid_search_modes = ["fulltext", "fast"]
+        if search_request.search_mode not in valid_search_modes:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid search_mode. Must be one of: {', '.join(valid_search_modes)}"
+            )
+        
+        # Validate limit parameter
+        if limit < 1 or limit > 100:
+            raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
         
         # Prepare search strings
         search_strings = search_request.data if isinstance(search_request.data, list) else [search_request.data]
@@ -199,11 +211,15 @@ async def search_spreadsheet_data(
         # Collect all results
         all_results = []
         
-        # Search for each string
+        # Search for each string using the specified mode
         for search_string in search_strings:
-            
-            # Perform vector search
-            results = vector_search_service.fulltext_search(search_string, "header_embeddings", limit)
+            # Perform search using the unified search method
+            results = vector_search_service.search(
+                search_string, 
+                "header_embeddings", 
+                search_request.search_mode, 
+                limit
+            )
             item_search_results = []
             # Convert to SearchResultItem objects
             for header, language, score in results:
@@ -219,6 +235,10 @@ async def search_spreadsheet_data(
             
     except HTTPException:
         raise
+    except ValueError as e:
+        # Handle search_mode validation errors from vector_search_service
+        logger.error(f"Invalid search mode: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error searching spreadsheet data: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Error searching spreadsheet data")

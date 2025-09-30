@@ -165,6 +165,7 @@ def main():
     print(f"Сгенерировано {len(embeddings)} эмбеддингов")
 
     with conn, conn.cursor() as cur:
+        print(f"Создаем таблицу {EMBEDDING_TABLE}...")
         cur.execute(f"""
             DROP TABLE IF EXISTS {EMBEDDING_TABLE};
             
@@ -175,12 +176,10 @@ def main():
                 embedding VECTOR({MODEL_DIMENSION}), -- размерность зависит от используемой модели
                 language VARCHAR(2) -- 'ru', 'en'
             );
-
-            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_l2_ops);
-            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_cosine_ops);
             """
         )
         
+        print(f"Заполняем таблицу {EMBEDDING_TABLE} значениями...")
         inserted_count = 0
         for header, lemmatized_header, emb, language in zip(headers, lemmatized_headers, embeddings, languages):
             cur.execute(
@@ -193,6 +192,14 @@ def main():
             if cur.rowcount > 0:
                 inserted_count += 1
     
+        print(f"Создаем индексы таблицы {EMBEDDING_TABLE}...")
+        cur.execute(f"""
+            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_l2_ops);
+            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_cosine_ops);
+            CREATE INDEX {EMBEDDING_TABLE}_idx_lemmatized_header ON {EMBEDDING_TABLE} (lemmatized_header);
+            """
+        )
+
     print(f"Загружено {inserted_count} новых эмбеддингов в таблицу {EMBEDDING_TABLE}")
     print(f"Всего в таблице: {len(headers)} терминов")
 
