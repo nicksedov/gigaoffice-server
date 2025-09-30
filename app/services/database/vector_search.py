@@ -15,7 +15,7 @@ from app.utils.lemmatization import lemmatization_service
 
 
 MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "./models")
-MODEL_NAME = os.getenv("EMMBEDDINGS_MODEL_NAME", "ai-forever/FRIDA")
+MODEL_NAME = os.getenv("EMMBEDDING_MODEL_NAME", "ai-forever/FRIDA")
 MODEL_PATH = f"{MODEL_CACHE_PATH}/{MODEL_NAME}"
 
 # Инициализация модели один раз при старте приложения
