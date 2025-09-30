@@ -124,6 +124,7 @@ def main():
         print(f"Создаем таблицу {EMBEDDING_TABLE}...")
         cur.execute(f"""
             DROP TABLE IF EXISTS {EMBEDDING_TABLE};
+            CREATE EXTENSION IF NOT EXISTS vector;
             CREATE TABLE {EMBEDDING_TABLE} (
                 id SERIAL PRIMARY KEY,
                 header TEXT UNIQUE NOT NULL,
