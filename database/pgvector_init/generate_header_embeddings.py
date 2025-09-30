@@ -1,3 +1,4 @@
+import os
 import psycopg2
 import csv
 from sentence_transformers import SentenceTransformer
@@ -9,8 +10,10 @@ from loguru import logger
 HEADERS_CSV_FILE = "common_headers.csv"
 EMBEDDING_TABLE = "header_embeddings"
 
-MODEL_NAME = "ai-forever/FRIDA"
-MODEL_DIMENSION=1536
+MODEL_CACHE_PATH="/srv/dev-disk-by-uuid-fabbcdab-5c00-4cf8-b82b-08f435ceff85/code-server/workspaces/models"
+# MODEL_NAME = "ai-forever/FRIDA"
+MODEL_NAME = "ai-forever/ru-en-RoSBERTa"
+MODEL_PATH = f"{MODEL_CACHE_PATH}/{MODEL_NAME}"
 
 """
 Lemmatization Service
@@ -138,7 +141,12 @@ def main():
         port=5432
     )
     
+    print(f"Инициализируем модель эмбеддингов {MODEL_NAME}")
     model = SentenceTransformer(MODEL_NAME)
+    model.save(MODEL_PATH)
+    model = SentenceTransformer(MODEL_PATH)
+    MODEL_DIMENSION = model.get_sentence_embedding_dimension()
+    print(f"Размерность модели: {MODEL_DIMENSION}")
     
     # Читаем все уникальные заголовки из CSV
     headers = read_headers_from_csv(HEADERS_CSV_FILE)
