@@ -14,12 +14,12 @@ from app.services.database.manager import db_manager
 from app.utils.lemmatization import lemmatization_service
 
 
-MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "./models")
-MODEL_NAME = os.getenv("EMMBEDDING_MODEL_NAME", "ai-forever/FRIDA")
+MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
+MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ai-forever/FRIDA")
 MODEL_PATH = f"{MODEL_CACHE_PATH}/{MODEL_NAME}"
 
 # Инициализация модели один раз при старте приложения
-_ru_model = SentenceTransformer(MODEL_NAME)
+_ru_model = SentenceTransformer(MODEL_PATH)
 
 class VectorSearchService:
     """Service for performing vector similarity searches in the database"""

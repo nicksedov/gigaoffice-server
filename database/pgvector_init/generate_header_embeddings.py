@@ -1,15 +1,10 @@
 import os
 import psycopg2
 import csv
-from sentence_transformers import SentenceTransformer
 import re
+import numpy as np
 from typing import Optional
 from loguru import logger
-
-
-HEADERS_CSV_FILE = "common_headers.csv"
-EMBEDDING_TABLE = "header_embeddings"
-
 
 # Читаем переменные окружения с значениями по умолчанию
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -17,10 +12,14 @@ DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DB_NAME = os.getenv("DB_NAME", "gigaoffice")
 DB_USER = os.getenv("DB_USER", "gigaoffice")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_SCHEMA = os.getenv("DB_SCHEMA", "")
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
+DB_VECTOR_SUPPORT = os.getenv("DB_VECTOR_SUPPORT", "false").lower() == "true"
 MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ai-forever/ru-en-RoSBERTa")
 
+HEADERS_CSV_FILE = "common_headers.csv"
+EMBEDDING_TABLE = "header_embeddings"
 
 try:
     from pymystem3 import Mystem
@@ -98,10 +97,6 @@ def main():
         host=DB_HOST,
         port=DB_PORT
     )
-    print(f"Инициализируем модель эмбеддингов {model_path}")
-    model = SentenceTransformer(model_path)
-    MODEL_DIMENSION = model.get_sentence_embedding_dimension()
-    print(f"Размерность модели: {MODEL_DIMENSION}")
 
     headers = read_headers_from_csv(HEADERS_CSV_FILE)
     print(f"Найдено {len(headers)} уникальных терминов в CSV файле")
@@ -116,20 +111,38 @@ def main():
             lemmatized_headers.append(lemmatized_header)
         else:
             lemmatized_headers.append(header)
+    print(f"Сгенерировано {len(headers)} лемматизированных терминов")
 
-    embeddings = model.encode(lemmatized_headers, normalize_embeddings=True)
-    print(f"Сгенерировано {len(embeddings)} эмбеддингов")
+    MODEL_DIMENSION = 0
+    embeddings = np.zeros(len(headers))
+    if DB_VECTOR_SUPPORT: 
+        print(f"Инициализируем модель эмбеддингов {model_path}")
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer(model_path)
+        MODEL_DIMENSION = model.get_sentence_embedding_dimension()
+        print(f"Размерность модели: {MODEL_DIMENSION}")
+        embeddings = model.encode(lemmatized_headers, normalize_embeddings=True)
+        print(f"Сгенерировано {len(embeddings)} эмбеддингов")
 
     with conn, conn.cursor() as cur:
+        
+        if DB_SCHEMA:
+            cur.execute(f"SET search_path TO {DB_SCHEMA};")
+        
+        print(f"Удаляем таблицу {EMBEDDING_TABLE}, если есть...")
+        cur.execute(f"DROP TABLE IF EXISTS {EMBEDDING_TABLE};")
+        
         print(f"Создаем таблицу {EMBEDDING_TABLE}...")
+        embedding_type = f"VECTOR({MODEL_DIMENSION})" if DB_VECTOR_SUPPORT else "INTEGER"
+        if DB_VECTOR_SUPPORT:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         cur.execute(f"""
             DROP TABLE IF EXISTS {EMBEDDING_TABLE};
-            CREATE EXTENSION IF NOT EXISTS vector;
             CREATE TABLE {EMBEDDING_TABLE} (
                 id SERIAL PRIMARY KEY,
                 header TEXT UNIQUE NOT NULL,
                 lemmatized_header TEXT,
-                embedding VECTOR({MODEL_DIMENSION}),
+                embedding {embedding_type},
                 language VARCHAR(2)
             );
             """
@@ -146,13 +159,13 @@ def main():
                 inserted_count += 1
 
         print(f"Создаем индексы таблицы {EMBEDDING_TABLE}...")
-        cur.execute(f"""
-            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_l2_ops);
-            CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_cosine_ops);
-            CREATE INDEX {EMBEDDING_TABLE}_idx_lemmatized_header ON {EMBEDDING_TABLE} (lemmatized_header);
-            """
-        )
+        cur.execute(f"CREATE INDEX {EMBEDDING_TABLE}_idx_lemmatized_header ON {EMBEDDING_TABLE} (lemmatized_header);")
 
+        if DB_VECTOR_SUPPORT:
+            cur.execute(f"""
+                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_l2_ops);
+                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_cosine_ops);
+                """)
     print(f"Загружено {inserted_count} новых эмбеддингов в таблицу {EMBEDDING_TABLE}")
     print(f"Всего в таблице: {len(headers)} терминов")
 
