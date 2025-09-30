@@ -10,15 +10,16 @@ from loguru import logger
 HEADERS_CSV_FILE = "common_headers.csv"
 EMBEDDING_TABLE = "header_embeddings"
 
-MODEL_CACHE_PATH="/srv/dev-disk-by-uuid-fabbcdab-5c00-4cf8-b82b-08f435ceff85/code-server/workspaces/models"
-# MODEL_NAME = "ai-forever/FRIDA"
-MODEL_NAME = "ai-forever/ru-en-RoSBERTa"
-MODEL_PATH = f"{MODEL_CACHE_PATH}/{MODEL_NAME}"
 
-"""
-Lemmatization Service
-Service for text lemmatization for Russian language
-"""
+# Читаем переменные окружения с значениями по умолчанию
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = int(os.getenv("DB_PORT", "5432"))
+DB_NAME = os.getenv("DB_NAME", "gigaoffice")
+DB_USER = os.getenv("DB_USER", "gigaoffice")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
+MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
+EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ai-forever/ru-en-RoSBERTa")
 
 
 try:
@@ -28,147 +29,94 @@ except ImportError:
     MYSTEM_AVAILABLE = False
     logger.warning("pymystem3 not available, Russian lemmatization will be disabled")
 
+
 class LemmatizationError(Exception):
-    """Exception raised for errors in the lemmatization process"""
     pass
 
+
 class MystemLemmatizer:
-    """Implementation using pymystem3 for Russian text lemmatization"""
-    
     def __init__(self):
-        """Initialize the Russian lemmatizer"""
         if not MYSTEM_AVAILABLE:
             raise LemmatizationError("pymystem3 not available")
         self.mystem = Mystem()
-    
+
     def lemmatize(self, text: str) -> str:
-        """
-        Lemmatize Russian text
-        
-        Args:
-            text: Text to lemmatize
-            
-        Returns:
-            Lemmatized text
-        """
         try:
-            # Mystem returns a list, we join it back to a string
             lemmatized = self.mystem.lemmatize(text)
-            # Remove newline characters that Mystem sometimes adds
             result = ''.join(lemmatized).strip()
             return result
         except Exception as e:
             logger.error(f"Error during Russian lemmatization: {e}")
             raise LemmatizationError(f"Failed to lemmatize Russian text: {e}")
 
-class LemmatizationService:
-    """Unified interface for lemmatizing text with language detection"""
-    
-    def __init__(self, config: Optional[dict] = None):
-        """
-        Initialize the lemmatization service
-        
-        Args:
-            config: Configuration dictionary with lemmatization settings
-        """
-        # Initialize lemmatizers
-        self._lemmatizer = None
 
+class LemmatizationService:
+    def __init__(self, config: Optional[dict] = None):
+        self._lemmatizer = None
         try:
             if MYSTEM_AVAILABLE:
                 self._lemmatizer = MystemLemmatizer()
         except Exception as e:
             logger.warning(f"Failed to initialize Russian lemmatizer: {e}")
-    
+
     def lemmatize(self, text: str) -> str:
-        """
-        Lemmatize text
-        
-        Args:
-            text: Text to lemmatize
-            
-        Returns:
-            lemmatized_text
-        """
-     
-        # Return early if text is empty
         if not text.strip():
             return text
-        
         try:
             return self._lemmatizer.lemmatize(text)
-            
         except Exception as e:
             logger.error(f"Error during lemmatization: {e}")
-            # Fallback to original text in case of error
             return text
 
-# Create singleton instance
+
 lemmatization_service = LemmatizationService()
 
-# =======================================================================
+
 def read_headers_from_csv(filename):
-    """
-    Читает заголовки из CSV файла и возвращает список уникальных терминов
-    из обеих колонок (русской и английской), исключая пустые значения
-    """
-    headers = set()  # Используем set для исключения дубликатов
-    
+    headers = set()
     with open(filename, 'r', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
-        next(reader)  # Пропускаем заголовок CSV
-        
+        next(reader)
         for row in reader:
             if len(row) >= 2:
                 russian_term = row[0].strip()
                 english_term = row[1].strip()
-                
-                # Добавляем термины, если они не пустые
                 if russian_term:
                     headers.add(russian_term)
                 if english_term:
                     headers.add(english_term)
-    
-    return sorted(list(headers))  # Возвращаем отсортированный список
+    return sorted(list(headers))
+
 
 def main():
-    # Подключение к БД
+    model_path = f"{MODEL_CACHE_PATH}/{EMBEDDING_MODEL_NAME}" if MODEL_CACHE_PATH else EMBEDDING_MODEL_NAME
+
     conn = psycopg2.connect(
-        dbname="gigaoffice",
-        user="gigaoffice",
-        password="SbConnect~1",
-        host="localhost",
-        port=5432
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT
     )
-    
-    print(f"Инициализируем модель эмбеддингов {MODEL_NAME}")
-    model = SentenceTransformer(MODEL_NAME)
-    model.save(MODEL_PATH)
-    model = SentenceTransformer(MODEL_PATH)
+    print(f"Инициализируем модель эмбеддингов {model_path}")
+    model = SentenceTransformer(model_path)
     MODEL_DIMENSION = model.get_sentence_embedding_dimension()
     print(f"Размерность модели: {MODEL_DIMENSION}")
-    
-    # Читаем все уникальные заголовки из CSV
+
     headers = read_headers_from_csv(HEADERS_CSV_FILE)
     print(f"Найдено {len(headers)} уникальных терминов в CSV файле")
-    
-    # Generate lemmatized versions of headers and determine languages
+
     lemmatized_headers = []
     languages = []
-    
     for header in headers:
-        # Determine language
         language = 'ru' if re.search(r'[а-яё]', header.lower()) else 'en'
         languages.append(language)
-        
-        # Lemmatize header
         if language == 'ru':
             lemmatized_header = lemmatization_service.lemmatize(header)
             lemmatized_headers.append(lemmatized_header)
         else:
             lemmatized_headers.append(header)
-    
-    # Генерируем эмбеддинги from lemmatized headers instead of raw headers
+
     embeddings = model.encode(lemmatized_headers, normalize_embeddings=True)
     print(f"Сгенерировано {len(embeddings)} эмбеддингов")
 
@@ -176,17 +124,15 @@ def main():
         print(f"Создаем таблицу {EMBEDDING_TABLE}...")
         cur.execute(f"""
             DROP TABLE IF EXISTS {EMBEDDING_TABLE};
-            
             CREATE TABLE {EMBEDDING_TABLE} (
                 id SERIAL PRIMARY KEY,
                 header TEXT UNIQUE NOT NULL,
                 lemmatized_header TEXT,
-                embedding VECTOR({MODEL_DIMENSION}), -- размерность зависит от используемой модели
-                language VARCHAR(2) -- 'ru', 'en'
+                embedding VECTOR({MODEL_DIMENSION}),
+                language VARCHAR(2)
             );
             """
         )
-        
         print(f"Заполняем таблицу {EMBEDDING_TABLE} значениями...")
         inserted_count = 0
         for header, lemmatized_header, emb, language in zip(headers, lemmatized_headers, embeddings, languages):
@@ -195,11 +141,9 @@ def main():
                    VALUES (%s, %s, %s, %s) ON CONFLICT (header) DO NOTHING""",
                 (header, lemmatized_header, emb.tolist(), language)
             )
-            
-            # Проверяем, была ли вставлена запись
             if cur.rowcount > 0:
                 inserted_count += 1
-    
+
         print(f"Создаем индексы таблицы {EMBEDDING_TABLE}...")
         cur.execute(f"""
             CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding vector_l2_ops);
@@ -210,6 +154,7 @@ def main():
 
     print(f"Загружено {inserted_count} новых эмбеддингов в таблицу {EMBEDDING_TABLE}")
     print(f"Всего в таблице: {len(headers)} терминов")
+
 
 if __name__ == "__main__":
     main()
