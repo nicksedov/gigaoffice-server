@@ -359,49 +359,18 @@ components:
           description: Data rows
       description: Worksheet data structure
 
-    ColumnValidation:
-      type: object
-      properties:
-        type:
-          type: string
-          description: Validation type (numeric, text, date, etc.)
-        min:
-          type: number
-          nullable: true
-          description: Minimum value
-        max:
-          type: number
-          nullable: true
-          description: Maximum value
-      description: Data validation rules for a column
-
     ColumnDefinition:
       type: object
       required:
         - index
-        - name
-        - type
         - format
       properties:
         index:
           type: integer
           description: Zero-based column index
-        name:
-          type: string
-          description: Column name for reference
-        type:
-          type: string
-          description: Data type (string, number, date, boolean, etc.)
         format:
           type: string
           description: Display format for the data
-        width:
-          type: integer
-          nullable: true
-          description: Preferred column width in pixels
-        validation:
-          $ref: '#/components/schemas/ColumnValidation'
-          description: Optional data validation rules
       description: Column definition with type and formatting
 
     ChartPosition:

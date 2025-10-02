@@ -41,20 +41,10 @@ class WorksheetData(BaseModel):
     header: Optional[HeaderData] = Field(None, description="Header row data")
     rows: List[DataRow] = Field(..., description="Data rows")
 
-class ColumnValidation(BaseModel):
-    """Data validation rules for a column"""
-    type: str = Field(..., description="Validation type (numeric, text, date, etc.)")
-    min: Optional[Union[int, float]] = Field(None, description="Minimum value")
-    max: Optional[Union[int, float]] = Field(None, description="Maximum value")
-
 class ColumnDefinition(BaseModel):
     """Column definition with type and formatting"""
     index: int = Field(..., description="Zero-based column index")
-    name: str = Field(..., description="Column name for reference")
-    type: str = Field(..., description="Data type (string, number, date, boolean, etc.)")
-    format: Optional[str] = Field(None, description="Display format for the data")
-    width: Optional[int] = Field(None, description="Preferred column width in pixels")
-    validation: Optional[ColumnValidation] = Field(None, description="Optional data validation rules")
+    format: str = Field(None, description="Display format for the data")
 
 class ChartPosition(BaseModel):
     """Position and size specifications for charts"""
