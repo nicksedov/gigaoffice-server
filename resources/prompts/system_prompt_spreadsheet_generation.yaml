@@ -54,32 +54,22 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Имя",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Фамилия",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Должность",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 3,
-          "name": "Дата рождения",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 4,
-          "name": "Зарплата",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -134,32 +124,22 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Месяц",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Продукт",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Количество",
-          "type": "number",
           "format": "#,##0"
         },
         {
           "index": 3,
-          "name": "Цена",
-          "type": "number",
           "format": "#,##0.00"
         },
         {
           "index": 4,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -220,32 +200,22 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Дата",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 1,
-          "name": "Тип операции",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Категория",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 3,
-          "name": "Описание",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 4,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]

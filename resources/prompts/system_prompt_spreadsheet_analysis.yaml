@@ -44,20 +44,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Продукт",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Количество",
-          "type": "number",
           "format": "#,##0"
         },
         {
           "index": 2,
-          "name": "Цена",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -135,56 +129,38 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Имя",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Фамилия",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Должность",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 3,
-          "name": "Отдел",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 4,
-          "name": "Зарплата",
-          "type": "number",
           "format": "#,##0"
         },
         {
           "index": 5,
-          "name": "Дата приема",
-          "type": "date",
-          "format": "dd.mm.yyyy"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 6,
-          "name": "Возраст",
-          "type": "number",
           "format": "#0"
         },
         {
           "index": 7,
-          "name": "Образование",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 8,
-          "name": "Стаж",
-          "type": "number",
           "format": "#0"
         }
       ]
@@ -268,26 +244,18 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Месяц",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Доходы",
-          "type": "number",
           "format": "#,##0"
         },
         {
           "index": 2,
-          "name": "Расходы",
-          "type": "number",
           "format": "#,##0"
         },
         {
           "index": 3,
-          "name": "Прибыль",
-          "type": "number",
           "format": "#,##0"
         }
       ]

@@ -119,20 +119,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Дата",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 1,
-          "name": "Описание",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -174,20 +168,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Дата",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 1,
-          "name": "Описание",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -220,20 +208,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Продукт",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Количество",
-          "type": "number",
           "format": "#,##0"
         },
         {
           "index": 2,
-          "name": "Цена",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -266,27 +248,15 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Продукт",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Количество",
-          "type": "number",
           "format": "#,##0",
-          "style": {
-            "horizontal_alignment": "right"
-          }
         },
         {
           "index": 2,
-          "name": "Цена",
-          "type": "number",
           "format": "#,##0.00",
-          "style": {
-            "horizontal_alignment": "right"
-          }
         }
       ]
     }

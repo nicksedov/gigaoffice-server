@@ -73,20 +73,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Дата",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 1,
-          "name": "Продукт",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -133,20 +127,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Дата",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 1,
-          "name": "Продукт",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -220,20 +208,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Код",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Название",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Цена",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -286,20 +268,14 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Код",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Название",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 2,
-          "name": "Цена",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -367,26 +343,18 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Номер",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Дата",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 2,
-          "name": "Клиент",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 3,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
@@ -433,26 +401,18 @@ examples:
       "columns": [
         {
           "index": 0,
-          "name": "Номер",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 1,
-          "name": "Дата",
-          "type": "date",
-          "format": "ДД.ММ.ГГГГ"
+          "format": "dd/mm/yyyy"
         },
         {
           "index": 2,
-          "name": "Клиент",
-          "type": "string",
-          "format": "text"
+          "format": "General"
         },
         {
           "index": 3,
-          "name": "Сумма",
-          "type": "number",
           "format": "#,##0.00"
         }
       ]
