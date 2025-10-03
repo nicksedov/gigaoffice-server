@@ -29,13 +29,41 @@ GigaOffice AI Service — это промежуточный сервис для 
 - **Apache Kafka** (aiokafka) - очереди сообщений
 - **PostgreSQL** - основная база данных
 
+### Архитектура стилей (V2.0)
+- **Style Reference Architecture** - централизованная система управления стилями
+- **Automatic Format Detection** - автоматическое определение версии формата данных
+- **Backward Compatibility** - полная совместимость с legacy форматом
+- **Data Transformation** - автоматическое преобразование между форматами
+
 ### Инфраструктура
 - **Docker** - контейнеризация
 - **Uvicorn** - ASGI сервер
 - **Loguru** - структурированное логирование
 - **SlowAPI** - rate limiting
 
-## Архитектура
+## Особенности
+
+### Архитектура стилей (V2.0)
+
+Система поддерживает два формата представления данных таблиц:
+
+#### V1.0 - Inline Styles (Легаси формат)
+- Стили встроены непосредственно в элементы данных
+- Приводит к дублированию стилей и увеличению размера JSON
+- Полностью поддерживается для обратной совместимости
+
+#### V2.0 - Style References (Новый формат)
+- Централизованное хранение стилей в массиве `styles`
+- Ссылки на стили по ID вместо встроенных объектов
+- Сокращение размера JSON на 20-60%
+- Лучшая производительность и согласованность стилей
+
+### Основные преимущества
+
+- **Асинхронная обработка** - очереди Kafka для обработки запросов
+- **Масштабируемость** - поддержка множественных worker'ов
+- **Мониторинг** - метрики и логирование всех операций
+- **Совместимость** - поддержка обоих форматов данных
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -252,7 +280,63 @@ resources/
 }
 ```
 
-### API эндпоинты для работы с таблицами
+### API эндпоинты
+
+### V2.0 API (Новая архитектура стилей)
+
+| Метод | Эндпоинт | Описание |
+|--------|-----------|-------------|
+| POST | `/api/v2/spreadsheets/process` | Обработка данных таблицы V2.0 |
+| GET | `/api/v2/spreadsheets/status/{request_id}` | Получение статуса обработки |
+| GET | `/api/v2/spreadsheets/result/{request_id}` | Получение результата с выбором формата |
+| POST | `/api/v2/spreadsheets/transform/to-legacy` | Преобразование в legacy формат |
+| POST | `/api/v2/spreadsheets/transform/from-legacy` | Преобразование из legacy формата |
+| POST | `/api/v2/spreadsheets/validate` | Валидация данных и ссылок на стили |
+| POST | `/api/v2/spreadsheets/data/search` | Поиск по данным таблицы |
+
+### Legacy API (Обратная совместимость)
+
+| Метод | Эндпоинт | Описание |
+|--------|-----------|-------------|
+| POST | `/api/spreadsheets/process` | Обработка (авто-определение формата) |
+| POST | `/api/spreadsheets/detect-format` | Определение версии формата |
+| POST | `/api/spreadsheets/auto-transform` | Автоматическое преобразование |
+| GET | `/api/spreadsheets/status/{request_id}` | Получение статуса обработки |
+| GET | `/api/spreadsheets/result/{request_id}` | Получение результата |
+| POST | `/api/spreadsheets/data/search` | Поиск по данным таблицы |
+
+### Пример использования V2.0 API
+
+```bash
+# Обработка данных с новой архитектурой стилей
+curl -X POST "http://localhost:8000/api/v2/spreadsheets/process" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spreadsheet_data": {
+      "metadata": {"version": "2.0"},
+      "data": {
+        "header": {"values": ["Name", "Value"], "style": "header_style"},
+        "rows": [{"values": ["Item 1", 100], "style": "row_style"}]
+      },
+      "styles": [
+        {"id": "header_style", "background_color": "#4472C4", "font_weight": "bold"},
+        {"id": "row_style", "background_color": "#F2F2F2"}
+      ]
+    },
+    "query_text": "Сделай таблицу более красивой",
+    "category": "spreadsheet-formatting"
+  }'
+
+# Преобразование из legacy формата
+curl -X POST "http://localhost:8000/api/v2/spreadsheets/transform/from-legacy" \
+  -H "Content-Type: application/json" \
+  -d '{"data": {...legacy_format_data...}}'
+
+# Валидация данных
+curl -X POST "http://localhost:8000/api/v2/spreadsheets/validate" \
+  -H "Content-Type: application/json" \
+  -d '{...spreadsheet_data_v2...}'
+``` для работы с таблицами
 
 #### Обработка расширенных данных таблицы
 - `POST /api/spreadsheets/process` - отправка данных таблицы на обработку
