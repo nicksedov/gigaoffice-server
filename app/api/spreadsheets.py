@@ -1,6 +1,6 @@
 """
-Spreadsheet API Router
-Router for enhanced spreadsheet manipulation endpoints
+Enhanced Spreadsheet API Router
+Router for enhanced spreadsheet manipulation with style reference architecture
 """
 
 import os
@@ -16,10 +16,17 @@ from slowapi.util import get_remote_address
 from loguru import logger
 
 from app.models.types.enums import RequestStatus
-from app.models.api.spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse, SpreadsheetSearchRequest, SearchResult, SearchResultItem
-from app.services.spreadsheet.data_transformer import transformation_service
+from app.models.api.spreadsheet import (
+    SpreadsheetRequest, 
+    SpreadsheetProcessResponse, 
+    SpreadsheetResultResponse,
+    SpreadsheetData,
+    SpreadsheetSearchRequest, SearchResult, SearchResultItem
+)
 from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
+from app.services.spreadsheet.style_registry import StyleValidator, create_style_registry_from_data
+
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services
@@ -49,7 +56,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return None
     return {"id": 1, "username": "demo_user", "role": "user"}
 
-spreadsheet_router = APIRouter(prefix="/api/spreadsheets", tags=["Spreadsheet Processing"])
+spreadsheet_router = APIRouter(prefix="/api/v1/spreadsheets", tags=["Spreadsheet Processing"])
 
 @spreadsheet_router.post("/process", response_model=SpreadsheetProcessResponse)
 @limiter.limit("10/minute")
@@ -60,27 +67,27 @@ async def process_spreadsheet_request(
     current_user: Optional[Dict] = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Process enhanced spreadsheet data with AI (supports both legacy and new formats)"""
+    """Process enhanced spreadsheet data with AI using style reference architecture"""
     try:
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
         
-        # Detect format and transform if necessary
+        # Validate the spreadsheet data format
         spreadsheet_data_dict = spreadsheet_request.spreadsheet_data.dict()
-        format_version = transformation_service.detect_format_version(spreadsheet_data_dict)
         
-        # If V2 format detected, transform to legacy for processing
-        if format_version == "2.0":
-            logger.info(f"Request {request_id}: Detected V2 format, transforming to legacy for processing")
-            legacy_data, transform_errors = transformation_service.transform_to_legacy_format(
-                spreadsheet_data_dict, validate=False
+        # Create style registry and validate
+        registry = create_style_registry_from_data(spreadsheet_data_dict)
+        validator = StyleValidator(registry)
+        is_valid, validation_errors = validator.validate_spreadsheet_data(spreadsheet_data_dict)
+        
+        if not is_valid:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid spreadsheet data: {', '.join(validation_errors)}"
             )
-            if transform_errors:
-                logger.warning(f"Transformation warnings for request {request_id}: {transform_errors}")
-            spreadsheet_json = json.dumps(legacy_data, cls=DateTimeEncoder)
-        else:
-            # Convert spreadsheet data to JSON for storage using custom encoder
-            spreadsheet_json = json.dumps(spreadsheet_data_dict, cls=DateTimeEncoder)
+        
+        # Convert spreadsheet data to JSON for storage using custom encoder
+        spreadsheet_json = json.dumps(spreadsheet_data_dict, cls=DateTimeEncoder)
         
         db_request = AIRequest(
             id=request_id,
@@ -116,6 +123,8 @@ async def process_spreadsheet_request(
             message="Spreadsheet processing request added to queue"
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error processing spreadsheet request: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -151,7 +160,10 @@ async def get_spreadsheet_processing_status(request_id: str, db: Session = Depen
         raise HTTPException(status_code=500, detail=str(e))
 
 @spreadsheet_router.get("/result/{request_id}", response_model=SpreadsheetResultResponse)
-async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db)):
+async def get_spreadsheet_result(
+    request_id: str, 
+    db: Session = Depends(get_db)
+):
     """Get the result of a spreadsheet processing request"""
     try:
         db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
@@ -178,6 +190,7 @@ async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db))
                 # If it's already a dict, use it directly
                 elif isinstance(db_request.result_data, dict):
                     result_data = db_request.result_data
+                        
             except Exception as e:
                 logger.warning(f"Could not parse result data: {e}")
         
@@ -194,6 +207,37 @@ async def get_spreadsheet_result(request_id: str, db: Session = Depends(get_db))
         raise
     except Exception as e:
         logger.error(f"Error getting spreadsheet result: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@spreadsheet_router.post("/validate")
+async def validate_spreadsheet_data(
+    data: SpreadsheetData,
+    current_user: Optional[Dict] = Depends(get_current_user)
+):
+    """Validate spreadsheet data format and style references"""
+    try:
+        data_dict = data.dict()
+        
+        # Create style registry and validate
+        registry = create_style_registry_from_data(data_dict)
+        validator = StyleValidator(registry)
+        
+        # Perform comprehensive validation
+        is_valid, validation_errors = validator.validate_spreadsheet_data(data_dict)
+        is_consistent, consistency_warnings = validator.validate_style_consistency(data_dict)
+        
+        return {
+            "success": True,
+            "is_valid": is_valid,
+            "is_consistent": is_consistent,
+            "validation_errors": validation_errors,
+            "consistency_warnings": consistency_warnings,
+            "style_count": len(data_dict.get("styles", [])),
+            "message": "Validation completed"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error validating spreadsheet data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @spreadsheet_router.post("/data/search", response_model=List[SearchResult])
@@ -255,43 +299,3 @@ async def search_spreadsheet_data(
     except Exception as e:
         logger.error(f"Error searching spreadsheet data: {e}")
         raise HTTPException(status_code=500, detail="Error searching spreadsheet data")
-
-@spreadsheet_router.post("/detect-format")
-async def detect_spreadsheet_format(
-    data: Dict[str, Any],
-    current_user: Optional[Dict] = Depends(get_current_user)
-):
-    """Detect the format version of spreadsheet data"""
-    try:
-        format_version = transformation_service.detect_format_version(data)
-        
-        return {
-            "success": True,
-            "format_version": format_version,
-            "message": f"Detected format version: {format_version}"
-        }
-        
-    except Exception as e:
-        logger.error(f"Error detecting format: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@spreadsheet_router.post("/auto-transform")
-async def auto_transform_spreadsheet(
-    data: Dict[str, Any],
-    target_version: str = Query("2.0", description="Target format version (1.0 or 2.0)"),
-    current_user: Optional[Dict] = Depends(get_current_user)
-):
-    """Automatically detect and transform spreadsheet data to target format"""
-    try:
-        transformed_data, messages = transformation_service.auto_transform(data, target_version)
-        
-        return {
-            "success": True,
-            "data": transformed_data,
-            "messages": messages,
-            "target_version": target_version
-        }
-        
-    except Exception as e:
-        logger.error(f"Error auto-transforming: {e}")
-        raise HTTPException(status_code=500, detail=str(e))

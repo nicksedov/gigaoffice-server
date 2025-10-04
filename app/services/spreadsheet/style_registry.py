@@ -4,7 +4,7 @@ import hashlib
 import json
 from typing import Dict, List, Optional, Set, Tuple, Any
 from loguru import logger
-from app.models.api.spreadsheet_v2 import StyleDefinition
+from app.models.api.spreadsheet import StyleDefinition
 
 class StyleRegistry:
     """
