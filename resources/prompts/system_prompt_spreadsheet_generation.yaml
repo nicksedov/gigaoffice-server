@@ -24,14 +24,18 @@ examples:
         "name": "Сотрудники",
         "range": "A1:E6"
       },
+      "styles": [
+        {
+          "id": "header_style",
+          "background_color": "#4472C4",
+          "font_color": "#FFFFFF",
+          "font_weight": "bold"
+        }
+      ],
       "data": {
         "header": {
           "values": ["Имя", "Фамилия", "Должность", "Дата рождения", "Зарплата"],
-          "style": {
-            "background_color": "#4472C4",
-            "font_color": "#FFFFFF",
-            "font_weight": "bold"
-          }
+          "style": "header_style"
         },
         "rows": [
           {
@@ -85,14 +89,18 @@ examples:
         "name": "Продажи за квартал",
         "range": "A1:E9"
       },
+      "styles": [
+        {
+          "id": "header_style",
+          "background_color": "#4472C4",
+          "font_color": "#FFFFFF",
+          "font_weight": "bold"
+        }
+      ],
       "data": {
         "header": {
           "values": ["Месяц", "Продукт", "Количество", "Цена", "Сумма"],
-          "style": {
-            "background_color": "#4472C4",
-            "font_color": "#FFFFFF",
-            "font_weight": "bold"
-          }
+          "style": "header_style"
         },
         "rows": [
           {
@@ -155,14 +163,18 @@ examples:
         "name": "Финансовые операции",
         "range": "A1:E11"
       },
+      "styles": [
+        {
+          "id": "header_style",
+          "background_color": "#4472C4",
+          "font_color": "#FFFFFF",
+          "font_weight": "bold"
+        }
+      ],
       "data": {
         "header": {
           "values": ["Дата", "Тип операции", "Категория", "Описание", "Сумма"],
-          "style": {
-            "background_color": "#4472C4",
-            "font_color": "#FFFFFF",
-            "font_weight": "bold"
-          }
+          "style": "header_style"
         },
         "rows": [
           {
