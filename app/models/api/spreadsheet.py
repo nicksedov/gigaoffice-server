@@ -1,4 +1,4 @@
-"""Enhanced Spreadsheet Data Models for R7-Office API"""
+"""Enhanced Spreadsheet Data Models with Style Reference Architecture for R7-Office API"""
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
@@ -13,10 +13,11 @@ class SpreadsheetMetadata(BaseModel):
 class WorksheetInfo(BaseModel):
     """Worksheet information"""
     name: str = Field(default="Sheet1", description="Name of the worksheet where source data is located")
-    range: str = Field(default="A1", description="Сell range reference for source data")
+    range: str = Field(default="A1", description="Cell range reference for source data")
 
-class CellStyle(BaseModel):
-    """Unified styling for all spreadsheet cells"""
+class StyleDefinition(BaseModel):
+    """Centralized style definition with unique identifier"""
+    id: str = Field(..., description="Unique identifier for style reference")
     background_color: Optional[str] = Field(None, description="Background color in hex format")
     font_color: Optional[str] = Field(None, description="Font color in hex format")
     font_weight: Optional[str] = Field(None, description="Font weight (normal, bold)")
@@ -24,17 +25,52 @@ class CellStyle(BaseModel):
     font_style: Optional[str] = Field(None, description="Font style (normal, italic)")
     horizontal_alignment: Optional[str] = Field(None, description="Horizontal alignment (left, center, right)")
     vertical_alignment: Optional[str] = Field(None, description="Vertical alignment (top, middle, bottom)")
-    border: Optional[str|List[str]] = Field(None, description="Border settings (top, right, bottom, left)")
+    border: Optional[Union[str, List[str]]] = Field(None, description="Border settings (top, right, bottom, left)")
+
+    @field_validator('background_color', 'font_color')
+    def validate_color_format(cls, v):
+        """Validate hex color format"""
+        if v is not None and not v.startswith('#'):
+            raise ValueError('Color must start with #')
+        return v
+
+    @field_validator('font_weight')
+    def validate_font_weight(cls, v):
+        """Validate font weight values"""
+        if v is not None and v not in ['normal', 'bold']:
+            raise ValueError('Font weight must be "normal" or "bold"')
+        return v
+
+    @field_validator('font_style')
+    def validate_font_style(cls, v):
+        """Validate font style values"""
+        if v is not None and v not in ['normal', 'italic']:
+            raise ValueError('Font style must be "normal" or "italic"')
+        return v
+
+    @field_validator('horizontal_alignment')
+    def validate_horizontal_alignment(cls, v):
+        """Validate horizontal alignment values"""
+        if v is not None and v not in ['left', 'center', 'right']:
+            raise ValueError('Horizontal alignment must be "left", "center", or "right"')
+        return v
+
+    @field_validator('vertical_alignment')
+    def validate_vertical_alignment(cls, v):
+        """Validate vertical alignment values"""
+        if v is not None and v not in ['top', 'middle', 'bottom']:
+            raise ValueError('Vertical alignment must be "top", "middle", or "bottom"')
+        return v
 
 class HeaderData(BaseModel):
-    """Header row definition"""
+    """Header row definition with style reference"""
     values: List[str] = Field(..., description="Header values")
-    style: Optional[CellStyle] = Field(None, description="Styling for the header row")
+    style: Optional[str] = Field(None, description="Style reference ID for the header row")
 
 class DataRow(BaseModel):
-    """Data row definition"""
+    """Data row definition with style reference"""
     values: List[Union[str, int, float, bool]] = Field(..., description="Row values")
-    style: Optional[CellStyle] = Field(None, description="Styling for this row")
+    style: Optional[str] = Field(None, description="Style reference ID for this row")
 
 class WorksheetData(BaseModel):
     """Worksheet data structure"""
@@ -66,15 +102,16 @@ class ChartDefinition(BaseModel):
     style: ChartStyle = Field(default_factory=ChartStyle, description="Chart styling options")
 
 class SpreadsheetData(BaseModel):
-    """Main data structure for enhanced spreadsheet manipulation"""
+    """Main data structure for enhanced spreadsheet manipulation with style references"""
     metadata: SpreadsheetMetadata = Field(default_factory=SpreadsheetMetadata, description="Metadata section")
     worksheet: WorksheetInfo = Field(default_factory=WorksheetInfo, description="Worksheet section")
     data: WorksheetData = Field(default_factory=WorksheetData, description="Data section containing header and rows")
     columns: Optional[List[ColumnDefinition]] = Field(default_factory=list, description="Column definitions")
+    styles: List[StyleDefinition] = Field(default_factory=list, description="Centralized style definitions")
     charts: Optional[List[ChartDefinition]] = Field(default_factory=list, description="Chart definitions")
 
 class SpreadsheetRequest(BaseModel):
-    """Request model for enhanced spreadsheet processing"""
+    """Request model for enhanced spreadsheet processing with style references"""
     spreadsheet_data: SpreadsheetData = Field(..., description="Enhanced spreadsheet data to process")
     query_text: str = Field(..., description="Processing instruction for the AI")
     category: Optional[str] = Field(None, description="Category of the request")
