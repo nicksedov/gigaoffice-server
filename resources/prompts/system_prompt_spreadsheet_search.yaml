@@ -28,21 +28,21 @@ examples:
           "background_color": "#4472C4",
           "font_color": "#FFFFFF",
           "font_weight": "bold",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "even_row_style",
           "background_color": "#F2F2F2",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "odd_row_style",
           "background_color": "#FFFFFF",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         }
       ],
       "data": {
@@ -107,21 +107,21 @@ examples:
           "background_color": "#4472C4",
           "font_color": "#FFFFFF",
           "font_weight": "bold",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "even_row_style",
           "background_color": "#F2F2F2",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "odd_row_style",
           "background_color": "#FFFFFF",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         }
       ],
       "data": {
@@ -177,21 +177,21 @@ examples:
           "background_color": "#4472C4",
           "font_color": "#FFFFFF",
           "font_weight": "bold",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "even_row_style",
           "background_color": "#F2F2F2",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "odd_row_style",
           "background_color": "#FFFFFF",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         }
       ],
       "data": {
@@ -260,21 +260,21 @@ examples:
           "background_color": "#4472C4",
           "font_color": "#FFFFFF",
           "font_weight": "bold",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "even_row_style",
           "background_color": "#F2F2F2",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "odd_row_style",
           "background_color": "#FFFFFF",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         }
       ],
       "data": {
@@ -334,21 +334,21 @@ examples:
           "background_color": "#4472C4",
           "font_color": "#FFFFFF",
           "font_weight": "bold",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "even_row_style",
           "background_color": "#F2F2F2",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "odd_row_style",
           "background_color": "#FFFFFF",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         }
       ],
       "data": {
@@ -417,21 +417,21 @@ examples:
           "background_color": "#4472C4",
           "font_color": "#FFFFFF",
           "font_weight": "bold",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "even_row_style",
           "background_color": "#F2F2F2",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         },
         {
           "id": "odd_row_style",
           "background_color": "#FFFFFF",
           "font_weight": "normal",
           "font_style": "normal",
-          "font_size": "11"
+          "font_size": 11
         }
       ],
       "data": {
