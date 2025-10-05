@@ -54,33 +54,39 @@ examples:
         "name": "Отчет",
         "range": "A1:C4"
       },
+      "styles": [
+        {
+          "id": "header_style",
+          "background_color": "#4472C4",
+          "font_color": "#FFFFFF",
+          "font_weight": "bold"
+        },
+        {
+          "id": "even_row_style",
+          "background_color": "#F2F2F2"
+        },
+        {
+          "id": "odd_row_style",
+          "background_color": "#FFFFFF"
+        }
+      ],
       "data": {
         "header": {
           "values": ["Дата", "Описание", "Сумма"],
-          "style": {
-            "background_color": "#4472C4",
-            "font_color": "#FFFFFF",
-            "font_weight": "bold"
-          }
+          "style": "header_style"
         },
         "rows": [
           {
             "values": ["01.01.2024", "Продажа товара", 15000],
-            "style": {
-              "background_color": "#F2F2F2"
-            }
+            "style": "even_row_style"
           },
           {
             "values": ["02.01.2024", "Покупка материалов", -8000],
-            "style": {
-              "background_color": "#FFFFFF"
-            }
+            "style": "odd_row_style"
           },
           {
             "values": ["03.01.2024", "Оплата услуг", -3000],
-            "style": {
-              "background_color": "#F2F2F2"
-            }
+            "style": "even_row_style"
           }
         ]
       }
@@ -140,6 +146,12 @@ examples:
         "name": "Финансы",
         "range": "A1:C5"
       },
+      "styles": [
+        {
+          "id": "negative_value_style",
+          "font_color": "#FF0000"
+        }
+      ],
       "data": {
         "header": {
           "values": ["Дата", "Описание", "Сумма"]
@@ -150,15 +162,11 @@ examples:
           },
           {
             "values": ["02.01.2024", "Покупка", -8000],
-            "style": {
-              "font_color": "#FF0000"
-            }
+            "style": "negative_value_style"
           },
           {
             "values": ["03.01.2024", "Оплата", -3000],
-            "style": {
-              "font_color": "#FF0000"
-            }
+            "style": "negative_value_style"
           },
           {
             "values": ["04.01.2024", "Возврат", 2500]
@@ -229,12 +237,16 @@ examples:
         "name": "Продажи",
         "range": "A1:C4"
       },
+      "styles": [
+        {
+          "id": "header_style",
+          "font_weight": "bold"
+        }
+      ],
       "data": {
         "header": {
           "values": ["Продукт", "Количество", "Цена"],
-          "style": {
-            "font_weight": "bold"
-          }
+          "style": "header_style"
         },
         "rows": [
           {
@@ -252,11 +264,11 @@ examples:
         },
         {
           "index": 1,
-          "format": "#,##0",
+          "format": "#,##0"
         },
         {
           "index": 2,
-          "format": "#,##0.00",
+          "format": "#,##0.00"
         }
       ]
     }
