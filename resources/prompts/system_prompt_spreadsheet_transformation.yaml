@@ -76,22 +76,39 @@ examples:
         "name": "Заказы",
         "range": "A1:C5"
       },
+      "styles": [
+        {
+          "id": "sorted_header_style",
+          "background_color": "#E8F4FD",
+          "font_color": "#1F4E79",
+          "font_weight": "bold"
+        },
+        {
+          "id": "deduplicated_row_style",
+          "background_color": "#F0F8FF"
+        }
+      ],
       "data": {
         "header": {
-          "values": ["Дата", "Клиент", "Сумма"]
+          "values": ["Дата", "Клиент", "Сумма"],
+          "style": "sorted_header_style"
         },
         "rows": [
           {
-            "values": ["01.01.2024", "Клиент A", 15000]
+            "values": ["01.01.2024", "Клиент A", 15000],
+            "style": "deduplicated_row_style"
           },
           {
-            "values": ["02.01.2024", "Клиент B", 8000]
+            "values": ["02.01.2024", "Клиент B", 8000],
+            "style": "deduplicated_row_style"
           },
           {
-            "values": ["03.01.2024", "Клиент C", 12000]
+            "values": ["03.01.2024", "Клиент C", 12000],
+            "style": "deduplicated_row_style"
           },
           {
-            "values": ["04.01.2024", "Клиент D", 21000]
+            "values": ["04.01.2024", "Клиент D", 21000],
+            "style": "deduplicated_row_style"
           }
         ]
       },
@@ -162,19 +179,36 @@ examples:
         "name": "Финансы",
         "range": "A1:C5"
       },
+      "styles": [
+        {
+          "id": "conversion_header_style",
+          "background_color": "#E8F5E8",
+          "font_color": "#2D5A2D",
+          "font_weight": "bold"
+        },
+        {
+          "id": "converted_value_style",
+          "background_color": "#F0FFF0",
+          "font_style": "italic"
+        }
+      ],
       "data": {
         "header": {
-          "values": ["Дата", "Описание", "Сумма"]
+          "values": ["Дата", "Описание", "Сумма"],
+          "style": "conversion_header_style"
         },
         "rows": [
           {
-            "values": ["01.01.2024", "Продажа", 15000.00]
+            "values": ["01.01.2024", "Продажа", 15000.00],
+            "style": "converted_value_style"
           },
           {
-            "values": ["02.01.2024", "Покупка", -8000.50]
+            "values": ["02.01.2024", "Покупка", -8000.50],
+            "style": "converted_value_style"
           },
           {
-            "values": ["03.01.2024", "Оплата", -3000.00]
+            "values": ["03.01.2024", "Оплата", -3000.00],
+            "style": "converted_value_style"
           }
         ]
       },
@@ -249,19 +283,36 @@ examples:
         "name": "Клиенты",
         "range": "A1:C5"
       },
+      "styles": [
+        {
+          "id": "merge_header_style",
+          "background_color": "#FFF2E8",
+          "font_color": "#8B4513",
+          "font_weight": "bold"
+        },
+        {
+          "id": "merged_field_style",
+          "background_color": "#FFFAF0",
+          "horizontal_alignment": "left"
+        }
+      ],
       "data": {
         "header": {
-          "values": ["Полное имя", "Email", "Телефон"]
+          "values": ["Полное имя", "Email", "Телефон"],
+          "style": "merge_header_style"
         },
         "rows": [
           {
-            "values": ["Иванов Иван", "ivan@example.com", "+71234567890"]
+            "values": ["Иванов Иван", "ivan@example.com", "+71234567890"],
+            "style": "merged_field_style"
           },
           {
-            "values": ["Петров Петр", "petr@example.com", "+70987654321"]
+            "values": ["Петров Петр", "petr@example.com", "+70987654321"],
+            "style": "merged_field_style"
           },
           {
-            "values": ["Сидоров Сидор", "sidor@example.com", "+71112223344"]
+            "values": ["Сидоров Сидор", "sidor@example.com", "+71112223344"],
+            "style": "merged_field_style"
           }
         ]
       },
