@@ -1,0 +1,105 @@
+task: Объедини поля "Имя" и "Фамилия" в одно поле "Полное имя" и удалите исходные поля
+request_table: |
+  ЗАДАЧА: Объедини поля "Имя" и "Фамилия" в одно поле "Полное имя" и удалите исходные поля
+  
+  РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Клиенты",
+      "range": "A1:D5"
+    },
+    "data": {
+      "header": {
+        "values": ["Имя", "Фамилия", "Email", "Телефон"]
+      },
+      "rows": [
+        {
+          "values": ["Иван", "Иванов", "ivan@example.com", "+71234567890"]
+        },
+        {
+          "values": ["Петр", "Петров", "petr@example.com", "+70987654321"]
+        },
+        {
+          "values": ["Сидор", "Сидоров", "sidor@example.com", "+71112223344"]
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
+        "format": "General"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Клиенты",
+      "range": "A1:C5"
+    },
+    "styles": [
+      {
+        "id": "merge_header_style",
+        "background_color": "#FFF2E8",
+        "font_color": "#8B4513",
+        "font_weight": "bold"
+      },
+      {
+        "id": "merged_field_style",
+        "background_color": "#FFFAF0",
+        "horizontal_alignment": "left"
+      }
+    ],
+    "data": {
+      "header": {
+        "values": ["Полное имя", "Email", "Телефон"],
+        "style": "merge_header_style"
+      },
+      "rows": [
+        {
+          "values": ["Иванов Иван", "ivan@example.com", "+71234567890"],
+          "style": "merged_field_style"
+        },
+        {
+          "values": ["Петров Петр", "petr@example.com", "+70987654321"],
+          "style": "merged_field_style"
+        },
+        {
+          "values": ["Сидоров Сидор", "sidor@example.com", "+71112223344"],
+          "style": "merged_field_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      }
+    ]
+  }

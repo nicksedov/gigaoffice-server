@@ -1,6 +1,6 @@
-task: Найди все строки, где сумма больше 10000
+task: Найди все продукты, названия которых содержат "Товар"
 request_table: |
-  ЗАДАЧА: Найди все строки, где сумма больше 10000
+  ЗАДАЧА: Найди все продукты, названия которых содержат "Товар"
   
   РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
   {
@@ -8,8 +8,8 @@ request_table: |
       "version": "1.0"
     },
     "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C7"
+      "name": "Каталог",
+      "range": "A1:C10"
     },
     "styles": [
       {
@@ -36,40 +36,44 @@ request_table: |
     ],
     "data": {
       "header": {
-        "values": ["Дата", "Продукт", "Сумма"],
+        "values": ["Код", "Название", "Цена"],
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["01.01.2024", "Товар A", 15000],
+          "values": ["A001", "Товар A", 1500],
           "style": "even_row_style"
         },
         {
-          "values": ["02.01.2024", "Товар B", 8000],
+          "values": ["B002", "Услуга B", 2000],
           "style": "odd_row_style"
         },
         {
-          "values": ["03.01.2024", "Товар C", 12000],
+          "values": ["C003", "Товар C", 1200],
           "style": "even_row_style"
         },
         {
-          "values": ["04.01.2024", "Товар D", 9000],
+          "values": ["D004", "Материал D", 800],
           "style": "odd_row_style"
         },
         {
-          "values": ["05.01.2024", "Товар E", 21000],
+          "values": ["E005", "Товар E", 2100],
           "style": "even_row_style"
         },
         {
-          "values": ["06.01.2024", "Товар F", 7500],
+          "values": ["F006", "Работа F", 3000],
           "style": "odd_row_style"
+        },
+        {
+          "values": ["G007", "Товар G", 950],
+          "style": "even_row_style"
         }
       ]
     },
     "columns": [
       {
         "index": 0,
-        "format": "dd/mm/yyyy"
+        "format": "General"
       },
       {
         "index": 1,
@@ -87,8 +91,8 @@ response_table: |
       "version": "1.0"
     },
     "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C4"
+      "name": "Каталог",
+      "range": "A1:C5"
     },
     "styles": [
       {
@@ -115,28 +119,32 @@ response_table: |
     ],
     "data": {
       "header": {
-        "values": ["Дата", "Продукт", "Сумма"],
+        "values": ["Код", "Название", "Цена"],
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["01.01.2024", "Товар A", 15000],
+          "values": ["A001", "Товар A", 1500],
           "style": "even_row_style"
         },
         {
-          "values": ["03.01.2024", "Товар C", 12000],
+          "values": ["C003", "Товар C", 1200],
           "style": "odd_row_style"
         },
         {
-          "values": ["05.01.2024", "Товар E", 21000],
+          "values": ["E005", "Товар E", 2100],
           "style": "even_row_style"
+        },
+        {
+          "values": ["G007", "Товар G", 950],
+          "style": "odd_row_style"
         }
       ]
     },
     "columns": [
       {
         "index": 0,
-        "format": "dd/mm/yyyy"
+        "format": "General"
       },
       {
         "index": 1,

@@ -1,6 +1,6 @@
-task: Найди все строки, где сумма больше 10000
+task: Найди все заказы в диапазоне дат с 01.01.2024 по 03.01.2024
 request_table: |
-  ЗАДАЧА: Найди все строки, где сумма больше 10000
+  ЗАДАЧА: Найди все заказы в диапазоне дат с 01.01.2024 по 03.01.2024
   
   РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
   {
@@ -8,8 +8,8 @@ request_table: |
       "version": "1.0"
     },
     "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C7"
+      "name": "Заказы",
+      "range": "A1:D10"
     },
     "styles": [
       {
@@ -36,32 +36,32 @@ request_table: |
     ],
     "data": {
       "header": {
-        "values": ["Дата", "Продукт", "Сумма"],
+        "values": ["Номер", "Дата", "Клиент", "Сумма"],
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["01.01.2024", "Товар A", 15000],
+          "values": ["001", "30.12.2023", "Клиент A", 15000],
           "style": "even_row_style"
         },
         {
-          "values": ["02.01.2024", "Товар B", 8000],
+          "values": ["002", "01.01.2024", "Клиент B", 8000],
           "style": "odd_row_style"
         },
         {
-          "values": ["03.01.2024", "Товар C", 12000],
+          "values": ["003", "02.01.2024", "Клиент C", 12000],
           "style": "even_row_style"
         },
         {
-          "values": ["04.01.2024", "Товар D", 9000],
+          "values": ["004", "03.01.2024", "Клиент D", 9000],
           "style": "odd_row_style"
         },
         {
-          "values": ["05.01.2024", "Товар E", 21000],
+          "values": ["005", "04.01.2024", "Клиент E", 21000],
           "style": "even_row_style"
         },
         {
-          "values": ["06.01.2024", "Товар F", 7500],
+          "values": ["006", "05.01.2024", "Клиент F", 7500],
           "style": "odd_row_style"
         }
       ]
@@ -69,14 +69,18 @@ request_table: |
     "columns": [
       {
         "index": 0,
-        "format": "dd/mm/yyyy"
-      },
-      {
-        "index": 1,
         "format": "General"
       },
       {
+        "index": 1,
+        "format": "dd/mm/yyyy"
+      },
+      {
         "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
         "format": "#,##0.00"
       }
     ]
@@ -87,8 +91,8 @@ response_table: |
       "version": "1.0"
     },
     "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C4"
+      "name": "Заказы",
+      "range": "A1:D4"
     },
     "styles": [
       {
@@ -115,20 +119,20 @@ response_table: |
     ],
     "data": {
       "header": {
-        "values": ["Дата", "Продукт", "Сумма"],
+        "values": ["Номер", "Дата", "Клиент", "Сумма"],
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["01.01.2024", "Товар A", 15000],
+          "values": ["002", "01.01.2024", "Клиент B", 8000],
           "style": "even_row_style"
         },
         {
-          "values": ["03.01.2024", "Товар C", 12000],
+          "values": ["003", "02.01.2024", "Клиент C", 12000],
           "style": "odd_row_style"
         },
         {
-          "values": ["05.01.2024", "Товар E", 21000],
+          "values": ["004", "03.01.2024", "Клиент D", 9000],
           "style": "even_row_style"
         }
       ]
@@ -136,14 +140,18 @@ response_table: |
     "columns": [
       {
         "index": 0,
-        "format": "dd/mm/yyyy"
-      },
-      {
-        "index": 1,
         "format": "General"
       },
       {
+        "index": 1,
+        "format": "dd/mm/yyyy"
+      },
+      {
         "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
         "format": "#,##0.00"
       }
     ]

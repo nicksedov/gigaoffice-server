@@ -1,0 +1,101 @@
+task: Преобразуй даты в формат ДД.ММ.ГГГГ и числа в формат #,##0.00
+request_table: |
+  ЗАДАЧА: Преобразуй даты в формат ДД.ММ.ГГГГ и числа в формат #,##0.00
+  
+  РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Финансы",
+      "range": "A1:C5"
+    },
+    "data": {
+      "header": {
+        "values": ["Дата", "Описание", "Сумма"]
+      },
+      "rows": [
+        {
+          "values": ["2024-01-01", "Продажа", "15000"]
+        },
+        {
+          "values": ["2024-01-02", "Покупка", "-8000.5"]
+        },
+        {
+          "values": ["2024-01-03", "Оплата", "-3000"]
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Финансы",
+      "range": "A1:C5"
+    },
+    "styles": [
+      {
+        "id": "conversion_header_style",
+        "background_color": "#E8F5E8",
+        "font_color": "#2D5A2D",
+        "font_weight": "bold"
+      },
+      {
+        "id": "converted_value_style",
+        "background_color": "#F0FFF0",
+        "font_style": "italic"
+      }
+    ],
+    "data": {
+      "header": {
+        "values": ["Дата", "Описание", "Сумма"],
+        "style": "conversion_header_style"
+      },
+      "rows": [
+        {
+          "values": ["01.01.2024", "Продажа", 15000.00],
+          "style": "converted_value_style"
+        },
+        {
+          "values": ["02.01.2024", "Покупка", -8000.50],
+          "style": "converted_value_style"
+        },
+        {
+          "values": ["03.01.2024", "Оплата", -3000.00],
+          "style": "converted_value_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }
