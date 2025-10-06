@@ -71,7 +71,10 @@ def init_database():
         raise
 
 def init_default_data():
-    """Инициализация базовых данных"""
+    """
+    Инициализация базовых данных
+    При каждом выполнении очищает таблицы category и prompt и записывает данные заново
+    """
     try:
         with get_db_session() as db:
             from app.models.orm.prompt import Prompt
@@ -95,60 +98,55 @@ def init_default_data():
                 )
                 db.add(admin_user)
                 logger.info("Admin user created")
-
-            # Initialize categories
-            categories_data = resource_loader.load_json("prompts/prompt_categories.json")
-            existing_categories = db.query(Category).count()
             
-            if existing_categories == 0:
-                category_map = {}
-                for category_data in categories_data:
-                    category = Category(**category_data)
-                    db.add(category)
-                    db.flush()  # Получаем ID
-                    category_map[category.name] = category.id
-                
-                logger.info(f"Created {len(categories_data)} categories")
-                
-                # Create default prompts with category_id
-                default_prompts_data = resource_loader.load_json("prompts/default_prompts.json")
-                
-                existing_prompts = db.query(Prompt).count()
-                if existing_prompts == 0:
-                    for prompt_data in default_prompts_data:
-                        category_name = prompt_data.get('category')
-                        category_id = category_map.get(category_name) if category_name else None
-                        
-                        # Создаем промпт только с category_id
-                        prompt = Prompt(
-                            name=prompt_data['name'],
-                            description=prompt_data.get('description'),
-                            template=prompt_data['template'],
-                            category_id=category_id
-                        )
-                        db.add(prompt)
-                    
-                    logger.info(f"Created {len(default_prompts_data)} default prompts")
-            else:
-                # Миграция существующих промптов: перенос category -> category_id
-                category_map = {cat.name: cat.id for cat in db.query(Category).all()}
-                
-                # Находим промпты, которые еще не имеют category_id
-                prompts_to_migrate = db.query(Prompt).filter(
-                    Prompt.category_id.is_(None)
-                ).all()
-                
-                migrated_count = 0
-                for prompt in prompts_to_migrate:
-                    # Пытаемся найти category_id по старому полю category
-                    if hasattr(prompt, 'category') and prompt.category in category_map:
-                        prompt.category_id = category_map[prompt.category]
-                        migrated_count += 1
-                
-                if migrated_count > 0:
-                    logger.info(f"Migrated {migrated_count} prompts to use category_id")
+            # ОЧИСТКА ДАННЫХ: удаляем все записи из таблиц prompt и category
+            logger.info("Clearing existing categories and prompts...")
             
+            # Сначала удаляем промпты (из-за foreign key на category_id)
+            deleted_prompts = db.query(Prompt).delete()
+            logger.info(f"Deleted {deleted_prompts} existing prompts")
+            
+            # Затем удаляем категории
+            deleted_categories = db.query(Category).delete()
+            logger.info(f"Deleted {deleted_categories} existing categories")
+            
+            # Коммитим удаление
             db.commit()
+            
+            # СОЗДАНИЕ НОВЫХ ДАННЫХ: загружаем и создаем категории заново
+            logger.info("Creating new categories and prompts...")
+            
+            categories_data = resource_loader.load_json("prompts/prompt_categories.json")
+            category_map = {}
+            
+            for category_data in categories_data:
+                category = Category(**category_data)
+                db.add(category)
+                db.flush()  # Получаем ID для использования в промптах
+                category_map[category.name] = category.id
+            
+            logger.info(f"Created {len(categories_data)} categories")
+            
+            # Создаем промпты с привязкой к категориям
+            default_prompts_data = resource_loader.load_json("prompts/default_prompts.json")
+            
+            for prompt_data in default_prompts_data:
+                category_name = prompt_data.get('category')
+                category_id = category_map.get(category_name) if category_name else None
+                
+                prompt = Prompt(
+                    name=prompt_data['name'],
+                    description=prompt_data.get('description'),
+                    template=prompt_data['template'],
+                    category_id=category_id
+                )
+                db.add(prompt)
+            
+            logger.info(f"Created {len(default_prompts_data)} default prompts")
+            
+            # Финальный коммит всех изменений
+            db.commit()
+            logger.info("Default data initialization completed successfully")
             
     except Exception as e:
         logger.error(f"Error initializing default data: {e}")

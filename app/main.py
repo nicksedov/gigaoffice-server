@@ -15,7 +15,7 @@ from app.api.health import health_router
 from app.api.feedback import feedback_router
 from app.api.prompts import prompts_router
 from app.api.metrics import metrics_router
-from app.api.spreadsheets import spreadsheet_router  # Added import for spreadsheet router
+from app.api.spreadsheets import spreadsheet_router
 
 # Create app and register routers
 app = create_app()
@@ -25,7 +25,7 @@ app.include_router(health_router)
 app.include_router(feedback_router)
 app.include_router(prompts_router)
 app.include_router(metrics_router)
-app.include_router(spreadsheet_router)  # Added registration of spreadsheet router
+app.include_router(spreadsheet_router) 
 
 # Error handlers
 @app.exception_handler(Exception)
