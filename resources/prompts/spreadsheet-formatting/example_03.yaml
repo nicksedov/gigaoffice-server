@@ -1,0 +1,116 @@
+task: Сделай заголовки жирным шрифтом и переведи столбцы Количество и Цена в числовой формат
+request_table: |
+  ЗАДАЧА: Сделай заголовки жирным шрифтом и переведи столбцы Количество и Цена в числовой формат
+  
+  РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Продажи",
+      "range": "A1:C4"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": ["Продукт", "Количество", "Цена"],
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": ["Товар A", "100", "1500"],
+          "style": "row_style"
+        },
+        {
+          "values": ["Товар B", "250", "800"],
+          "style": "row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Продажи",
+      "range": "A1:C4"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": ["Продукт", "Количество", "Цена"],
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": ["Товар A", 100, 1500],
+          "style": "row_style"
+        },
+        {
+          "values": ["Товар B", 250, 800],
+          "style": "row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "#,##0"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }

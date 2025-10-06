@@ -1,0 +1,9 @@
+task: Посчитай среднюю зарплату
+request_table: |
+  Запрос: 
+  Посчитай среднюю зарплату
+response_table: |
+  {
+    "category": "spreadsheet-analysis",
+    "confidence": 0.96855
+  }

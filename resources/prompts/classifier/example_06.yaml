@@ -1,0 +1,9 @@
+task: Объедини поля "Имя" и "Фамилия" в одно поле "Полное имя"
+request_table: |
+  Запрос: 
+  Объедини поля "Имя" и "Фамилия" в одно поле "Полное имя"
+response_table: |
+  {
+    "category": "spreadsheet-transformation",
+    "confidence": 0.92000
+  }
