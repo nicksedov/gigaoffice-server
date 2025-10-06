@@ -19,6 +19,7 @@ class CloudGigaChatService(BaseGigaChatService):
             
             self.credentials = os.getenv("GIGACHAT_CREDENTIALS")
             self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
+            self.timeout = os.getenv("GIGACHAT_REQUEST_TIMEOUT", config.get("timeout"))
             
             if not self.credentials:
                 raise ValueError("GIGACHAT_CREDENTIALS environment variable is required for cloud mode")
@@ -29,7 +30,7 @@ class CloudGigaChatService(BaseGigaChatService):
                 scope=self.scope,
                 model=self.model,
                 verify_ssl_certs=self.verify_ssl_certs,
-                timeout=60.0
+                timeout=self.timeout
             )
             
             logger.info("GigaChat client initialized successfully (CLOUD mode)")
