@@ -2,6 +2,7 @@ import os
 import json
 import re
 import yaml
+import glob
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from string import Template
@@ -15,24 +16,51 @@ GigaChat Prompt Builder
 class GigachatPromptBuilder:
     """Класс для формирования промптов для GigaChat"""
     
-    PROMPT_CONFIG_FILE_MAP = {
-        'classifier':     'user_prompt_classifier.yaml',
-        'spreadsheet-analysis':       'system_prompt_spreadsheet_analysis.yaml',
-        'spreadsheet-transformation': 'system_prompt_spreadsheet_transformation.yaml',
-        'spreadsheet-search':         'system_prompt_spreadsheet_search.yaml', 
-        'spreadsheet-generation':     'system_prompt_spreadsheet_generation.yaml',
-        'spreadsheet-formatting':     'system_prompt_spreadsheet_formatting.yaml'
+    PROMPT_CATEGORY_DIRS = {
+        'classifier':                 'classifier',
+        'spreadsheet-analysis':       'spreadsheet-analysis',
+        'spreadsheet-transformation': 'spreadsheet-transformation',
+        'spreadsheet-search':         'spreadsheet-search', 
+        'spreadsheet-generation':     'spreadsheet-generation',
+        'spreadsheet-formatting':     'spreadsheet-formatting'
     }
 
     def __init__(self, resources_dir: str = 'resources/prompts/'):
         self.resources_dir = resources_dir
 
-    def _load_system_prompt(self, prompt_type: str) -> list:
-        filename = self.PROMPT_CONFIG_FILE_MAP.get(prompt_type, self.PROMPT_CONFIG_FILE_MAP['spreadsheet-analysis'])
-        path = os.path.join(self.resources_dir, filename)
-        with open(path, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f)
-        return data
+    def _load_system_prompt(self, prompt_type: str) -> str:
+        """Load system prompt from system_prompt.txt file"""
+        category_dir = self.PROMPT_CATEGORY_DIRS.get(prompt_type, self.PROMPT_CATEGORY_DIRS['spreadsheet-analysis'])
+        prompt_path = os.path.join(self.resources_dir, category_dir, 'system_prompt.txt')
+        
+        if not os.path.exists(prompt_path):
+            raise FileNotFoundError(f"System prompt file not found: {prompt_path}")
+            
+        with open(prompt_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    
+    def _load_examples(self, prompt_type: str) -> List[Dict[str, str]]:
+        """Load examples from example_*.yaml files"""
+        category_dir = self.PROMPT_CATEGORY_DIRS.get(prompt_type, self.PROMPT_CATEGORY_DIRS['spreadsheet-analysis'])
+        examples_dir = os.path.join(self.resources_dir, category_dir)
+        
+        if not os.path.exists(examples_dir):
+            raise FileNotFoundError(f"Examples directory not found: {examples_dir}")
+            
+        example_files = glob.glob(os.path.join(examples_dir, 'example_*.yaml'))
+        example_files.sort()  # Ensure consistent ordering
+        
+        examples = []
+        for example_file in example_files:
+            with open(example_file, 'r', encoding='utf-8') as f:
+                example_data = yaml.safe_load(f)
+                examples.append({
+                    'task': example_data.get('task', ''),
+                    'request_table': example_data.get('request_table', ''),
+                    'response_table': example_data.get('response_table', '')
+                })
+        
+        return examples
     
     def prepare_classifier_system_prompt(self, categories: List[Dict[str, Any]]) -> str:
         """Подготовка системного промпта для классификатора пользовательского запроса"""
@@ -56,15 +84,20 @@ class GigachatPromptBuilder:
         Аргумент:
             prompt_type: тип промпта, например 'spreadsheet-analysis', 'spreadsheet-transformation', 'spreadsheet-search' или 'spreadsheet-generation'
         """
-        data = self._load_system_prompt(prompt_type)
-        examples = data['examples']
-        prompt_lines = [data['prompt'], "", "### Примеры:"]
+        system_prompt = self._load_system_prompt(prompt_type)
+        examples = self._load_examples(prompt_type)
+        
+        prompt_lines = [system_prompt, "", "## Примеры:"]
+        
+        example_id = 1
         for ex in examples:
-            prompt_lines.append("Запрос:")
-            prompt_lines.append(ex['request'])
+            request = self.prepare_spreadsheet_prompt(ex['task'], ex['request_table'])
+            prompt_lines.append(f"### Пример {example_id}:")
+            prompt_lines.append(request)
             prompt_lines.append("Твой ответ:")
-            prompt_lines.append(ex['response'])
+            prompt_lines.append(ex['response_table'])
             prompt_lines.append('')
+            example_id += 1
 
         return "\n".join(prompt_lines)
 
@@ -147,10 +180,11 @@ class GigachatPromptBuilder:
         prompt_parts.append(f"ЗАДАЧА: {query}")
         prompt_parts.append("")
         
-        # 2. Расширенные данные таблицы
-        prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
-        prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, indent=2))
-        prompt_parts.append("")
+        # 2. Расширенные данные таблицы (если есть)
+        if spreadsheet_data:
+            prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
+            prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, indent=2))
+            prompt_parts.append("")
         
         return "\n".join(prompt_parts)
 

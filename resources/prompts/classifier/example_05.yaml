@@ -1,0 +1,6 @@
+task: Примени чередующиеся цвета строк для улучшения читаемости
+response_table: |
+  {
+    "category": "spreadsheet-formatting",
+    "confidence": 0.95000
+  }

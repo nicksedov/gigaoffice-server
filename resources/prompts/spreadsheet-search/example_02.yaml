@@ -1,0 +1,155 @@
+task: Найди все продукты, названия которых содержат "Товар"
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Каталог",
+      "range": "A1:C10"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "even_row_style",
+        "background_color": "#F2F2F2",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "odd_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": ["Код", "Название", "Цена"],
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": ["A001", "Товар A", 1500],
+          "style": "even_row_style"
+        },
+        {
+          "values": ["B002", "Услуга B", 2000],
+          "style": "odd_row_style"
+        },
+        {
+          "values": ["C003", "Товар C", 1200],
+          "style": "even_row_style"
+        },
+        {
+          "values": ["D004", "Материал D", 800],
+          "style": "odd_row_style"
+        },
+        {
+          "values": ["E005", "Товар E", 2100],
+          "style": "even_row_style"
+        },
+        {
+          "values": ["F006", "Работа F", 3000],
+          "style": "odd_row_style"
+        },
+        {
+          "values": ["G007", "Товар G", 950],
+          "style": "even_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Каталог",
+      "range": "A1:C5"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "even_row_style",
+        "background_color": "#F2F2F2",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "odd_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": ["Код", "Название", "Цена"],
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": ["A001", "Товар A", 1500],
+          "style": "even_row_style"
+        },
+        {
+          "values": ["C003", "Товар C", 1200],
+          "style": "odd_row_style"
+        },
+        {
+          "values": ["E005", "Товар E", 2100],
+          "style": "even_row_style"
+        },
+        {
+          "values": ["G007", "Товар G", 950],
+          "style": "odd_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }

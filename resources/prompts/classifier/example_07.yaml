@@ -1,0 +1,6 @@
+task: Нарисуй зимний пейзаж
+response_table: |
+  {
+    "category": "uncertain",
+    "confidence": 1.00000
+  }

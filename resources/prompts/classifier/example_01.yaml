@@ -1,0 +1,6 @@
+task: Найди минимальное, максимальное, среднее и медианное значения
+response_table: |
+  {
+    "category": "spreadsheet-analysis",
+    "confidence": 0.97893
+  }

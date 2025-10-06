@@ -1,0 +1,110 @@
+task: Удали дубликаты строк и отсортируй данные по дате
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Заказы",
+      "range": "A1:C8"
+    },
+    "data": {
+      "header": {
+        "values": ["Дата", "Клиент", "Сумма"]
+      },
+      "rows": [
+        {
+          "values": ["01.01.2024", "Клиент A", 15000]
+        },
+        {
+          "values": ["02.01.2024", "Клиент B", 8000]
+        },
+        {
+          "values": ["01.01.2024", "Клиент A", 15000]
+        },
+        {
+          "values": ["03.01.2024", "Клиент C", 12000]
+        },
+        {
+          "values": ["02.01.2024", "Клиент B", 8000]
+        },
+        {
+          "values": ["04.01.2024", "Клиент D", 21000]
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Заказы",
+      "range": "A1:C5"
+    },
+    "styles": [
+      {
+        "id": "sorted_header_style",
+        "background_color": "#E8F4FD",
+        "font_color": "#1F4E79",
+        "font_weight": "bold"
+      },
+      {
+        "id": "deduplicated_row_style",
+        "background_color": "#F0F8FF"
+      }
+    ],
+    "data": {
+      "header": {
+        "values": ["Дата", "Клиент", "Сумма"],
+        "style": "sorted_header_style"
+      },
+      "rows": [
+        {
+          "values": ["01.01.2024", "Клиент A", 15000],
+          "style": "deduplicated_row_style"
+        },
+        {
+          "values": ["02.01.2024", "Клиент B", 8000],
+          "style": "deduplicated_row_style"
+        },
+        {
+          "values": ["03.01.2024", "Клиент C", 12000],
+          "style": "deduplicated_row_style"
+        },
+        {
+          "values": ["04.01.2024", "Клиент D", 21000],
+          "style": "deduplicated_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }
