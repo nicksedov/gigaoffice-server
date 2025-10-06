@@ -7,8 +7,14 @@ from pydantic import BaseModel, Field, field_validator
 class SpreadsheetMetadata(BaseModel):
     """Metadata for the enhanced spreadsheet data format"""
     version: str = Field(default="1.0", description="Format version for compatibility")
-    created_at: datetime = Field(default_factory=datetime.now, description="Timestamp of creation")
-    plugin_id: Optional[str] = Field(None, description="Identifier for the plugin generating the data")
+    created_at: Optional[datetime] = Field(None, description="Timestamp of creation")
+    
+    @field_validator('created_at', mode='before')
+    def handle_none_datetime(cls, v):
+        """Convert None to current datetime if needed"""
+        if v is None:
+            return datetime.now
+        return v
 
 class WorksheetInfo(BaseModel):
     """Worksheet information"""

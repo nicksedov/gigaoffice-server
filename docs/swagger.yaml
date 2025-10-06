@@ -257,9 +257,6 @@ components:
         created_at:
           type: string
           format: date-time
-        plugin_id:
-          type: string
-          nullable: true
       description: Metadata for the enhanced spreadsheet data format
 
     WorksheetInfo:

@@ -43,21 +43,6 @@ GigaOffice AI Service — это промежуточный сервис для 
 
 ## Особенности
 
-### Архитектура стилей (V2.0)
-
-Система поддерживает два формата представления данных таблиц:
-
-#### V1.0 - Inline Styles (Легаси формат)
-- Стили встроены непосредственно в элементы данных
-- Приводит к дублированию стилей и увеличению размера JSON
-- Полностью поддерживается для обратной совместимости
-
-#### V2.0 - Style References (Новый формат)
-- Централизованное хранение стилей в массиве `styles`
-- Ссылки на стили по ID вместо встроенных объектов
-- Сокращение размера JSON на 20-60%
-- Лучшая производительность и согласованность стилей
-
 ### Основные преимущества
 
 - **Асинхронная обработка** - очереди Kafka для обработки запросов
@@ -214,38 +199,31 @@ resources/
 {
   "metadata": {
     "version": "1.0",
-    "format": "enhanced-spreadsheet-data",
     "created_at": "2024-01-01T00:00:00Z",
-    "plugin_id": "example-plugin-id"
   },
   "worksheet": {
     "name": "Sheet1",
     "range": "A1",
-    "options": {
-      "auto_resize_columns": true,
-      "freeze_headers": true,
-      "auto_filter": true
-    }
   },
   "columns": [
     {
       "index": 0,
-      "name": "Product",
-      "type": "string",
-      "format": "text",
-      "width": 150
+      "format": "General",
     }
   ],
   "data": {
     "header": {
-      "values": ["Product", "Q1", "Q2"]
+      "values": ["Product", "Q1", "Q2"],
+      "style": "default"
     },
     "rows": [
       {
-        "values": ["Product A", 1000, 1200]
+        "values": ["Product A", 1000, 1200],
+        "style": "default"
       },
       {
-        "values": ["Product B", 800, 900]
+        "values": ["Product B", 800, 900],
+        "style": "default"
       }
     ],
     "styles": {
@@ -256,13 +234,6 @@ resources/
         "background_color": "#FFFFFF"
       }
     },
-    "formulas": [
-      {
-        "cell": "D2",
-        "formula": "=SUM(B2:C2)",
-        "description": "Total Sales for Product A"
-      }
-    ]
   },
   "charts": [
     {
@@ -286,26 +257,13 @@ resources/
 
 | Метод | Эндпоинт | Описание |
 |--------|-----------|-------------|
-| POST | `/api/v2/spreadsheets/process` | Обработка данных таблицы V2.0 |
-| GET | `/api/v2/spreadsheets/status/{request_id}` | Получение статуса обработки |
-| GET | `/api/v2/spreadsheets/result/{request_id}` | Получение результата с выбором формата |
-| POST | `/api/v2/spreadsheets/transform/to-legacy` | Преобразование в legacy формат |
-| POST | `/api/v2/spreadsheets/transform/from-legacy` | Преобразование из legacy формата |
-| POST | `/api/v2/spreadsheets/validate` | Валидация данных и ссылок на стили |
-| POST | `/api/v2/spreadsheets/data/search` | Поиск по данным таблицы |
+| POST | `/api/v1/spreadsheets/process` | Обработка данных таблицы V2.0 |
+| GET | `/api/v1/spreadsheets/status/{request_id}` | Получение статуса обработки |
+| GET | `/api/v1/spreadsheets/result/{request_id}` | Получение результата с выбором формата |
+| POST | `/api/v1/spreadsheets/validate` | Валидация данных и ссылок на стили |
+| POST | `/api/v1/spreadsheets/data/search` | Поиск по данным таблицы |
 
-### Legacy API (Обратная совместимость)
-
-| Метод | Эндпоинт | Описание |
-|--------|-----------|-------------|
-| POST | `/api/spreadsheets/process` | Обработка (авто-определение формата) |
-| POST | `/api/spreadsheets/detect-format` | Определение версии формата |
-| POST | `/api/spreadsheets/auto-transform` | Автоматическое преобразование |
-| GET | `/api/spreadsheets/status/{request_id}` | Получение статуса обработки |
-| GET | `/api/spreadsheets/result/{request_id}` | Получение результата |
-| POST | `/api/spreadsheets/data/search` | Поиск по данным таблицы |
-
-### Пример использования V2.0 API
+### Пример использования V1.0 API
 
 ```bash
 # Обработка данных с новой архитектурой стилей
