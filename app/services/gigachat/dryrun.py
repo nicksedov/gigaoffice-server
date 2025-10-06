@@ -38,17 +38,7 @@ class MockGigaChatClient:
                 # Try to parse the JSON
                 input_data = json.loads(json_content)
         except:
-            # If we can't parse the exact JSON, try to find any JSON in the content
-            try:
-                json_matches = re.findall(r'(\{.*\}|\[.*\])', content, re.DOTALL)
-                for json_match in json_matches:
-                    try:
-                        input_data = json.loads(json_match)
-                        break
-                    except:
-                        continue
-            except:
-                pass
+            pass
         
         return user_query, input_data
     
@@ -146,21 +136,27 @@ class DryRunGigaChatService(BaseGigaChatService):
         result = {
             'header': {        
                 'values': ['Параметр', 'Значение'],
-                'style': {
-                    'background_color': '#4472C4',
-                    'font_color': '#FFFFFF',
-                    'font_weight': 'bold',
-                }
+                'style': 'header_style'
             },
+            'styles': [{
+                'id': 'header_style',
+                'background_color': '#4472C4',
+                'font_color': '#FFFFFF',
+                'font_weight': 'bold'
+            },
+            {
+                'id': 'chapter_style',
+                'background_color': '#E0E0E0',
+                'font_color': '#FFFFFF',
+                'font_weight': 'bold'
+            }],
             'rows': result_rows
         }
         
         # Добавляем переменные окружения
         result_rows.append({
             'values': ['# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ GIGACHAT', ''],
-            'style': {
-                'background_color': '#E0E0E0'
-            }
+            'style': 'chapter_style'
         })
         for env_var in env_vars:
             result_rows.append({ 'values': env_var })
@@ -168,9 +164,7 @@ class DryRunGigaChatService(BaseGigaChatService):
         # Добавляем пользовательские данные
         result_rows.append({
             'values': ['# ПОЛЬЗОВАТЕЛЬСКИЕ ДАННЫЕ', ''],
-            'style': {
-                'background_color': '#E0E0E0'
-            }
+            'style': 'chapter_style'
         })
         result_rows.append({ 'values': ['Промпт (запрос)', query] })
         result_rows.append({ 'values': ['Категория запроса', category or 'Не указана'] })
@@ -182,9 +176,7 @@ class DryRunGigaChatService(BaseGigaChatService):
         # Добавляем сгенерированные промпты
         result_rows.append({ 
             'values': ['# СГЕНЕРИРОВАННЫЕ ПРОМПТЫ', ''],
-            'style': {
-                'background_color': '#E0E0E0'
-            }
+            'style': 'chapter_style'
         })
         result_rows.append({ 'values': ['Системный промпт', system_prompt] })
         result_rows.append({ 'values': ['Пользовательский промпт', user_prompt] })

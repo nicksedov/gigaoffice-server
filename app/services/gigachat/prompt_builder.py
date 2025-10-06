@@ -87,15 +87,17 @@ class GigachatPromptBuilder:
         system_prompt = self._load_system_prompt(prompt_type)
         examples = self._load_examples(prompt_type)
         
-        prompt_lines = [system_prompt, "", "### Примеры:"]
+        prompt_lines = [system_prompt, "", "## Примеры:"]
         
+        example_id = 1
         for ex in examples:
             request = self.prepare_spreadsheet_prompt(ex['task'], ex['request_table'])
-            prompt_lines.append("Запрос:")
+            prompt_lines.append(f"### Пример {example_id}:")
             prompt_lines.append(request)
             prompt_lines.append("Твой ответ:")
             prompt_lines.append(ex['response_table'])
             prompt_lines.append('')
+            example_id += 1
 
         return "\n".join(prompt_lines)
 
@@ -178,10 +180,11 @@ class GigachatPromptBuilder:
         prompt_parts.append(f"ЗАДАЧА: {query}")
         prompt_parts.append("")
         
-        # 2. Расширенные данные таблицы
-        prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
-        prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, indent=2))
-        prompt_parts.append("")
+        # 2. Расширенные данные таблицы (если есть)
+        if spreadsheet_data:
+            prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
+            prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, indent=2))
+            prompt_parts.append("")
         
         return "\n".join(prompt_parts)
 
