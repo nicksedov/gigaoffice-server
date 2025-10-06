@@ -55,8 +55,9 @@ class GigachatPromptBuilder:
             with open(example_file, 'r', encoding='utf-8') as f:
                 example_data = yaml.safe_load(f)
                 examples.append({
-                    'request': example_data.get('request_table', ''),
-                    'response': example_data.get('response_table', '')
+                    'task': example_data.get('task', ''),
+                    'request_table': example_data.get('request_table', ''),
+                    'response_table': example_data.get('response_table', '')
                 })
         
         return examples
@@ -89,10 +90,11 @@ class GigachatPromptBuilder:
         prompt_lines = [system_prompt, "", "### Примеры:"]
         
         for ex in examples:
+            request = self.prepare_spreadsheet_prompt(ex['task'], ex['request_table'])
             prompt_lines.append("Запрос:")
-            prompt_lines.append(ex['request'])
+            prompt_lines.append(request)
             prompt_lines.append("Твой ответ:")
-            prompt_lines.append(ex['response'])
+            prompt_lines.append(ex['response_table'])
             prompt_lines.append('')
 
         return "\n".join(prompt_lines)
