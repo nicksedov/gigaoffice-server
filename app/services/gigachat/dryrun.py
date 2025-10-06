@@ -20,9 +20,8 @@ class MockGigaChatClient:
         self.service = service
     
     def _extract_data_from_user_prompt(self, content: str) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
-        """Extract query, input_range, and input_data from user prompt"""
+        """Extract query, and input_data from user prompt"""
         user_query = ""
-        input_range = None
         input_data = None
         
         # Extract query from ЗАДАЧА line
@@ -30,33 +29,18 @@ class MockGigaChatClient:
         if task_match:
             user_query = task_match.group(1).strip()
         
-        # Extract input range
-        range_match = re.search(r'ДИАПАЗОН ЯЧЕЕК С ИСХОДНЫМИ ДАННЫМИ:\s*(.+)', content)
-        if range_match:
-            input_range = range_match.group(1).strip()
-        
         # Extract input data (JSON part)
         try:
-            # Look for JSON data after "ИСХОДНЫЕ ДАННЫЕ:" or "РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:"
-            data_section_match = re.search(r'(ИСХОДНЫЕ ДАННЫЕ:|РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:)\s*\n(.+?)(?=\n\n|\Z)', content, re.DOTALL)
+            # Look for JSON data after "РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:"
+            data_section_match = re.search(r'РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:\s*\n(.+?)(?=\n\n|\Z)', content, re.DOTALL)
             if data_section_match:
-                json_content = data_section_match.group(2).strip()
+                json_content = data_section_match.group(1).strip()
                 # Try to parse the JSON
                 input_data = json.loads(json_content)
         except:
-            # If we can't parse the exact JSON, try to find any JSON in the content
-            try:
-                json_matches = re.findall(r'(\{.*\}|\[.*\])', content, re.DOTALL)
-                for json_match in json_matches:
-                    try:
-                        input_data = json.loads(json_match)
-                        break
-                    except:
-                        continue
-            except:
-                pass
+            pass
         
-        return user_query, input_range, input_data
+        return user_query, input_data
     
     def invoke(self, messages):
         """Generate and return debug table instead of mock response"""
@@ -65,7 +49,6 @@ class MockGigaChatClient:
         
         # Extract information from messages
         user_query = ""
-        input_range = None
         category = None
         input_data = None
         
@@ -77,7 +60,7 @@ class MockGigaChatClient:
                     # Try to extract query from user prompt
                     if "ЗАДАЧА:" in content:
                         # This is likely a user prompt, extract the data
-                        user_query, input_range, input_data = self._extract_data_from_user_prompt(content)
+                        user_query, input_data = self._extract_data_from_user_prompt(content)
                     else:
                         # Assume it's a simple query
                         user_query = content
@@ -86,7 +69,7 @@ class MockGigaChatClient:
                     user_query = " ".join(str(item) for item in content)
         
         # Generate debug table using the service's method
-        debug_table = self.service._generate_debug_table(user_query, input_range, category, input_data)
+        debug_table = self.service._generate_debug_table(user_query, category, input_data)
         
         # Create a response with debug table
         response_content = json.dumps({
@@ -136,7 +119,7 @@ class DryRunGigaChatService(BaseGigaChatService):
         
         return env_vars
 
-    def _generate_debug_table(self, query: str, input_range: Optional[str] = None, 
+    def _generate_debug_table(self, query: str,  
         category: Optional[str] = None,
         input_data: Optional[Dict] = None) -> Dict[str, Any]:
         """Генерация таблицы с отладочной информацией"""
@@ -153,21 +136,27 @@ class DryRunGigaChatService(BaseGigaChatService):
         result = {
             'header': {        
                 'values': ['Параметр', 'Значение'],
-                'style': {
-                    'background_color': '#4472C4',
-                    'font_color': '#FFFFFF',
-                    'font_weight': 'bold',
-                }
+                'style': 'header_style'
             },
+            'styles': [{
+                'id': 'header_style',
+                'background_color': '#4472C4',
+                'font_color': '#FFFFFF',
+                'font_weight': 'bold'
+            },
+            {
+                'id': 'chapter_style',
+                'background_color': '#E0E0E0',
+                'font_color': '#FFFFFF',
+                'font_weight': 'bold'
+            }],
             'rows': result_rows
         }
         
         # Добавляем переменные окружения
         result_rows.append({
             'values': ['# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ GIGACHAT', ''],
-            'style': {
-                'background_color': '#E0E0E0'
-            }
+            'style': 'chapter_style'
         })
         for env_var in env_vars:
             result_rows.append({ 'values': env_var })
@@ -175,12 +164,9 @@ class DryRunGigaChatService(BaseGigaChatService):
         # Добавляем пользовательские данные
         result_rows.append({
             'values': ['# ПОЛЬЗОВАТЕЛЬСКИЕ ДАННЫЕ', ''],
-            'style': {
-                'background_color': '#E0E0E0'
-            }
+            'style': 'chapter_style'
         })
         result_rows.append({ 'values': ['Промпт (запрос)', query] })
-        result_rows.append({ 'values': ['Диапазон исходных данных', input_range or 'Не указан'] })
         result_rows.append({ 'values': ['Категория запроса', category or 'Не указана'] })
         
         # Добавляем входные данные если есть
@@ -190,9 +176,7 @@ class DryRunGigaChatService(BaseGigaChatService):
         # Добавляем сгенерированные промпты
         result_rows.append({ 
             'values': ['# СГЕНЕРИРОВАННЫЕ ПРОМПТЫ', ''],
-            'style': {
-                'background_color': '#E0E0E0'
-            }
+            'style': 'chapter_style'
         })
         result_rows.append({ 'values': ['Системный промпт', system_prompt] })
         result_rows.append({ 'values': ['Пользовательский промпт', user_prompt] })

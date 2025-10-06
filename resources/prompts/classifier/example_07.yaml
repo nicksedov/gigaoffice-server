@@ -1,7 +1,4 @@
 task: Нарисуй зимний пейзаж
-request_table: |
-  Запрос: 
-  Нарисуй зимний пейзаж
 response_table: |
   {
     "category": "uncertain",
