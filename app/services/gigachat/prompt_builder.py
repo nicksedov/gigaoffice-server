@@ -185,7 +185,7 @@ class GigachatPromptBuilder:
         # 2. Расширенные данные таблицы (если есть)
         if spreadsheet_data:
             prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
-            prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, indent=2))
+            prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False))
             prompt_parts.append("")
         
         return "\n".join(prompt_parts)
