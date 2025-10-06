@@ -91,7 +91,9 @@ class GigachatPromptBuilder:
         
         example_id = 1
         for ex in examples:
-            request = self.prepare_spreadsheet_prompt(ex['task'], ex['request_table'])
+            task = ex['task']
+            request_table_json = json.loads(ex['request_table'])
+            request = self.prepare_spreadsheet_prompt(task, request_table_json)
             prompt_lines.append(f"### Пример {example_id}:")
             prompt_lines.append(request)
             prompt_lines.append("Твой ответ:")
