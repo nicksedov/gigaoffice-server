@@ -1,6 +1,0 @@
-task: Создай столбчатую диаграмму по данным
-response_table: |
-  {
-    "category": "data-visualization",
-    "confidence": 0.95
-  }

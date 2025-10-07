@@ -1,4 +1,4 @@
-task: Нарисуй круговую диаграмму расходов
+task: Создай столбчатую диаграмму по данным о доходах
 response_table: |
   {
     "category": "data-visualization",

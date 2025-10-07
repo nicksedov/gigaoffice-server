@@ -1,7 +1,6 @@
 """AI Response API Models"""
 
 from pydantic import BaseModel
-from uuid import UUID
 from typing import Optional
 
 class AIFeedbackRequest(BaseModel):
@@ -12,7 +11,7 @@ class AIFeedbackRequest(BaseModel):
 
 class AIFeedbackResponse(BaseModel):
     id: int
-    ai_request_id: UUID
+    ai_request_id: str
     text_response: str
     rating: Optional[bool]
     comment: Optional[str]

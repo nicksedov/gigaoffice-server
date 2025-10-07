@@ -1,6 +1,6 @@
-task: Построй ящик с усами для данных о зарплатах
+task: Построй гистограмму продаж по месяцам
 response_table: |
   {
     "category": "data-visualization",
-    "confidence": 0.92
+    "confidence": 0.98
   }

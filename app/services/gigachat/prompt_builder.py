@@ -166,7 +166,7 @@ class GigachatPromptBuilder:
     def prepare_spreadsheet_prompt(
         self,
         query: str,
-        spreadsheet_data: Dict[str, Any]
+        spreadsheet_data: Optional[Dict[str, Any]]
     ) -> str:
         """
         Подготовка специализированного промпта для обработки расширенных данных таблиц
@@ -178,7 +178,7 @@ class GigachatPromptBuilder:
         Returns:
             str: Сформированный промпт для отправки в GigaChat
         """
-        prompt_parts = []
+        prompt_parts: list[str] = []
         # 1. Задача
         prompt_parts.append(f"ЗАДАЧА: {query}")
         prompt_parts.append("")
