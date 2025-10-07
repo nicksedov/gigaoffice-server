@@ -4,15 +4,9 @@ Router for AI processing endpoints
 """
 
 import uuid
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from slowapi.util import get_remote_address
-from loguru import logger
-from app.models.types.enums import RequestStatus
-from app.models.api.ai_feedback import AIFeedbackCreate, AIFeedbackOut
+from app.models.api.ai_feedback import AIFeedbackRequest, AIFeedbackResponse
 from app.models.orm.ai_request import AIRequest
 from app.models.orm.ai_feedback import AIFeedback
 from app.services.database.session import get_db
@@ -23,14 +17,11 @@ from app.services.gigachat.factory import create_gigachat_services
 # Create services in the module where needed
 gigachat_classify_service, gigachat_generate_service = create_gigachat_services(prompt_builder)
 
-from app.services.kafka.service import kafka_service
-from app.fastapi_config import security
-
 feedback_router = APIRouter(prefix="/api", tags=["AI Feedback Processing"])
 
-@feedback_router.post("/feedback", response_model=AIFeedbackOut)
-async def submit_ai_feedback(feedback: AIFeedbackCreate, db: Session = Depends(get_db)):
-    ai_request = db.query(AIRequest).filter_by(id=feedback.ai_request_id).first()
+@feedback_router.post("/feedback", response_model=AIFeedbackResponse)
+async def submit_ai_feedback(feedback: AIFeedbackRequest, db: Session = Depends(get_db)) -> AIFeedback:
+    ai_request: AIRequest | None = db.query(AIRequest).filter_by(id=feedback.ai_request_id).first()
     if not ai_request:
         raise HTTPException(status_code=404, detail="AI request not found")
     
