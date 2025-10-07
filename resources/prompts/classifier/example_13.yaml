@@ -1,0 +1,6 @@
+task: Сделай диаграмму рассеяния для корреляции
+response_table: |
+  {
+    "category": "data-visualization",
+    "confidence": 0.89
+  }

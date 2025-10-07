@@ -1,0 +1,6 @@
+task: Нарисуй круговую диаграмму расходов
+response_table: |
+  {
+    "category": "data-visualization",
+    "confidence": 0.97
+  }

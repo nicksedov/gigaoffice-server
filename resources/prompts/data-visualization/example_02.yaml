@@ -1,0 +1,101 @@
+task: Создай круговую диаграмму распределения расходов
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Бюджет",
+      "range": "A1:B6"
+    },
+    "data": {
+      "header": {
+        "values": ["Категория", "Сумма"]
+      },
+      "rows": [
+        {
+          "values": ["Аренда", 45000]
+        },
+        {
+          "values": ["Питание", 25000]
+        },
+        {
+          "values": ["Транспорт", 15000]
+        },
+        {
+          "values": ["Развлечения", 8000]
+        },
+        {
+          "values": ["Прочее", 7000]
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "#,##0"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Бюджет",
+      "range": "A1:B6"
+    },
+    "data": {
+      "header": {
+        "values": ["Категория", "Сумма"]
+      },
+      "rows": [
+        {
+          "values": ["Аренда", 45000]
+        },
+        {
+          "values": ["Питание", 25000]
+        },
+        {
+          "values": ["Транспорт", 15000]
+        },
+        {
+          "values": ["Развлечения", 8000]
+        },
+        {
+          "values": ["Прочее", 7000]
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "#,##0"
+      }
+    ],
+    "charts": [
+      {
+        "type": "pie",
+        "title": "Распределение расходов",
+        "range": "A1:B6",
+        "position": {
+          "top": 200,
+          "left": 250,
+          "width": 400,
+          "height": 300
+        },
+        "style": {
+          "color_scheme": "colorful"
+        }
+      }
+    ]
+  }

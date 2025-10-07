@@ -1,0 +1,6 @@
+task: Построй гистограмму продаж по месяцам
+response_table: |
+  {
+    "category": "data-visualization",
+    "confidence": 0.98
+  }

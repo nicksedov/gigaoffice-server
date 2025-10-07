@@ -1,0 +1,6 @@
+task: Построй ящик с усами для данных о зарплатах
+response_table: |
+  {
+    "category": "data-visualization",
+    "confidence": 0.92
+  }

@@ -22,7 +22,8 @@ class GigachatPromptBuilder:
         'spreadsheet-transformation': 'spreadsheet-transformation',
         'spreadsheet-search':         'spreadsheet-search', 
         'spreadsheet-generation':     'spreadsheet-generation',
-        'spreadsheet-formatting':     'spreadsheet-formatting'
+        'spreadsheet-formatting':     'spreadsheet-formatting',
+        'data-visualization':         'data-visualization'
     }
 
     def __init__(self, resources_dir: str = 'resources/prompts/'):
