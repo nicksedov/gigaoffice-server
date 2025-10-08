@@ -7,6 +7,13 @@ from .health import PingResponse, ServiceHealth
 from .service_metrics import MetricsResponse, TokenUsage
 from .common import ErrorResponse, SuccessResponse, PaginationParams, FilterParams, SortParams
 from .spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse, SpreadsheetData, SpreadsheetSearchRequest, SearchResult, SearchResultItem
+from .chart import (
+    ChartType, ColorScheme, LegendPosition, BorderStyle,
+    DataSource, ChartPosition, ChartStyling, SeriesConfig, ChartConfig,
+    ChartPreferences, R7OfficeConfig, ChartGenerationRequest, ChartValidationRequest,
+    ChartGenerationResponse, ChartStatusResponse, ChartResultResponse, ChartValidationResponse,
+    DataPattern, ChartRecommendation
+)
 
 __all__ = [
     'UserCreate', 'UserResponse',
@@ -19,5 +26,11 @@ __all__ = [
     'PaginationParams', 'FilterParams', 'SortParams',
     'PromptInfo', 'PresetPromptInfo', 'PromptClassificationResponse',
     'SpreadsheetRequest', 'SpreadsheetProcessResponse', 'SpreadsheetResultResponse', 'SpreadsheetData',
-    'SpreadsheetSearchRequest', 'SearchResult', 'SearchResultItem'
+    'SpreadsheetSearchRequest', 'SearchResult', 'SearchResultItem',
+    # Chart API models
+    'ChartType', 'ColorScheme', 'LegendPosition', 'BorderStyle',
+    'DataSource', 'ChartPosition', 'ChartStyling', 'SeriesConfig', 'ChartConfig',
+    'ChartPreferences', 'R7OfficeConfig', 'ChartGenerationRequest', 'ChartValidationRequest',
+    'ChartGenerationResponse', 'ChartStatusResponse', 'ChartResultResponse', 'ChartValidationResponse',
+    'DataPattern', 'ChartRecommendation'
 ]
