@@ -11,7 +11,7 @@ class AIFeedbackRequest(BaseModel):
 
 class AIFeedbackResponse(BaseModel):
     id: int
-    ai_request_id: str
+    ai_request_id: UUID
     text_response: str
     rating: Optional[bool]
     comment: Optional[str]
