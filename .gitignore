@@ -19,4 +19,5 @@ log
 docker
 
 # Local scripts
+.local
 *.sh
