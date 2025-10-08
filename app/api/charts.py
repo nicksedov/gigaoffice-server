@@ -26,6 +26,7 @@ from app.services.database.session import get_db
 from app.services.chart import chart_intelligence_service, chart_validation_service
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
+from app.services.monitoring import performance_monitor
 
 # Import custom JSON encoder
 from app.utils.json_encoder import DateTimeEncoder
@@ -160,6 +161,18 @@ async def generate_chart(
                 db_request.processing_time = recommendation.generation_metadata.get("processing_time", 0.0)
                 
                 db.commit()
+                
+                # Record metrics
+                performance_monitor.record_chart_request(
+                    request_id=request_id,
+                    user_id=user_id,
+                    chart_type=chart_config.chart_type.value,
+                    data_rows_count=data_rows_count,
+                    data_columns_count=data_cols_count,
+                    processing_time=recommendation.generation_metadata.get("processing_time", 0.0),
+                    tokens_used=db_request.tokens_used,
+                    status="completed"
+                )
                 
                 return ChartGenerationResponse(
                     success=True,
@@ -387,6 +400,57 @@ async def validate_chart_config(
         logger.error(f"Error validating chart configuration: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@chart_router.post("/optimize")
+async def optimize_chart_config(
+    chart_config: ChartConfig,
+    data_source: DataSource,
+    optimization_goals: Optional[List[str]] = Query(None, description="Optimization goals: visual_clarity, data_presentation, r7_office_performance, user_experience"),
+    current_user: Optional[Dict] = Depends(get_current_user)
+):
+    """Optimize chart configuration for better visualization"""
+    try:
+        # Set default optimization goals if not provided
+        if not optimization_goals:
+            optimization_goals = ["visual_clarity", "data_presentation", "r7_office_performance"]
+        
+        # Validate input data
+        is_valid_data, data_errors = chart_validation_service.validate_data_source(data_source)
+        if not is_valid_data:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid data source: {', '.join(data_errors)}"
+            )
+        
+        # Optimize chart configuration
+        optimized_config = await chart_intelligence_service.optimize_chart_config(
+            chart_config,
+            data_source,
+            optimization_goals
+        )
+        
+        # Validate optimized configuration
+        is_valid, validation_errors = chart_validation_service.validate_chart_config(optimized_config)
+        is_compatible, compatibility_warnings = chart_validation_service.validate_r7_office_compatibility(optimized_config)
+        
+        return {
+            "success": True,
+            "optimized_config": optimized_config,
+            "optimization_goals": optimization_goals,
+            "validation_summary": {
+                "is_valid": is_valid,
+                "is_r7_office_compatible": is_compatible,
+                "validation_errors": validation_errors,
+                "compatibility_warnings": compatibility_warnings
+            },
+            "message": "Chart configuration optimized successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error optimizing chart configuration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @chart_router.get("/types")
 async def get_supported_chart_types():
     """Get list of supported chart types with descriptions"""
@@ -395,42 +459,72 @@ async def get_supported_chart_types():
             "column": {
                 "name": "Column Chart",
                 "description": "Best for comparing values across categories",
-                "use_cases": ["Categorical comparisons", "Sales by region", "Survey responses"]
+                "use_cases": ["Categorical comparisons", "Sales by region", "Survey responses"],
+                "data_requirements": "Categorical X-axis, numerical Y-axis",
+                "r7_office_support": "full"
             },
             "line": {
                 "name": "Line Chart", 
                 "description": "Ideal for showing trends over time",
-                "use_cases": ["Time series data", "Stock prices", "Temperature changes"]
+                "use_cases": ["Time series data", "Stock prices", "Temperature changes"],
+                "data_requirements": "Sequential X-axis (often time), numerical Y-axis",
+                "r7_office_support": "full"
             },
             "pie": {
                 "name": "Pie Chart",
                 "description": "Perfect for showing parts of a whole",
-                "use_cases": ["Market share", "Budget allocation", "Survey results"]
+                "use_cases": ["Market share", "Budget allocation", "Survey results"],
+                "data_requirements": "Categorical labels, positive numerical values",
+                "r7_office_support": "full"
             },
             "area": {
                 "name": "Area Chart",
                 "description": "Shows trends and proportions over time",
-                "use_cases": ["Cumulative values", "Resource usage", "Population growth"]
+                "use_cases": ["Cumulative values", "Resource usage", "Population growth"],
+                "data_requirements": "Sequential X-axis, numerical Y-axis",
+                "r7_office_support": "full"
             },
             "scatter": {
                 "name": "Scatter Plot",
                 "description": "Reveals correlations between variables",
-                "use_cases": ["Height vs weight", "Price vs quality", "Performance analysis"]
+                "use_cases": ["Height vs weight", "Price vs quality", "Performance analysis"],
+                "data_requirements": "Numerical X and Y axes",
+                "r7_office_support": "full"
             },
             "bar": {
                 "name": "Bar Chart",
                 "description": "Horizontal comparison of categories",
-                "use_cases": ["Rankings", "Survey responses", "Performance metrics"]
+                "use_cases": ["Rankings", "Survey responses", "Performance metrics"],
+                "data_requirements": "Categorical Y-axis, numerical X-axis",
+                "r7_office_support": "full"
             },
             "histogram": {
                 "name": "Histogram",
                 "description": "Shows distribution of numerical data",
-                "use_cases": ["Age distribution", "Test scores", "Quality measurements"]
+                "use_cases": ["Age distribution", "Test scores", "Quality measurements"],
+                "data_requirements": "Numerical data for binning",
+                "r7_office_support": "full"
             },
             "doughnut": {
                 "name": "Doughnut Chart",
                 "description": "Modern alternative to pie chart",
-                "use_cases": ["Resource allocation", "Category proportions", "Progress indicators"]
+                "use_cases": ["Resource allocation", "Category proportions", "Progress indicators"],
+                "data_requirements": "Categorical labels, positive numerical values",
+                "r7_office_support": "full"
+            },
+            "box_plot": {
+                "name": "Box Plot",
+                "description": "Displays data distribution with quartiles",
+                "use_cases": ["Statistical analysis", "Outlier detection", "Data distribution comparison"],
+                "data_requirements": "Numerical data for statistical analysis",
+                "r7_office_support": "limited"
+            },
+            "radar": {
+                "name": "Radar Chart",
+                "description": "Multi-dimensional data comparison",
+                "use_cases": ["Performance comparison", "Skills assessment", "Multi-metric analysis"],
+                "data_requirements": "Multiple numerical metrics per category",
+                "r7_office_support": "limited"
             }
         }
         
@@ -452,6 +546,8 @@ async def get_chart_examples():
             "sales_by_month": {
                 "description": "Monthly sales data visualization",
                 "chart_type": "line",
+                "use_case": "Time series analysis",
+                "complexity": "simple",
                 "sample_data": {
                     "headers": ["Month", "Sales"],
                     "data_rows": [
@@ -463,11 +559,19 @@ async def get_chart_examples():
                         ["Jun", 28000]
                     ]
                 },
-                "recommended_instruction": "Create a line chart showing sales trends over the first half of the year"
+                "recommended_instruction": "Create a line chart showing sales trends over the first half of the year",
+                "expected_config": {
+                    "chart_type": "line",
+                    "show_data_labels": False,
+                    "smooth_lines": True,
+                    "legend_position": "bottom"
+                }
             },
             "market_share": {
                 "description": "Market share distribution",
                 "chart_type": "pie",
+                "use_case": "Part-to-whole analysis",
+                "complexity": "simple",
                 "sample_data": {
                     "headers": ["Company", "Market Share"],
                     "data_rows": [
@@ -477,11 +581,18 @@ async def get_chart_examples():
                         ["Company D", 17]
                     ]
                 },
-                "recommended_instruction": "Show market share distribution as a pie chart with percentages"
+                "recommended_instruction": "Show market share distribution as a pie chart with percentages",
+                "expected_config": {
+                    "chart_type": "pie",
+                    "show_data_labels": True,
+                    "legend_position": "right"
+                }
             },
             "performance_comparison": {
                 "description": "Performance comparison across categories",
                 "chart_type": "column",
+                "use_case": "Multi-series comparison",
+                "complexity": "medium",
                 "sample_data": {
                     "headers": ["Department", "Q1", "Q2", "Q3", "Q4"],
                     "data_rows": [
@@ -490,7 +601,164 @@ async def get_chart_examples():
                         ["Support", 92, 89, 94, 96]
                     ]
                 },
-                "recommended_instruction": "Compare quarterly performance across departments using grouped columns"
+                "recommended_instruction": "Compare quarterly performance across departments using grouped columns",
+                "expected_config": {
+                    "chart_type": "column",
+                    "show_data_labels": True,
+                    "legend_position": "top"
+                }
+            },
+            "correlation_analysis": {
+                "description": "Correlation between two variables",
+                "chart_type": "scatter",
+                "use_case": "Relationship analysis",
+                "complexity": "medium",
+                "sample_data": {
+                    "headers": ["Advertising Spend", "Sales Revenue"],
+                    "data_rows": [
+                        [1000, 15000],
+                        [1500, 22000],
+                        [2000, 28000],
+                        [2500, 35000],
+                        [3000, 42000],
+                        [3500, 48000]
+                    ]
+                },
+                "recommended_instruction": "Show the correlation between advertising spend and sales revenue",
+                "expected_config": {
+                    "chart_type": "scatter",
+                    "show_data_labels": False,
+                    "legend_position": "none"
+                }
+            },
+            "age_distribution": {
+                "description": "Age distribution histogram",
+                "chart_type": "histogram",
+                "use_case": "Statistical distribution",
+                "complexity": "medium",
+                "sample_data": {
+                    "headers": ["Age Group", "Count"],
+                    "data_rows": [
+                        ["18-25", 120],
+                        ["26-35", 180],
+                        ["36-45", 150],
+                        ["46-55", 100],
+                        ["56-65", 80],
+                        ["65+", 45]
+                    ]
+                },
+                "recommended_instruction": "Create a histogram showing age distribution of survey respondents",
+                "expected_config": {
+                    "chart_type": "histogram",
+                    "show_data_labels": True,
+                    "legend_position": "none"
+                }
+            },
+            "skill_assessment": {
+                "description": "Multi-dimensional skill assessment",
+                "chart_type": "radar",
+                "use_case": "Multi-metric comparison",
+                "complexity": "complex",
+                "sample_data": {
+                    "headers": ["Employee", "Communication", "Technical", "Leadership", "Creativity", "Teamwork"],
+                    "data_rows": [
+                        ["John", 8, 9, 6, 7, 8],
+                        ["Jane", 9, 7, 8, 9, 9],
+                        ["Bob", 7, 10, 5, 6, 7]
+                    ]
+                },
+                "recommended_instruction": "Create a radar chart comparing employee skills across multiple dimensions",
+                "expected_config": {
+                    "chart_type": "radar",
+                    "show_data_labels": False,
+                    "legend_position": "bottom"
+                }
+            },
+            "regional_sales": {
+                "description": "Regional sales comparison",
+                "chart_type": "bar",
+                "use_case": "Categorical ranking",
+                "complexity": "simple",
+                "sample_data": {
+                    "headers": ["Region", "Sales"],
+                    "data_rows": [
+                        ["North America", 45000],
+                        ["Europe", 38000],
+                        ["Asia Pacific", 52000],
+                        ["Latin America", 28000],
+                        ["Middle East", 22000]
+                    ]
+                },
+                "recommended_instruction": "Create a horizontal bar chart showing sales by region",
+                "expected_config": {
+                    "chart_type": "bar",
+                    "show_data_labels": True,
+                    "legend_position": "none"
+                }
+            },
+            "budget_allocation": {
+                "description": "Budget allocation doughnut chart",
+                "chart_type": "doughnut",
+                "use_case": "Modern proportional display",
+                "complexity": "simple",
+                "sample_data": {
+                    "headers": ["Category", "Budget"],
+                    "data_rows": [
+                        ["Operations", 40],
+                        ["Marketing", 25],
+                        ["R&D", 20],
+                        ["Administration", 15]
+                    ]
+                },
+                "recommended_instruction": "Show budget allocation as a modern doughnut chart",
+                "expected_config": {
+                    "chart_type": "doughnut",
+                    "show_data_labels": True,
+                    "legend_position": "right"
+                }
+            },
+            "performance_metrics": {
+                "description": "Performance metrics box plot",
+                "chart_type": "box_plot",
+                "use_case": "Statistical analysis with outliers",
+                "complexity": "complex",
+                "sample_data": {
+                    "headers": ["Metric", "Q1", "Median", "Q3", "Min", "Max"],
+                    "data_rows": [
+                        ["Response Time", 120, 150, 180, 80, 250],
+                        ["Accuracy", 85, 92, 96, 70, 100],
+                        ["Efficiency", 75, 85, 92, 60, 98]
+                    ]
+                },
+                "recommended_instruction": "Create a box plot showing distribution of performance metrics",
+                "expected_config": {
+                    "chart_type": "box_plot",
+                    "show_data_labels": False,
+                    "legend_position": "bottom"
+                }
+            },
+            "cumulative_growth": {
+                "description": "Cumulative growth area chart",
+                "chart_type": "area",
+                "use_case": "Cumulative trends",
+                "complexity": "medium",
+                "sample_data": {
+                    "headers": ["Month", "New Users", "Returning Users"],
+                    "data_rows": [
+                        ["Jan", 1000, 500],
+                        ["Feb", 1200, 800],
+                        ["Mar", 1500, 1100],
+                        ["Apr", 1800, 1400],
+                        ["May", 2000, 1600],
+                        ["Jun", 2200, 1800]
+                    ]
+                },
+                "recommended_instruction": "Show cumulative user growth with stacked area chart",
+                "expected_config": {
+                    "chart_type": "area",
+                    "show_data_labels": False,
+                    "legend_position": "top"
+                }
             }
         }
         
@@ -501,11 +769,210 @@ async def get_chart_examples():
                 "Use clear, descriptive instructions for better AI recommendations",
                 "Ensure data has proper headers and consistent formatting",
                 "Consider your audience when choosing chart types",
-                "Pie charts work best with 2-8 categories",
-                "Line charts are ideal for time-based data"
-            ]
+                "Pie and doughnut charts work best with 2-8 categories",
+                "Line and area charts are ideal for time-based data",
+                "Scatter plots are perfect for showing correlations",
+                "Bar charts work well for ranking and comparisons",
+                "Histograms are best for showing data distributions",
+                "Radar charts excel at multi-dimensional comparisons",
+                "Box plots are ideal for statistical analysis"
+            ],
+            "chart_selection_guide": {
+                "time_series": ["line", "area"],
+                "categorical_comparison": ["column", "bar"],
+                "part_to_whole": ["pie", "doughnut"],
+                "correlation": ["scatter"],
+                "distribution": ["histogram", "box_plot"],
+                "multi_dimensional": ["radar"],
+                "ranking": ["bar", "column"]
+            },
+            "data_requirements": {
+                "minimum_rows": 2,
+                "maximum_rows": 10000,
+                "minimum_columns": 1,
+                "maximum_columns": 50,
+                "supported_data_types": ["string", "number", "date", "boolean"]
+            }
         }
         
     except Exception as e:
         logger.error(f"Error getting chart examples: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@chart_router.get("/templates")
+async def get_chart_templates():
+    """Get chart configuration templates for quick setup"""
+    try:
+        templates = {
+            "basic_column": {
+                "name": "Basic Column Chart",
+                "description": "Simple column chart for categorical data",
+                "chart_config": {
+                    "chart_type": "column",
+                    "title": "Column Chart",
+                    "series_config": {
+                        "x_axis_column": 0,
+                        "y_axis_columns": [1],
+                        "show_data_labels": False
+                    },
+                    "position": {
+                        "x": 450,
+                        "y": 50,
+                        "width": 600,
+                        "height": 400
+                    },
+                    "styling": {
+                        "color_scheme": "office",
+                        "font_family": "Arial",
+                        "font_size": 12,
+                        "legend_position": "bottom"
+                    }
+                },
+                "use_cases": ["Sales comparison", "Survey results", "Performance metrics"]
+            },
+            "time_series_line": {
+                "name": "Time Series Line Chart", 
+                "description": "Line chart optimized for time-based data",
+                "chart_config": {
+                    "chart_type": "line",
+                    "title": "Trend Analysis",
+                    "series_config": {
+                        "x_axis_column": 0,
+                        "y_axis_columns": [1],
+                        "show_data_labels": False,
+                        "smooth_lines": True
+                    },
+                    "position": {
+                        "x": 450,
+                        "y": 50,
+                        "width": 700,
+                        "height": 400
+                    },
+                    "styling": {
+                        "color_scheme": "modern",
+                        "font_family": "Arial", 
+                        "font_size": 12,
+                        "legend_position": "top"
+                    }
+                },
+                "use_cases": ["Stock prices", "Website traffic", "Temperature trends"]
+            },
+            "proportion_pie": {
+                "name": "Proportion Pie Chart",
+                "description": "Pie chart for showing parts of a whole",
+                "chart_config": {
+                    "chart_type": "pie",
+                    "title": "Distribution Analysis",
+                    "series_config": {
+                        "x_axis_column": 0,
+                        "y_axis_columns": [1],
+                        "show_data_labels": True
+                    },
+                    "position": {
+                        "x": 450,
+                        "y": 50, 
+                        "width": 500,
+                        "height": 500
+                    },
+                    "styling": {
+                        "color_scheme": "colorful",
+                        "font_family": "Arial",
+                        "font_size": 11,
+                        "legend_position": "right"
+                    }
+                },
+                "use_cases": ["Market share", "Budget allocation", "Survey responses"]
+            }
+        }
+        
+        return {
+            "success": True,
+            "templates": templates,
+            "template_categories": {
+                "basic": ["basic_column", "time_series_line", "proportion_pie"]
+            },
+            "customization_tips": [
+                "Adjust position and size based on your R7-Office layout",
+                "Choose color schemes that match your presentation theme",
+                "Enable data labels for clearer communication"
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting chart templates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@chart_router.get("/queue/status")
+async def get_queue_status(current_user: Optional[Dict] = Depends(get_current_user)):
+    """Get Kafka queue status and processing metrics"""
+    try:
+        # Get Kafka service info
+        queue_info = kafka_service.get_queue_info()
+        
+        # Get processing stats
+        from app.services.chart.processor import chart_processing_service
+        processing_stats = chart_processing_service.get_processing_stats()
+        
+        # Get consumer status if available
+        consumer_status = None
+        try:
+            from app.services.kafka.consumer import chart_kafka_consumer
+            consumer_status = chart_kafka_consumer.get_consumer_status()
+        except ImportError:
+            logger.warning("Consumer module not available")
+        
+        return {
+            "success": True,
+            "queue_info": queue_info,
+            "processing_stats": processing_stats,
+            "consumer_status": consumer_status,
+            "message": "Queue status retrieved successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting queue status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@chart_router.get("/metrics")
+async def get_metrics(
+    time_range: int = Query(60, description="Time range in minutes for metrics"),
+    current_user: Optional[Dict] = Depends(get_current_user)
+):
+    """Get performance metrics and system health"""
+    try:
+        from app.services.monitoring import performance_monitor
+        
+        # Get comprehensive metrics summary
+        metrics_summary = performance_monitor.get_metrics_summary(time_range)
+        
+        return {
+            "success": True,
+            "metrics": metrics_summary,
+            "message": f"Metrics retrieved for last {time_range} minutes"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting metrics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@chart_router.get("/metrics/trends")
+async def get_metrics_trends(
+    hours: int = Query(24, description="Number of hours for trend analysis"),
+    current_user: Optional[Dict] = Depends(get_current_user)
+):
+    """Get performance trends over time"""
+    try:
+        from app.services.monitoring import performance_monitor
+        
+        trends = performance_monitor.get_trends(hours)
+        
+        return {
+            "success": True,
+            "trends": trends,
+            "hours": hours,
+            "message": f"Trends retrieved for last {hours} hours"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting trends: {e}")
         raise HTTPException(status_code=500, detail=str(e))
