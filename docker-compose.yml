@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # Chart Generation API
+  chart-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/gigaoffice
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - GIGACHAT_CLIENT_ID=${GIGACHAT_CLIENT_ID}
+      - GIGACHAT_CLIENT_SECRET=${GIGACHAT_CLIENT_SECRET}
+      - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      - LOG_LEVEL=INFO
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - gigaoffice-network
+
+  # Chart Consumer
+  chart-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/gigaoffice
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - GIGACHAT_CLIENT_ID=${GIGACHAT_CLIENT_ID}
+      - GIGACHAT_CLIENT_SECRET=${GIGACHAT_CLIENT_SECRET}
+      - GIGACHAT_SCOPE=${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      - LOG_LEVEL=INFO
+    depends_on:
+      - postgres
+      - kafka
+      - chart-api
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - gigaoffice-network
+    deploy:
+      replicas: 2
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=gigaoffice
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gigaoffice-network
+    restart: unless-stopped
+
+  # Apache Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - gigaoffice-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - gigaoffice-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - gigaoffice-network
+    restart: unless-stopped
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/ssl:/etc/nginx/ssl
+    depends_on:
+      - chart-api
+    networks:
+      - gigaoffice-network
+    restart: unless-stopped
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - gigaoffice-network
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - gigaoffice-network
+
+volumes:
+  postgres_data:
+  kafka_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  gigaoffice-network:
+    driver: bridge

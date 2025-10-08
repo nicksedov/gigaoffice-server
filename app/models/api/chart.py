@@ -3,6 +3,7 @@ Chart Generation API Data Models
 Enhanced Pydantic models for chart generation with R7-Office API compatibility
 """
 
+import re
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union, Literal
 from pydantic import BaseModel, Field, field_validator
@@ -21,6 +22,92 @@ class ChartType(str, Enum):
     BAR = "bar"
     DOUGHNUT = "doughnut"
     RADAR = "radar"
+    
+    @classmethod
+    def get_chart_type_info(cls) -> Dict[str, Dict[str, Any]]:
+        """Get detailed information about each chart type"""
+        return {
+            cls.COLUMN.value: {
+                "name": "Column Chart",
+                "description": "Best for comparing values across categories",
+                "data_requirements": "Categorical X-axis, numerical Y-axis",
+                "min_series": 1,
+                "max_series": 10,
+                "optimal_categories": "3-12"
+            },
+            cls.LINE.value: {
+                "name": "Line Chart",
+                "description": "Ideal for showing trends over time",
+                "data_requirements": "Sequential X-axis (often time), numerical Y-axis",
+                "min_series": 1,
+                "max_series": 8,
+                "optimal_categories": "5-50"
+            },
+            cls.PIE.value: {
+                "name": "Pie Chart",
+                "description": "Perfect for showing parts of a whole",
+                "data_requirements": "Categorical labels, positive numerical values",
+                "min_series": 1,
+                "max_series": 1,
+                "optimal_categories": "2-8"
+            },
+            cls.AREA.value: {
+                "name": "Area Chart",
+                "description": "Shows trends and proportions over time",
+                "data_requirements": "Sequential X-axis, numerical Y-axis",
+                "min_series": 1,
+                "max_series": 6,
+                "optimal_categories": "5-30"
+            },
+            cls.SCATTER.value: {
+                "name": "Scatter Plot",
+                "description": "Reveals correlations between variables",
+                "data_requirements": "Numerical X and Y axes",
+                "min_series": 1,
+                "max_series": 5,
+                "optimal_categories": "10-500"
+            },
+            cls.HISTOGRAM.value: {
+                "name": "Histogram",
+                "description": "Shows distribution of numerical data",
+                "data_requirements": "Numerical data for binning",
+                "min_series": 1,
+                "max_series": 3,
+                "optimal_categories": "5-50"
+            },
+            cls.BOX_PLOT.value: {
+                "name": "Box Plot",
+                "description": "Displays data distribution with quartiles",
+                "data_requirements": "Numerical data for statistical analysis",
+                "min_series": 1,
+                "max_series": 8,
+                "optimal_categories": "1-20"
+            },
+            cls.BAR.value: {
+                "name": "Bar Chart",
+                "description": "Horizontal comparison of categories",
+                "data_requirements": "Categorical Y-axis, numerical X-axis",
+                "min_series": 1,
+                "max_series": 10,
+                "optimal_categories": "3-15"
+            },
+            cls.DOUGHNUT.value: {
+                "name": "Doughnut Chart",
+                "description": "Modern alternative to pie chart",
+                "data_requirements": "Categorical labels, positive numerical values",
+                "min_series": 1,
+                "max_series": 1,
+                "optimal_categories": "2-8"
+            },
+            cls.RADAR.value: {
+                "name": "Radar Chart",
+                "description": "Multi-dimensional data comparison",
+                "data_requirements": "Multiple numerical metrics per category",
+                "min_series": 1,
+                "max_series": 5,
+                "optimal_categories": "3-10"
+            }
+        }
 
 class ColorScheme(str, Enum):
     """Color scheme options for charts"""
@@ -95,6 +182,9 @@ class ChartStyling(BaseModel):
             for color in v:
                 if not color.startswith('#'):
                     raise ValueError('All custom colors must be in hex format starting with #')
+                # Validate hex color format
+                if not re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color):
+                    raise ValueError(f'Invalid hex color format: {color}')
         return v
 
 class SeriesConfig(BaseModel):
