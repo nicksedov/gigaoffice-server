@@ -86,7 +86,7 @@ class WorksheetData(BaseModel):
 class ColumnDefinition(BaseModel):
     """Column definition with type and formatting"""
     index: int = Field(..., description="Zero-based column index")
-    format: str = Field(None, description="Display format for the data")
+    format: str = Field('General', description="Display format for the data")
 
 class ChartPosition(BaseModel):
     """Position and size specifications for charts"""
@@ -105,13 +105,13 @@ class ChartDefinition(BaseModel):
     title: str = Field(..., description="Chart title")
     range: str = Field(..., description="Data range for the chart")
     position: ChartPosition = Field(..., description="Position and size specifications")
-    style: ChartStyle = Field(default_factory=ChartStyle, description="Chart styling options")
+    style: ChartStyle = Field(default_factory=lambda: ChartStyle(), description="Chart styling options")
 
 class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation with style references"""
-    metadata: SpreadsheetMetadata = Field(default_factory=SpreadsheetMetadata, description="Metadata section")
-    worksheet: WorksheetInfo = Field(default_factory=WorksheetInfo, description="Worksheet section")
-    data: WorksheetData = Field(default_factory=WorksheetData, description="Data section containing header and rows")
+    metadata: SpreadsheetMetadata = Field(default_factory=lambda: SpreadsheetMetadata(created_at=None), description="Metadata section")
+    worksheet: WorksheetInfo = Field(default_factory=lambda: WorksheetInfo(), description="Worksheet section")
+    data: WorksheetData = Field(default_factory=lambda: WorksheetData(header=None, rows=[]), description="Data section containing header and rows")
     columns: Optional[List[ColumnDefinition]] = Field(default_factory=list, description="Column definitions")
     styles: List[StyleDefinition] = Field(default_factory=list, description="Centralized style definitions")
     charts: Optional[List[ChartDefinition]] = Field(default_factory=list, description="Chart definitions")

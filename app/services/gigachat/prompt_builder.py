@@ -22,7 +22,8 @@ class GigachatPromptBuilder:
         'spreadsheet-transformation': 'spreadsheet-transformation',
         'spreadsheet-search':         'spreadsheet-search', 
         'spreadsheet-generation':     'spreadsheet-generation',
-        'spreadsheet-formatting':     'spreadsheet-formatting'
+        'spreadsheet-formatting':     'spreadsheet-formatting',
+        'data-visualization':         'data-visualization'
     }
 
     def __init__(self, resources_dir: str = 'resources/prompts/'):
@@ -165,7 +166,7 @@ class GigachatPromptBuilder:
     def prepare_spreadsheet_prompt(
         self,
         query: str,
-        spreadsheet_data: Dict[str, Any]
+        spreadsheet_data: Optional[Dict[str, Any]]
     ) -> str:
         """
         Подготовка специализированного промпта для обработки расширенных данных таблиц
@@ -177,7 +178,7 @@ class GigachatPromptBuilder:
         Returns:
             str: Сформированный промпт для отправки в GigaChat
         """
-        prompt_parts = []
+        prompt_parts: list[str] = []
         # 1. Задача
         prompt_parts.append(f"ЗАДАЧА: {query}")
         prompt_parts.append("")

@@ -10,7 +10,7 @@ class AIRequest(Base):
     """Модель запроса к ИИ"""
     __tablename__ = "ai_requests"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, index=True)  # UUID string
     user_id = Column(Integer, index=True)
     status = Column(String(20), default=RequestStatus.PENDING.value)
     

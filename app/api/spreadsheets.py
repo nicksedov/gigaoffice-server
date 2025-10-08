@@ -6,7 +6,7 @@ Router for enhanced spreadsheet manipulation with style reference architecture
 import os
 import uuid
 import json
-from typing import Dict, Any, Optional, Union, List
+from typing import Dict, Any, Optional, Union, List, cast
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request, Query
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
@@ -95,7 +95,7 @@ async def process_spreadsheet_request(
             status=RequestStatus.PENDING,
             input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
             query_text=spreadsheet_request.query_text,
-            category=spreadsheet_request.category if spreadsheet_request.category else 'uncertain',
+            category=spreadsheet_request.category if spreadsheet_request.category is not None else 'uncertain',
             input_data=spreadsheet_json
         )
         db.add(db_request)
@@ -108,7 +108,7 @@ async def process_spreadsheet_request(
             user_id=user_id,
             query=spreadsheet_request.query_text,
             input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
-            category=spreadsheet_request.category,
+            category=spreadsheet_request.category if spreadsheet_request.category is not None else 'uncertain',
             input_data=[{"spreadsheet_data": spreadsheet_json}],
             priority=1 if current_user and current_user.get("role") == "premium" else 0
         )
@@ -120,7 +120,8 @@ async def process_spreadsheet_request(
             success=True,
             request_id=request_id,
             status="queued",
-            message="Spreadsheet processing request added to queue"
+            message="Spreadsheet processing request added to queue",
+            error_message=None
         )
         
     except HTTPException:
@@ -138,19 +139,23 @@ async def get_spreadsheet_processing_status(request_id: str, db: Session = Depen
             raise HTTPException(status_code=404, detail="Request not found")
         
         # Determine message based on status
-        if db_request.status == RequestStatus.FAILED:
-            message = db_request.error_message
-        elif db_request.status == RequestStatus.COMPLETED:
+        # Type-safe access to ORM attributes using cast
+        status_value = cast(str, db_request.status)
+        error_msg: str | None = cast(Optional[str], db_request.error_message)
+        
+        if status_value == RequestStatus.FAILED.value:
+            message = error_msg or "Request failed"
+        elif status_value == RequestStatus.COMPLETED.value:
             message = "Request completed successfully"
         else:
             message = "Request is being processed"
         
         return SpreadsheetProcessResponse(
-            success=db_request.status == RequestStatus.COMPLETED,
+            success=status_value == RequestStatus.COMPLETED.value,
             request_id=request_id,
-            status=db_request.status,
+            status=status_value,
             message=message,
-            error_message=db_request.error_message if db_request.status == RequestStatus.FAILED else None
+            error_message=error_msg if status_value == RequestStatus.FAILED.value else None
         )
         
     except HTTPException:
@@ -170,11 +175,19 @@ async def get_spreadsheet_result(
         if not db_request:
             raise HTTPException(status_code=404, detail="Request not found")
         
-        if db_request.status != RequestStatus.COMPLETED:
+        # Type-safe access to ORM attributes using cast
+        status_value = cast(str, db_request.status)
+        
+        if status_value != RequestStatus.COMPLETED.value:
+            message = (
+                "Request is still being processed" 
+                if status_value in [RequestStatus.PENDING.value, RequestStatus.PROCESSING.value] 
+                else "Request failed or was cancelled"
+            )
             return SpreadsheetResultResponse(
                 success=False,
-                status=db_request.status,
-                message="Request is still being processed" if db_request.status in [RequestStatus.PENDING, RequestStatus.PROCESSING] else "Request failed or was cancelled",
+                status=status_value,
+                message=message,
                 result=None,
                 tokens_used=None,
                 processing_time=None
@@ -182,25 +195,31 @@ async def get_spreadsheet_result(
         
         # Try to parse result data if available
         result_data = None
-        if db_request.result_data:
+        raw_result_data = cast(Any, db_request.result_data)
+        
+        if raw_result_data is not None:
             try:
                 # If result_data is a string, parse it
-                if isinstance(db_request.result_data, str):
-                    result_data = json.loads(db_request.result_data)
+                if isinstance(raw_result_data, str):
+                    result_data = json.loads(raw_result_data)
                 # If it's already a dict, use it directly
-                elif isinstance(db_request.result_data, dict):
-                    result_data = db_request.result_data
+                elif isinstance(raw_result_data, dict):
+                    result_data = raw_result_data
                         
             except Exception as e:
                 logger.warning(f"Could not parse result data: {e}")
         
+        # Type-safe access to ORM attributes using cast
+        tokens_used_value = cast(Optional[int], db_request.tokens_used)
+        processing_time_value = cast(Optional[float], db_request.processing_time)
+        
         return SpreadsheetResultResponse(
             success=True,
-            status=db_request.status,
+            status=status_value,
             message="Request completed successfully",
-            result=result_data,
-            tokens_used=db_request.tokens_used,
-            processing_time=db_request.processing_time
+            result=cast(Optional[SpreadsheetData], result_data),
+            tokens_used=tokens_used_value,
+            processing_time=processing_time_value
         )
         
     except HTTPException:

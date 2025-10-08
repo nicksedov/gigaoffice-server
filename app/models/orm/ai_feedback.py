@@ -9,7 +9,7 @@ class AIFeedback(Base):
     __tablename__ = "ai_feedback"
 
     id = Column(Integer, primary_key=True, index=True)
-    ai_request_id = Column(Integer, ForeignKey("ai_requests.id"), nullable=False, index=True)
+    ai_request_id = Column(String(36), ForeignKey("ai_requests.id"), nullable=False, index=True)  # UUID string reference
     text_response = Column(Text, nullable=False)
     rating = Column(Boolean, nullable=True)  # true=хороший, false=плохой, null=не оценено
     comment = Column(Text, nullable=True)

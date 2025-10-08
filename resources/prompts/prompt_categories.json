@@ -35,10 +35,17 @@
     "sort_order": 5
   },
   {
+    "name": "data-visualization",
+    "display_name": "Визуализировать данные",
+    "description": "Создание графиков, диаграмм и визуализации данных в таблицах",
+    "is_active": true,
+    "sort_order": 6
+  },
+  {
     "name": "uncertain",
     "display_name": "Не относится к задачам, решаемым в электронных таблицах",
     "description": "Не относится ни к одной категории анализа, синтеза, поиска или обработки данных с помощью электронных таблиц",
     "is_active": false,
-    "sort_order": 6
+    "sort_order": 7
   }
 ]
