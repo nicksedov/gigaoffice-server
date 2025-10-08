@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel
 from typing import Optional
+from uuid import UUID
 
 class AIFeedbackRequest(BaseModel):
     ai_request_id: str
