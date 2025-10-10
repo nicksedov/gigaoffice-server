@@ -110,5 +110,20 @@
     "template": "Увеличь размер шрифта заголовков до 12 пунктов и сделай их жирными.",
     "category": "spreadsheet-formatting",
     "language": "ru"
+  },
+  {
+    "name": "График",
+    "description": "Построение графика изменения величины",
+    "template": "Построй график изменения величины во времени.",
+    "category": "data-graph",
+    "language": "ru"
+  },
+  {
+    "name": "Диаграмма",
+    "description": "Построение диаграммы",
+    "template": "Построй гистограмму распределения величины",
+    "category": "data-histogram",
+    "language": "ru"
   }
+
 ]

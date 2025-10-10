@@ -35,17 +35,30 @@
     "sort_order": 5
   },
   {
-    "name": "data-visualization",
-    "display_name": "Визуализировать данные",
-    "description": "Создание графиков, диаграмм и визуализации данных в таблицах",
+    "name": "data-graph",
+    "display_name": "График",
+    "description": "Создание графиков",
     "is_active": true,
     "sort_order": 6
   },
   {
+    "name": "data-diagram",
+    "display_name": "Диаграмма",
+    "description": "Создание диаграмм",
+    "is_active": true,
+    "sort_order": 7
+  },
+  {
+    "name": "data-histogram",
+    "display_name": "Гистограмма",
+    "description": "Создание гистограмм",
+    "is_active": true,
+    "sort_order": 8
+  },  {
     "name": "uncertain",
     "display_name": "Не относится к задачам, решаемым в электронных таблицах",
     "description": "Не относится ни к одной категории анализа, синтеза, поиска или обработки данных с помощью электронных таблиц",
     "is_active": false,
-    "sort_order": 7
+    "sort_order": 9
   }
 ]

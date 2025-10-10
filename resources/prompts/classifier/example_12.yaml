@@ -1,6 +1,6 @@
-task: Построй гистограмму продаж по месяцам
+task: Построй гистограмму распределения величины
 response_table: |
   {
-    "category": "data-visualization",
+    "category": "data-histogram",
     "confidence": 0.98
   }
