@@ -1,0 +1,64 @@
+task: Построй столбчатую диаграмму сравнения продаж по кварталам для нескольких продуктов
+request_table: |
+  {
+    "data_range": "A1:D5",
+    "chart_data": [
+      {
+        "name": "Квартал",
+        "values": ["Q1 2024", "Q2 2024", "Q3 2024", "Q4 2024"],
+        "format": "General"
+      },
+      {
+        "name": "Продукт A",
+        "values": [45000, 52000, 48000, 61000],
+        "format": "#,##0"
+      },
+      {
+        "name": "Продукт B",
+        "values": [38000, 41000, 45000, 49000],
+        "format": "#,##0"
+      },
+      {
+        "name": "Продукт C",
+        "values": [29000, 35000, 42000, 48000],
+        "format": "#,##0"
+      }
+    ],
+    "chart_type": "column",
+    "query_text": "Построй столбчатую диаграмму сравнения продаж"
+  }
+response_table: |
+  {
+    "success": true,
+    "status": "completed",
+    "message": "Столбчатая диаграмма сравнения продаж успешно создана",
+    "chart_config": {
+      "chart_type": "column",
+      "title": "Сравнение продаж по кварталам",
+      "subtitle": "Динамика продаж трех продуктов в 2024 году",
+      "series_config": {
+        "x_axis_column": 0,
+        "y_axis_columns": [1, 2, 3],
+        "series_names": ["Продукт A", "Продукт B", "Продукт C"],
+        "show_data_labels": true,
+        "smooth_lines": false
+      },
+      "position": {
+        "x": 500,
+        "y": 100,
+        "width": 650,
+        "height": 450,
+        "anchor_cell": "F3"
+      },
+      "styling": {
+        "color_scheme": "modern",
+        "font_family": "Arial",
+        "font_size": 12,
+        "background_color": null,
+        "border_style": "solid",
+        "legend_position": "top"
+      }
+    },
+    "tokens_used": 465,
+    "processing_time": 1.42
+  }
