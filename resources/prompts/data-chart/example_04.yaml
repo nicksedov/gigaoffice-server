@@ -1,112 +1,98 @@
 task: Создай диаграмму размаха для анализа зарплат по отделам
 request_table: |
   {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Зарплаты",
-      "range": "A1:C16"
-    },
-    "data": {
-      "header": {
-        "values": ["Сотрудник", "Отдел", "Зарплата"]
-      },
-      "rows": [
-        {
-          "values": ["Иванов", "IT", 120000]
-        },
-        {
-          "values": ["Петров", "IT", 95000]
-        },
-        {
-          "values": ["Сидоров", "IT", 110000]
-        },
-        {
-          "values": ["Козлов", "IT", 85000]
-        },
-        {
-          "values": ["Смирнов", "IT", 130000]
-        },
-        {
-          "values": ["Попов", "Продажи", 70000]
-        },
-        {
-          "values": ["Новиков", "Продажи", 65000]
-        },
-        {
-          "values": ["Морозов", "Продажи", 80000]
-        },
-        {
-          "values": ["Волков", "Продажи", 75000]
-        },
-        {
-          "values": ["Соколов", "Продажи", 85000]
-        },
-        {
-          "values": ["Лебедев", "Маркетинг", 90000]
-        },
-        {
-          "values": ["Козлова", "Маркетинг", 95000]
-        },
-        {
-          "values": ["Орлов", "Маркетинг", 88000]
-        },
-        {
-          "values": ["Андреев", "Маркетинг", 92000]
-        },
-        {
-          "values": ["Михайлов", "Маркетинг", 87000]
-        }
-      ]
-    },
-    "columns": [
+    "data_range": "A1:C16",
+    "chart_data": [
       {
-        "index": 0,
+        "name": "Сотрудник",
+        "values": [
+          "Иванов",
+          "Петров",
+          "Сидоров",
+          "Козлов",
+          "Смирнов",
+          "Попов",
+          "Новиков",
+          "Морозов",
+          "Волков",
+          "Соколов",
+          "Лебедев",
+          "Козлова",
+          "Орлов",
+          "Андреев",
+          "Михайлов"
+        ],
         "format": "General"
       },
       {
-        "index": 1,
+        "name": "Отдел",
+        "values": [
+          "IT",
+          "IT",
+          "IT",
+          "IT",
+          "IT",
+          "Продажи",
+          "Продажи",
+          "Продажи",
+          "Продажи",
+          "Продажи",
+          "Маркетинг",
+          "Маркетинг",
+          "Маркетинг",
+          "Маркетинг",
+          "Маркетинг"
+        ],
         "format": "General"
       },
       {
-        "index": 2,
+        "name": "Зарплата",
+        "values": [
+          120000,
+          95000,
+          110000,
+          85000,
+          130000,
+          70000,
+          65000,
+          80000,
+          75000,
+          85000,
+          90000,
+          95000,
+          88000,
+          92000,
+          87000
+        ],
         "format": "#,##0"
       }
     ]
   }
 response_table: |
   {
-    "success": true,
-    "status": "completed",
-    "message": "Диаграмма размаха для анализа зарплат успешно создана",
-    "chart_config": {
-      "chart_type": "box_plot",
-      "title": "Распределение зарплат по отделам",
-      "subtitle": "Статистический анализ",
-      "series_config": {
-        "x_axis_column": 1,
-        "y_axis_columns": [2],
-        "series_names": ["Зарплата"],
-        "show_data_labels": false,
-        "smooth_lines": false
-      },
-      "position": {
-        "x": 50,
-        "y": 450,
-        "width": 500,
-        "height": 350,
-        "anchor_cell": "A20"
-      },
-      "styling": {
-        "color_scheme": "modern",
-        "font_family": "Arial",
-        "font_size": 11,
-        "background_color": "#F5F5F5",
-        "border_style": "solid",
-        "legend_position": "none"
-      }
+    "chart_type": "box_plot",
+    "title": "Распределение зарплат по отделам",
+    "subtitle": "Статистический анализ",
+    "series_config": {
+      "x_axis_column": 1,
+      "y_axis_columns": [2],
+      "series_names": ["Зарплата"],
+      "show_data_labels": false,
+      "smooth_lines": false
     },
-    "tokens_used": 520,
-    "processing_time": 1.65
+    "position": {
+      "x": 50,
+      "y": 450,
+      "width": 500,
+      "height": 350,
+      "anchor_cell": "A20"
+    },
+    "styling": {
+      "color_scheme": "modern",
+      "font_family": "Arial",
+      "font_size": 11,
+      "background_color": "#F5F5F5",
+      "border_style": "solid",
+      "legend_position": "none"
+    }
   }

@@ -18,42 +18,33 @@ request_table: |
         "values": [320, 385, 310, 450, 510, 410, 475, 365, 430, 495],
         "format": "#,##0"
       }
-    ],
-    "chart_type": "scatter",
-    "query_text": "Создай точечную диаграмму корреляции"
+    ]
   }
 response_table: |
   {
-    "success": true,
-    "status": "completed",
-    "message": "Точечная диаграмма корреляции успешно создана",
-    "chart_config": {
-      "chart_type": "scatter",
-      "title": "Корреляция между затратами на рекламу и продажами",
-      "subtitle": "Анализ эффективности рекламных кампаний",
-      "series_config": {
-        "x_axis_column": 1,
-        "y_axis_columns": [2],
-        "series_names": ["Продажи от рекламы"],
-        "show_data_labels": false,
-        "smooth_lines": false
-      },
-      "position": {
-        "x": 100,
-        "y": 350,
-        "width": 550,
-        "height": 400,
-        "anchor_cell": "B15"
-      },
-      "styling": {
-        "color_scheme": "office",
-        "font_family": "Arial",
-        "font_size": 11,
-        "background_color": null,
-        "border_style": "solid",
-        "legend_position": "bottom"
-      }
+    "chart_type": "scatter",
+    "title": "Корреляция между затратами на рекламу и продажами",
+    "subtitle": "Анализ эффективности рекламных кампаний",
+    "series_config": {
+      "x_axis_column": 1,
+      "y_axis_columns": [2],
+      "series_names": ["Продажи от рекламы"],
+      "show_data_labels": false,
+      "smooth_lines": false
     },
-    "tokens_used": 490,
-    "processing_time": 1.52
+    "position": {
+      "x": 100,
+      "y": 350,
+      "width": 550,
+      "height": 400,
+      "anchor_cell": "B15"
+    },
+    "styling": {
+      "color_scheme": "office",
+      "font_family": "Arial",
+      "font_size": 11,
+      "background_color": null,
+      "border_style": "solid",
+      "legend_position": "bottom"
+    }
   }
