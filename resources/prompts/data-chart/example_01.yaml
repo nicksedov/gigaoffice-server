@@ -48,3 +48,37 @@ request_table: |
     ]
   }
 response_table: |
+  {
+    "success": true,
+    "status": "completed",
+    "message": "График изменения цены успешно создан",
+    "chart_config": {
+      "chart_type": "line",
+      "title": "Изменение цены во времени",
+      "subtitle": null,
+      "series_config": {
+        "x_axis_column": 0,
+        "y_axis_columns": [1],
+        "series_names": ["Цена"],
+        "show_data_labels": false,
+        "smooth_lines": true
+      },
+      "position": {
+        "x": 400,
+        "y": 50,
+        "width": 600,
+        "height": 400,
+        "anchor_cell": "D2"
+      },
+      "styling": {
+        "color_scheme": "office",
+        "font_family": "Arial",
+        "font_size": 12,
+        "background_color": null,
+        "border_style": "none",
+        "legend_position": "bottom"
+      }
+    },
+    "tokens_used": 420,
+    "processing_time": 1.15
+  }

@@ -45,59 +45,36 @@ request_table: |
   }
 response_table: |
   {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Бюджет",
-      "range": "A1:B6"
-    },
-    "data": {
-      "header": {
-        "values": ["Категория", "Сумма"]
+    "success": true,
+    "status": "completed",
+    "message": "Круговая диаграмма распределения расходов успешно создана",
+    "chart_config": {
+      "chart_type": "pie",
+      "title": "Распределение расходов",
+      "subtitle": null,
+      "series_config": {
+        "x_axis_column": 0,
+        "y_axis_columns": [1],
+        "series_names": ["Сумма"],
+        "show_data_labels": true,
+        "smooth_lines": false
       },
-      "rows": [
-        {
-          "values": ["Аренда", 45000]
-        },
-        {
-          "values": ["Питание", 25000]
-        },
-        {
-          "values": ["Транспорт", 15000]
-        },
-        {
-          "values": ["Развлечения", 8000]
-        },
-        {
-          "values": ["Прочее", 7000]
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "General"
+      "position": {
+        "x": 250,
+        "y": 200,
+        "width": 400,
+        "height": 300,
+        "anchor_cell": "D8"
       },
-      {
-        "index": 1,
-        "format": "#,##0"
+      "styling": {
+        "color_scheme": "colorful",
+        "font_family": "Arial",
+        "font_size": 11,
+        "background_color": null,
+        "border_style": "none",
+        "legend_position": "right"
       }
-    ],
-    "charts": [
-      {
-        "type": "pie",
-        "title": "Распределение расходов",
-        "range": "A1:B6",
-        "position": {
-          "top": 200,
-          "left": 250,
-          "width": 400,
-          "height": 300
-        },
-        "style": {
-          "color_scheme": "colorful"
-        }
-      }
-    ]
+    },
+    "tokens_used": 385,
+    "processing_time": 1.05
   }

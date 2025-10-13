@@ -49,65 +49,36 @@ request_table: |
   }
 response_table: |
   {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Погода",
-      "range": "A1:B8"
-    },
-    "data": {
-      "header": {
-        "values": ["День", "Температура"]
+    "success": true,
+    "status": "completed",
+    "message": "Линейный график изменения температуры успешно создан",
+    "chart_config": {
+      "chart_type": "line",
+      "title": "Изменение температуры по дням",
+      "subtitle": "Погодные условия недели",
+      "series_config": {
+        "x_axis_column": 0,
+        "y_axis_columns": [1],
+        "series_names": ["Температура °C"],
+        "show_data_labels": false,
+        "smooth_lines": true
       },
-      "rows": [
-        {
-          "values": ["Понедельник", 18]
-        },
-        {
-          "values": ["Вторник", 22]
-        },
-        {
-          "values": ["Среда", 25]
-        },
-        {
-          "values": ["Четверг", 23]
-        },
-        {
-          "values": ["Пятница", 26]
-        },
-        {
-          "values": ["Суббота", 28]
-        },
-        {
-          "values": ["Воскресенье", 24]
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "General"
+      "position": {
+        "x": 50,
+        "y": 250,
+        "width": 450,
+        "height": 300,
+        "anchor_cell": "A10"
       },
-      {
-        "index": 1,
-        "format": "0.0"
+      "styling": {
+        "color_scheme": "office",
+        "font_family": "Arial",
+        "font_size": 12,
+        "background_color": null,
+        "border_style": "solid",
+        "legend_position": "top"
       }
-    ],
-    "charts": [
-      {
-        "type": "line",
-        "title": "Изменение температуры по дням",
-        "range": "A1:B8",
-        "position": {
-          "top": 250,
-          "left": 50,
-          "width": 450,
-          "height": 300
-        },
-        "style": {
-          "color_scheme": "office"
-        }
-      }
-    ]
+    },
+    "tokens_used": 410,
+    "processing_time": 1.28
   }
