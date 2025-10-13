@@ -54,6 +54,11 @@ class ChartData(BaseModel):
     chart_data: List[ChartSeries] = Field(..., description="Data series included in the chart")
     chart_type: str = Field(..., description="Type of chart to generate")
     query_text: str = Field(..., description="Natural language instruction for chart generation")
+
+class DataSource(BaseModel):
+    """Data source configuration for chart generation"""
+    data_range: str = Field(..., description="Cell range reference for source data")
+    sheet_name: Optional[str] = Field(None, description="Sheet name if applicable")
     
 
 class ChartPosition(BaseModel):
@@ -100,11 +105,20 @@ class ChartConfig(BaseModel):
 # Request Models
 class ChartGenerationRequest(BaseModel):
     """Request model for chart generation"""
-    chart_data: ChartData = Field(..., description="Source data for chart generation")
-    chart_type: str = Field(..., description="Type of chart to generate")
-    query_text: str = Field(..., description="Natural language instruction for chart generation")
+    data_source: DataSource = Field(..., description="Data source for chart generation")
+    chart_instruction: str = Field(..., description="Natural language instruction for chart generation")
+    chart_type: Optional[str] = Field(None, description="Optional chart type override")
 
 # Response Models
+class ChartGenerationResponse(BaseModel):
+    """Response model for chart generation initiation"""
+    success: bool = Field(..., description="Request success status")
+    request_id: str = Field(..., description="Request identifier")
+    status: str = Field(..., description="Current processing status")
+    chart_config: Optional[ChartConfig] = Field(None, description="Chart configuration if immediately available")
+    message: str = Field(..., description="Human-readable status message")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+
 class ChartStatusResponse(BaseModel):
     """Response model for chart generation status"""
     success: bool = Field(..., description="Request success status")
