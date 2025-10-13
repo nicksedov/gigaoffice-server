@@ -10,9 +10,7 @@ from .spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, Spreads
 from .chart import (
     ChartType, ColorScheme, LegendPosition, BorderStyle,
     DataSource, ChartPosition, ChartStyling, SeriesConfig, ChartConfig,
-    ChartPreferences, R7OfficeConfig, ChartGenerationRequest, ChartValidationRequest,
-    ChartGenerationResponse, ChartStatusResponse, ChartResultResponse, ChartValidationResponse,
-    DataPattern, ChartRecommendation
+    ChartGenerationRequest, ChartGenerationResponse, ChartStatusResponse, ChartResultResponse
 )
 
 __all__ = [
@@ -30,7 +28,5 @@ __all__ = [
     # Chart API models
     'ChartType', 'ColorScheme', 'LegendPosition', 'BorderStyle',
     'DataSource', 'ChartPosition', 'ChartStyling', 'SeriesConfig', 'ChartConfig',
-    'ChartPreferences', 'R7OfficeConfig', 'ChartGenerationRequest', 'ChartValidationRequest',
-    'ChartGenerationResponse', 'ChartStatusResponse', 'ChartResultResponse', 'ChartValidationResponse',
-    'DataPattern', 'ChartRecommendation'
+    'ChartGenerationRequest', 'ChartGenerationResponse', 'ChartStatusResponse', 'ChartResultResponse'
 ]
