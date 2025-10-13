@@ -17,8 +17,8 @@ from loguru import logger
 
 from app.models.types.enums import RequestStatus
 from app.models.api.chart import (
-    ChartGenerationRequest, ChartValidationRequest,
-    ChartGenerationResponse, ChartStatusResponse, ChartResultResponse, ChartValidationResponse,
+    ChartGenerationRequest, ChartGenerationResponse, 
+    ChartStatusResponse, ChartResultResponse,
     ChartConfig, DataSource
 )
 from app.models.orm.ai_request import AIRequest
@@ -54,15 +54,21 @@ async def process_chart_request(
     try:
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
-        chart_json = json.dumps(chart_request.chart_data.list(), cls=DateTimeEncoder)
+        
+        # Prepare input_data for chart generation
+        input_data_payload = {
+            "chart_request": chart_request.dict(),
+            "processing_type": "chart_generation"
+        }
+        
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
             status=RequestStatus.PENDING,
-            input_range=chart_request.data_range,
-            query_text=chart_request.query_text,
-            category=chart_request.category if chart_request.category is not None else 'data_chart',
-            input_data=spreadsheet_json
+            input_range=chart_request.data_source.data_range,
+            query_text=chart_request.chart_instruction,
+            category="chart_generation",
+            input_data=input_data_payload
         )
         
         db.add(db_request)
@@ -75,10 +81,7 @@ async def process_chart_request(
             query=chart_request.chart_instruction,
             input_range=chart_request.data_source.data_range,
             category="chart_generation",
-            input_data=[{
-                "chart_request": chart_request.dict(),
-                "processing_type": "chart_generation"
-            }],
+            input_data=[input_data_payload],
             priority=1 if current_user and current_user.get("role") == "premium" else 0
         )
         
@@ -104,7 +107,10 @@ async def process_chart_request(
 async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
     """Get the processing status of a chart generation request"""
     try:
-        db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+        db_request = db.query(AIRequest).filter(
+            AIRequest.id == request_id,
+            AIRequest.category == "chart_generation"
+        ).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")
         
@@ -140,7 +146,10 @@ async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
 async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
     """Get the result of a chart generation request"""
     try:
-        db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+        db_request = db.query(AIRequest).filter(
+            AIRequest.id == request_id,
+            AIRequest.category == "chart_generation"
+        ).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")
         
@@ -162,24 +171,22 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
                 processing_time=None
             )
         
-        # Parse chart configuration if available
+        # Parse chart configuration from result_data JSON field
         chart_config = None
-        raw_chart_config = cast(Any, db_request.chart_config)
+        result_data = cast(Any, db_request.result_data)
         
-        if raw_chart_config is not None:
+        if result_data is not None and isinstance(result_data, dict):
             try:
-                if isinstance(raw_chart_config, str):
-                    chart_config_data = json.loads(raw_chart_config)
-                elif isinstance(raw_chart_config, dict):
-                    chart_config_data = raw_chart_config
-                else:
-                    chart_config_data = None
+                # Extract chart_config from result_data
+                chart_config_data = result_data.get("chart_config")
                 
                 if chart_config_data:
+                    if isinstance(chart_config_data, str):
+                        chart_config_data = json.loads(chart_config_data)
                     chart_config = ChartConfig(**chart_config_data)
                     
             except Exception as e:
-                logger.warning(f"Could not parse chart configuration: {e}")
+                logger.warning(f"Could not parse chart configuration from result_data: {e}")
         
         # Type-safe access to other attributes
         tokens_used_value = cast(Optional[int], db_request.tokens_used)
@@ -200,150 +207,3 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
         logger.error(f"Error getting chart result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@chart_router.post("/validate", response_model=ChartValidationResponse)
-async def validate_chart_config(
-    validation_request: ChartValidationRequest,
-    current_user: Optional[Dict] = Depends(get_current_user)
-):
-    """Validate chart configuration for errors and R7-Office compatibility"""
-    try:
-        chart_config = validation_request.chart_config
-        
-        # Perform comprehensive validation
-        validation_summary = chart_validation_service.get_validation_summary(chart_config)
-        
-        return ChartValidationResponse(
-            success=True,
-            is_valid=validation_summary["is_valid"],
-            is_r7_office_compatible=validation_summary["is_r7_office_compatible"],
-            validation_errors=validation_summary["validation_errors"],
-            compatibility_warnings=validation_summary["compatibility_warnings"],
-            message=f"Validation completed. Quality score: {validation_summary['overall_score']:.2f}"
-        )
-        
-    except Exception as e:
-        logger.error(f"Error validating chart configuration: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@chart_router.get("/types")
-async def get_supported_chart_types():
-    """Get list of supported chart types with descriptions"""
-    try:
-        chart_types_info = {
-            "column": {
-                "name": "Column Chart",
-                "description": "Best for comparing values across categories",
-                "use_cases": ["Categorical comparisons", "Sales by region", "Survey responses"]
-            },
-            "line": {
-                "name": "Line Chart", 
-                "description": "Ideal for showing trends over time",
-                "use_cases": ["Time series data", "Stock prices", "Temperature changes"]
-            },
-            "pie": {
-                "name": "Pie Chart",
-                "description": "Perfect for showing parts of a whole",
-                "use_cases": ["Market share", "Budget allocation", "Survey results"]
-            },
-            "area": {
-                "name": "Area Chart",
-                "description": "Shows trends and proportions over time",
-                "use_cases": ["Cumulative values", "Resource usage", "Population growth"]
-            },
-            "scatter": {
-                "name": "Scatter Plot",
-                "description": "Reveals correlations between variables",
-                "use_cases": ["Height vs weight", "Price vs quality", "Performance analysis"]
-            },
-            "bar": {
-                "name": "Bar Chart",
-                "description": "Horizontal comparison of categories",
-                "use_cases": ["Rankings", "Survey responses", "Performance metrics"]
-            },
-            "histogram": {
-                "name": "Histogram",
-                "description": "Shows distribution of numerical data",
-                "use_cases": ["Age distribution", "Test scores", "Quality measurements"]
-            },
-            "doughnut": {
-                "name": "Doughnut Chart",
-                "description": "Modern alternative to pie chart",
-                "use_cases": ["Resource allocation", "Category proportions", "Progress indicators"]
-            }
-        }
-        
-        return {
-            "success": True,
-            "supported_types": chart_types_info,
-            "total_count": len(chart_types_info)
-        }
-        
-    except Exception as e:
-        logger.error(f"Error getting chart types: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@chart_router.get("/examples")
-async def get_chart_examples():
-    """Get example chart configurations for different use cases"""
-    try:
-        examples = {
-            "sales_by_month": {
-                "description": "Monthly sales data visualization",
-                "chart_type": "line",
-                "sample_data": {
-                    "headers": ["Month", "Sales"],
-                    "data_rows": [
-                        ["Jan", 15000],
-                        ["Feb", 18000], 
-                        ["Mar", 22000],
-                        ["Apr", 19000],
-                        ["May", 25000],
-                        ["Jun", 28000]
-                    ]
-                },
-                "recommended_instruction": "Create a line chart showing sales trends over the first half of the year"
-            },
-            "market_share": {
-                "description": "Market share distribution",
-                "chart_type": "pie",
-                "sample_data": {
-                    "headers": ["Company", "Market Share"],
-                    "data_rows": [
-                        ["Company A", 35],
-                        ["Company B", 28],
-                        ["Company C", 20],
-                        ["Company D", 17]
-                    ]
-                },
-                "recommended_instruction": "Show market share distribution as a pie chart with percentages"
-            },
-            "performance_comparison": {
-                "description": "Performance comparison across categories",
-                "chart_type": "column",
-                "sample_data": {
-                    "headers": ["Department", "Q1", "Q2", "Q3", "Q4"],
-                    "data_rows": [
-                        ["Sales", 85, 92, 88, 95],
-                        ["Marketing", 78, 85, 90, 87],
-                        ["Support", 92, 89, 94, 96]
-                    ]
-                },
-                "recommended_instruction": "Compare quarterly performance across departments using grouped columns"
-            }
-        }
-        
-        return {
-            "success": True,
-            "examples": examples,
-            "usage_tips": [
-                "Use clear, descriptive instructions for better AI recommendations",
-                "Ensure data has proper headers and consistent formatting",
-                "Consider your audience when choosing chart types",
-                "Pie charts work best with 2-8 categories",
-                "Line charts are ideal for time-based data"
-            ]
-        }
-        
-    except Exception as e:
-        logger.error(f"Error getting chart examples: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
