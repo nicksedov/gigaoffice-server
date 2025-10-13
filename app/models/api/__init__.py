@@ -7,8 +7,6 @@ from .health import PingResponse, ServiceHealth
 from .service_metrics import MetricsResponse, TokenUsage
 from .common import ErrorResponse, SuccessResponse, PaginationParams, FilterParams, SortParams
 from .spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse, SpreadsheetData, SpreadsheetSearchRequest, SearchResult, SearchResultItem
-from .chart import (
-    ChartType, ColorScheme, LegendPosition, BorderStyle,
     DataSource, ChartPosition, ChartStyling, SeriesConfig, ChartConfig,
     ChartGenerationRequest, ChartGenerationResponse, ChartStatusResponse, ChartResultResponse
 )

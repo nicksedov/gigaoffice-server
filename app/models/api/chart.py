@@ -46,20 +46,6 @@ class ChartSeries(BaseModel):
     values: List[Union[str, int, float]] = Field(..., description="Y-values for the series")
     format: Optional[str] = Field('General', description="Y-values format")
 
-# Core Data Models
-class ChartData(BaseModel):
-    """Source data for chart generation"""
-    data_range: str = Field(..., description="Cell range reference for source data")
-    chart_data: List[ChartSeries] = Field(..., description="Data series included in the chart")
-    chart_type: str = Field(..., description="Type of chart to generate")
-    query_text: str = Field(..., description="Natural language instruction for chart generation")
-
-class DataSource(BaseModel):
-    """Data source configuration for chart generation"""
-    data_range: str = Field(..., description="Cell range reference for source data")
-    sheet_name: Optional[str] = Field(None, description="Sheet name if applicable")
-    
-
 class ChartPosition(BaseModel):
     """Position and size specifications for charts"""
     x: int = Field(..., description="Left position in pixels", ge=0)
@@ -104,9 +90,10 @@ class ChartConfig(BaseModel):
 # Request Models
 class ChartGenerationRequest(BaseModel):
     """Request model for chart generation"""
-    data_source: DataSource = Field(..., description="Data source for chart generation")
-    chart_instruction: str = Field(..., description="Natural language instruction for chart generation")
-    chart_type: Optional[str] = Field(None, description="Optional chart type override")
+    data_range: str = Field(..., description="Cell range reference for source data")
+    chart_data: List[ChartSeries] = Field(..., description="Data series included in the chart")
+    chart_type: str = Field(..., description="Type of chart to generate")
+    query_text: str = Field(..., description="Natural language instruction for chart generation")
 
 # Response Models
 class ChartGenerationResponse(BaseModel):
