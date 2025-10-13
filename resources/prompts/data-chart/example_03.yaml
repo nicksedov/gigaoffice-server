@@ -1,0 +1,61 @@
+task: Построй линейный график изменения температуры
+request_table: |
+  {
+    "data_range": "A1:B8",
+    "chart_data": [
+      {
+        "name": "День",
+        "values": [
+          "Понедельник",
+          "Вторник",
+          "Среда",
+          "Четверг",
+          "Пятница",
+          "Суббота",
+          "Воскресенье"
+        ],
+        "format": "General"
+      },
+      {
+        "name": "Температура",
+        "values": [
+          18,
+          22,
+          25,
+          23,
+          26,
+          28,
+          24
+        ],
+        "format": "0.0"
+      }
+    ]
+  }
+response_table: |
+  {
+    "chart_type": "line",
+    "title": "Изменение температуры по дням",
+    "subtitle": "Погодные условия недели",
+    "series_config": {
+      "x_axis_column": 0,
+      "y_axis_columns": [1],
+      "series_names": ["Температура °C"],
+      "show_data_labels": false,
+      "smooth_lines": true
+    },
+    "position": {
+      "x": 50,
+      "y": 250,
+      "width": 450,
+      "height": 300,
+      "anchor_cell": "A10"
+    },
+    "styling": {
+      "color_scheme": "office",
+      "font_family": "Arial",
+      "font_size": 12,
+      "background_color": null,
+      "border_style": "solid",
+      "legend_position": "top"
+    }
+  }

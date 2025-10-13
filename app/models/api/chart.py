@@ -5,7 +5,7 @@ Enhanced Pydantic models for chart generation with R7-Office API compatibility
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union, Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
 # Chart Type Enums
@@ -127,10 +127,66 @@ class ChartStatusResponse(BaseModel):
     error_message: Optional[str] = Field(None, description="Error message if failed")
 
 class ChartResultResponse(BaseModel):
-    """Response model for chart generation result"""
+    """Response model for chart generation result
+    
+    Example:
+    ```json
+    {
+        "success": true,
+        "status": "completed",
+        "message": "Chart generated successfully",
+        "chart_config": {
+            "chart_type": "line",
+            "title": "Sales Over Time",
+            ...
+        },
+        "tokens_used": 450,
+        "processing_time": 1.23
+    }
+    ```
+    """
     success: bool = Field(..., description="Request success status")
     status: str = Field(..., description="Current processing status")
     message: str = Field(..., description="Human-readable status message")
     chart_config: Optional[ChartConfig] = Field(None, description="Generated chart configuration")
-    tokens_used: Optional[int] = Field(None, description="Number of tokens used")
-    processing_time: Optional[float] = Field(None, description="Processing time in seconds")
+    tokens_used: Optional[int] = Field(None, description="Number of tokens used", ge=0)
+    processing_time: Optional[float] = Field(None, description="Processing time in seconds", ge=0.0)
+    
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v):
+        """Validate status against valid status values"""
+        valid_statuses = ['pending', 'processing', 'completed', 'failed']
+        if v not in valid_statuses:
+            raise ValueError(f'Status must be one of {valid_statuses}')
+        return v
+    
+    @model_validator(mode='after')
+    def validate_success_consistency(self):
+        """Validate that success flag matches status and chart_config presence"""
+        if self.success and self.chart_config is None:
+            raise ValueError('Successful response must include chart_config')
+        if self.success and self.status == 'failed':
+            raise ValueError('Success cannot be true when status is failed')
+        if not self.success and self.status == 'completed':
+            raise ValueError('Failed response cannot have status completed')
+        return self
+    
+    def is_successful(self) -> bool:
+        """Check if response indicates success"""
+        return self.success and self.chart_config is not None
+    
+    def has_errors(self) -> bool:
+        """Check if response has errors"""
+        return not self.success or self.status == 'failed'
+    
+    def get_summary(self) -> Dict[str, Any]:
+        """Get summary of response"""
+        return {
+            'success': self.success,
+            'status': self.status,
+            'message': self.message,
+            'has_chart': self.chart_config is not None,
+            'tokens_used': self.tokens_used or 0,
+            'processing_time': self.processing_time or 0.0
+        }

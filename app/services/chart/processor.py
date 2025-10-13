@@ -14,7 +14,11 @@ from app.models.types.enums import RequestStatus
 from app.models.orm.ai_request import AIRequest
 from app.models.api.chart import ChartGenerationRequest, DataSource
 from app.services.database.session import get_db_session
-from app.services.chart import chart_intelligence_service, chart_validation_service
+from app.services.chart import (
+    chart_intelligence_service, 
+    chart_validation_service,
+    response_formatter_service
+)
 
 class ChartProcessingService:
     """Service for processing chart generation requests from Kafka"""
@@ -123,77 +127,69 @@ class ChartProcessingService:
             }
     
     async def _generate_chart(self, chart_request: ChartGenerationRequest, request_id: str) -> Dict[str, Any]:
-        """Generate chart using AI services"""
+        """Generate chart using AI services with structured response generation"""
         
         try:
-            # Validate data source
-            is_valid_data, data_errors = chart_validation_service.validate_data_source(chart_request.data_source)
+            # Validate input chart data
+            is_valid_data, data_errors = chart_validation_service.validate_chart_data(chart_request.chart_data)
             if not is_valid_data:
-                return {
-                    "success": False,
-                    "error": f"Invalid data source: {', '.join(data_errors)}",
-                    "request_id": request_id
-                }
+                logger.error(f"Invalid chart data: {data_errors}")
+                error_response = response_formatter_service.format_error_response(
+                    Exception(f"Invalid data source: {', '.join(data_errors)}")
+                )
+                return response_formatter_service.format_response(error_response)
             
-            # Get chart preferences as dict
-            chart_preferences = chart_request.chart_preferences.dict() if chart_request.chart_preferences else None
+            # Get chart preferences as dict if available
+            chart_preferences = None
+            if hasattr(chart_request, 'chart_preferences') and chart_request.chart_preferences:
+                chart_preferences = chart_request.chart_preferences.dict()
             
-            # Get AI recommendation
-            logger.info(f"Getting AI recommendation for chart request {request_id}")
-            recommendation = await chart_intelligence_service.recommend_chart_type(
-                chart_request.data_source,
-                chart_request.chart_instruction,
-                chart_preferences
+            # Generate structured chart response using intelligence service
+            logger.info(f"Generating structured chart response for request {request_id}")
+            chart_response = await chart_intelligence_service.generate_chart_response(
+                chart_request.chart_data,
+                chart_request.query_text,
+                preferences=chart_preferences
             )
             
-            # Generate chart configuration
-            logger.info(f"Generating chart config for request {request_id}")
-            chart_config = await chart_intelligence_service.generate_chart_config(
-                chart_request.data_source,
-                chart_request.chart_instruction,
-                recommendation.primary_recommendation.recommended_chart_type,
-                chart_preferences
-            )
-            
-            # Validate generated configuration
-            is_valid, validation_errors = chart_validation_service.validate_chart_config(chart_config)
-            is_compatible, compatibility_warnings = chart_validation_service.validate_r7_office_compatibility(chart_config)
-            
+            # Validate generated response
+            is_valid, validation_errors = chart_validation_service.validate_response(chart_response)
             if not is_valid:
-                logger.warning(f"Generated chart config has validation errors: {validation_errors}")
+                logger.warning(f"Generated response has validation errors: {validation_errors}")
             
-            if not is_compatible:
-                logger.warning(f"Generated chart config has compatibility warnings: {compatibility_warnings}")
+            # Validate R7-Office compatibility if chart config present
+            compatibility_warnings = []
+            is_compatible = True
+            if chart_response.chart_config:
+                is_compatible, compatibility_warnings = chart_validation_service.validate_r7_office_compatibility(
+                    chart_response.chart_config
+                )
+                if not is_compatible:
+                    logger.warning(f"Generated chart has compatibility warnings: {compatibility_warnings}")
             
-            # Prepare result
-            result = {
-                "success": True,
-                "request_id": request_id,
-                "chart_config": chart_config.dict(),
-                "chart_type": chart_config.chart_type.value,
-                "recommendations": [
-                    rec.dict() for rec in [recommendation.primary_recommendation] + recommendation.alternative_recommendations
-                ],
-                "data_analysis": recommendation.data_analysis,
-                "confidence_score": recommendation.primary_recommendation.confidence,
-                "tokens_used": recommendation.generation_metadata.get("tokens_used", 0),
-                "processing_metadata": {
-                    "validation_errors": validation_errors,
-                    "compatibility_warnings": compatibility_warnings,
-                    "is_valid": is_valid,
-                    "is_r7_office_compatible": is_compatible
-                }
+            # Format response for output
+            formatted_result = response_formatter_service.format_response(chart_response)
+            
+            # Add processing metadata
+            formatted_result["processing_metadata"] = {
+                "validation_errors": validation_errors,
+                "compatibility_warnings": compatibility_warnings,
+                "is_valid": is_valid,
+                "is_r7_office_compatible": is_compatible,
+                "request_id": request_id
             }
             
-            return result
+            # Add chart_type for database storage
+            if chart_response.chart_config:
+                formatted_result["chart_type"] = chart_response.chart_config.chart_type.value
+            
+            logger.info(f"Chart generation completed successfully for request {request_id}")
+            return formatted_result
             
         except Exception as e:
             logger.error(f"Error in chart generation for request {request_id}: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "request_id": request_id
-            }
+            error_response = response_formatter_service.format_error_response(e)
+            return response_formatter_service.format_response(error_response)
     
     def get_processing_stats(self) -> Dict[str, Any]:
         """Get processing statistics"""

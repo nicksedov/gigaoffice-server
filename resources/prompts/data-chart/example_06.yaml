@@ -1,0 +1,50 @@
+task: Создай точечную диаграмму для анализа корреляции между затратами на рекламу и продажами
+request_table: |
+  {
+    "data_range": "A1:C11",
+    "chart_data": [
+      {
+        "name": "Месяц",
+        "values": ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт"],
+        "format": "General"
+      },
+      {
+        "name": "Реклама (тыс. руб.)",
+        "values": [50, 65, 45, 80, 95, 70, 85, 60, 75, 90],
+        "format": "#,##0"
+      },
+      {
+        "name": "Продажи (тыс. руб.)",
+        "values": [320, 385, 310, 450, 510, 410, 475, 365, 430, 495],
+        "format": "#,##0"
+      }
+    ]
+  }
+response_table: |
+  {
+    "chart_type": "scatter",
+    "title": "Корреляция между затратами на рекламу и продажами",
+    "subtitle": "Анализ эффективности рекламных кампаний",
+    "series_config": {
+      "x_axis_column": 1,
+      "y_axis_columns": [2],
+      "series_names": ["Продажи от рекламы"],
+      "show_data_labels": false,
+      "smooth_lines": false
+    },
+    "position": {
+      "x": 100,
+      "y": 350,
+      "width": 550,
+      "height": 400,
+      "anchor_cell": "B15"
+    },
+    "styling": {
+      "color_scheme": "office",
+      "font_family": "Arial",
+      "font_size": 11,
+      "background_color": null,
+      "border_style": "solid",
+      "legend_position": "bottom"
+    }
+  }

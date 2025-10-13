@@ -1,0 +1,57 @@
+task: Создай круговую диаграмму распределения расходов
+request_table: |
+  {
+    "data_range": "A1:B6",
+    "chart_data": [
+      {
+        "name": "Категория",
+        "values": [
+          "Аренда",
+          "Питание",
+          "Транспорт",
+          "Развлечения",
+          "Прочее"
+        ],
+        "format": "General"
+      },
+      {
+        "name": "Сумма",
+        "values": [
+          45000,
+          25000,
+          15000,
+          8000,
+          7000
+        ],
+        "format": "#,##0"
+      }
+    ]
+  }
+response_table: |
+  {
+    "chart_type": "pie",
+    "title": "Распределение расходов",
+    "subtitle": null,
+    "series_config": {
+      "x_axis_column": 0,
+      "y_axis_columns": [1],
+      "series_names": ["Сумма"],
+      "show_data_labels": true,
+      "smooth_lines": false
+    },
+    "position": {
+      "x": 250,
+      "y": 200,
+      "width": 400,
+      "height": 300,
+      "anchor_cell": "D8"
+    },
+    "styling": {
+      "color_scheme": "colorful",
+      "font_family": "Arial",
+      "font_size": 11,
+      "background_color": null,
+      "border_style": "none",
+      "legend_position": "right"
+    }
+  }

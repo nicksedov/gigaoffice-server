@@ -1,0 +1,98 @@
+task: Создай диаграмму размаха для анализа зарплат по отделам
+request_table: |
+  {
+    "data_range": "A1:C16",
+    "chart_data": [
+      {
+        "name": "Сотрудник",
+        "values": [
+          "Иванов",
+          "Петров",
+          "Сидоров",
+          "Козлов",
+          "Смирнов",
+          "Попов",
+          "Новиков",
+          "Морозов",
+          "Волков",
+          "Соколов",
+          "Лебедев",
+          "Козлова",
+          "Орлов",
+          "Андреев",
+          "Михайлов"
+        ],
+        "format": "General"
+      },
+      {
+        "name": "Отдел",
+        "values": [
+          "IT",
+          "IT",
+          "IT",
+          "IT",
+          "IT",
+          "Продажи",
+          "Продажи",
+          "Продажи",
+          "Продажи",
+          "Продажи",
+          "Маркетинг",
+          "Маркетинг",
+          "Маркетинг",
+          "Маркетинг",
+          "Маркетинг"
+        ],
+        "format": "General"
+      },
+      {
+        "name": "Зарплата",
+        "values": [
+          120000,
+          95000,
+          110000,
+          85000,
+          130000,
+          70000,
+          65000,
+          80000,
+          75000,
+          85000,
+          90000,
+          95000,
+          88000,
+          92000,
+          87000
+        ],
+        "format": "#,##0"
+      }
+    ]
+  }
+response_table: |
+  {
+    "chart_type": "box_plot",
+    "title": "Распределение зарплат по отделам",
+    "subtitle": "Статистический анализ",
+    "series_config": {
+      "x_axis_column": 1,
+      "y_axis_columns": [2],
+      "series_names": ["Зарплата"],
+      "show_data_labels": false,
+      "smooth_lines": false
+    },
+    "position": {
+      "x": 50,
+      "y": 450,
+      "width": 500,
+      "height": 350,
+      "anchor_cell": "A20"
+    },
+    "styling": {
+      "color_scheme": "modern",
+      "font_family": "Arial",
+      "font_size": 11,
+      "background_color": "#F5F5F5",
+      "border_style": "solid",
+      "legend_position": "none"
+    }
+  }
