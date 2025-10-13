@@ -24,6 +24,7 @@ from app.models.api.chart import (
 from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
 from app.services.kafka.service import kafka_service
+from app.services.chart import chart_validation_service
 from app.fastapi_config import security
 
 # Import custom JSON encoder
@@ -54,15 +55,23 @@ async def process_chart_request(
     try:
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
-        chart_json = json.dumps(chart_request.chart_data.list(), cls=DateTimeEncoder)
+        
+        # Create AIRequest with chart-specific data
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
-            status=RequestStatus.PENDING,
-            input_range=chart_request.data_range,
-            query_text=chart_request.query_text,
-            category=chart_request.category if chart_request.category is not None else 'data_chart',
-            input_data=spreadsheet_json
+            status=RequestStatus.PENDING.value,
+            input_range=chart_request.data_source.data_range,
+            query_text=chart_request.chart_instruction,
+            category="chart-generation",
+            input_data={
+                "chart_request": {
+                    "chart_data": chart_request.data_source.dict(),
+                    "chart_type": chart_request.chart_type,
+                    "chart_preferences": chart_request.chart_preferences.dict() if chart_request.chart_preferences else None
+                },
+                "processing_type": "chart_generation"
+            }
         )
         
         db.add(db_request)
@@ -74,7 +83,7 @@ async def process_chart_request(
             user_id=user_id,
             query=chart_request.chart_instruction,
             input_range=chart_request.data_source.data_range,
-            category="chart_generation",
+            category="chart-generation",
             input_data=[{
                 "chart_request": chart_request.dict(),
                 "processing_type": "chart_generation"
@@ -104,9 +113,14 @@ async def process_chart_request(
 async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
     """Get the processing status of a chart generation request"""
     try:
-        db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")
+        
+        # Verify this is a chart request
+        category_value = cast(str, db_request.category)
+        if not category_value.startswith("chart-"):
+            raise HTTPException(status_code=404, detail="Not a chart request")
         
         # Type-safe access to ORM attributes
         status_value = cast(str, db_request.status)
@@ -140,9 +154,14 @@ async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
 async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
     """Get the result of a chart generation request"""
     try:
-        db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+        db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")
+        
+        # Verify this is a chart request
+        category_value = cast(str, db_request.category)
+        if not category_value.startswith("chart-"):
+            raise HTTPException(status_code=404, detail="Not a chart request")
         
         # Type-safe access to ORM attributes
         status_value = cast(str, db_request.status)
@@ -162,24 +181,24 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
                 processing_time=None
             )
         
-        # Parse chart configuration if available
+        # Parse chart configuration from result_data JSONB field
         chart_config = None
-        raw_chart_config = cast(Any, db_request.chart_config)
+        result_data = cast(Any, db_request.result_data)
         
-        if raw_chart_config is not None:
+        if result_data is not None and isinstance(result_data, dict):
             try:
-                if isinstance(raw_chart_config, str):
-                    chart_config_data = json.loads(raw_chart_config)
-                elif isinstance(raw_chart_config, dict):
-                    chart_config_data = raw_chart_config
-                else:
-                    chart_config_data = None
+                # Extract chart_config from result_data structure
+                chart_config_data = result_data.get("chart_config")
                 
                 if chart_config_data:
-                    chart_config = ChartConfig(**chart_config_data)
+                    if isinstance(chart_config_data, str):
+                        chart_config_data = json.loads(chart_config_data)
+                    
+                    if isinstance(chart_config_data, dict):
+                        chart_config = ChartConfig(**chart_config_data)
                     
             except Exception as e:
-                logger.warning(f"Could not parse chart configuration: {e}")
+                logger.warning(f"Could not parse chart configuration from result_data: {e}")
         
         # Type-safe access to other attributes
         tokens_used_value = cast(Optional[int], db_request.tokens_used)
