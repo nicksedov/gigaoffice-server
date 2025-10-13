@@ -33,6 +33,7 @@ numpy
 python-dotenv
 pydantic
 pydantic-settings
+pyyaml
 
 # Authentication and security
 python-jose[cryptography]
