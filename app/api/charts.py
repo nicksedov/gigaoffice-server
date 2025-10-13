@@ -19,7 +19,7 @@ from app.models.types.enums import RequestStatus
 from app.models.api.chart import (
     ChartGenerationRequest, ChartGenerationResponse, 
     ChartStatusResponse, ChartResultResponse,
-    ChartConfig, DataSource
+    ChartConfig
 )
 from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
@@ -55,20 +55,16 @@ async def process_chart_request(
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
         
-        # Prepare input_data for chart generation
-        input_data_payload = {
-            "chart_request": chart_request.dict(),
-            "processing_type": "chart_generation"
-        }
-        
+        chart_data_list = chart_request.chart_data      
+        chart_data_json = json.dumps(chart_data_list, default=lambda x: x.__dict__)
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
             status=RequestStatus.PENDING,
-            input_range=chart_request.data_source.data_range,
-            query_text=chart_request.chart_instruction,
-            category="chart_generation",
-            input_data=input_data_payload
+            input_range=chart_request.data_range,
+            query_text=chart_request.query_text,
+            category=chart_request.chart_type,
+            input_data=chart_data_json
         )
         
         db.add(db_request)
@@ -78,10 +74,10 @@ async def process_chart_request(
         success = await kafka_service.send_request(
             request_id=request_id,
             user_id=user_id,
-            query=chart_request.chart_instruction,
-            input_range=chart_request.data_source.data_range,
-            category="chart_generation",
-            input_data=[input_data_payload],
+            query=chart_request.query_text,
+            input_range=chart_request.data_range,
+            category=chart_request.chart_type,
+            input_data=[{"spreadsheet_data": chart_data_json}],
             priority=1 if current_user and current_user.get("role") == "premium" else 0
         )
         

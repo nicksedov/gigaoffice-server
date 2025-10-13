@@ -7,8 +7,19 @@ from .health import PingResponse, ServiceHealth
 from .service_metrics import MetricsResponse, TokenUsage
 from .common import ErrorResponse, SuccessResponse, PaginationParams, FilterParams, SortParams
 from .spreadsheet import SpreadsheetRequest, SpreadsheetProcessResponse, SpreadsheetResultResponse, SpreadsheetData, SpreadsheetSearchRequest, SearchResult, SearchResultItem
-    DataSource, ChartPosition, ChartStyling, SeriesConfig, ChartConfig,
-    ChartGenerationRequest, ChartGenerationResponse, ChartStatusResponse, ChartResultResponse
+from .chart import (
+    ChartType, 
+    ColorScheme, 
+    LegendPosition, 
+    BorderStyle,
+    ChartPosition, 
+    ChartStyling, 
+    SeriesConfig, 
+    ChartConfig,
+    ChartGenerationRequest, 
+    ChartGenerationResponse, 
+    ChartStatusResponse, 
+    ChartResultResponse
 )
 
 __all__ = [
@@ -25,6 +36,6 @@ __all__ = [
     'SpreadsheetSearchRequest', 'SearchResult', 'SearchResultItem',
     # Chart API models
     'ChartType', 'ColorScheme', 'LegendPosition', 'BorderStyle',
-    'DataSource', 'ChartPosition', 'ChartStyling', 'SeriesConfig', 'ChartConfig',
+    'ChartPosition', 'ChartStyling', 'SeriesConfig', 'ChartConfig',
     'ChartGenerationRequest', 'ChartGenerationResponse', 'ChartStatusResponse', 'ChartResultResponse'
 ]
