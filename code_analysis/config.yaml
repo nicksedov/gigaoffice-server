@@ -1,0 +1,69 @@
+# Code Analysis Configuration
+
+# File and directory exclusion patterns
+exclusions:
+  - "__pycache__"
+  - "*.pyc"
+  - ".git"
+  - ".venv"
+  - "venv"
+  - "env"
+  - "*.egg-info"
+  - "build"
+  - "dist"
+  - ".pytest_cache"
+  - ".mypy_cache"
+  - "node_modules"
+
+# Directories to exclude from analysis
+exclude_directories:
+  - "migrations"
+  - "tests"
+  - ".git"
+  - "__pycache__"
+
+# Import categories for classification
+import_categories:
+  standard_library:
+    - "os"
+    - "sys"
+    - "typing"
+    - "datetime"
+    - "json"
+    - "re"
+    - "pathlib"
+    - "collections"
+    - "functools"
+    - "itertools"
+    - "asyncio"
+  
+  # Third-party imports will be detected from requirements.txt
+  
+# Analysis rules
+analysis_rules:
+  ignore_star_imports: false
+  check_string_imports: true
+  check_type_annotations: true
+  check_docstrings: true
+  detect_dynamic_imports: true
+  
+  # FastAPI specific patterns
+  fastapi_patterns:
+    check_dependency_injection: true
+    check_router_registration: true
+    check_pydantic_models: true
+    
+# Report options
+report:
+  verbose: true
+  format: "console"  # console, json, html
+  show_suggestions: true
+  color_output: true
+  group_by_file: true
+  
+# Performance settings
+performance:
+  parallel_processing: true
+  max_workers: 4
+  cache_ast: true
+  incremental_analysis: true
