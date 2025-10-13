@@ -24,6 +24,7 @@ from app.models.orm.ai_request import AIRequest
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_services
 from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
+from app.services.chart.processor import chart_processing_service  # Added import for chart processor
 
 # Create services in the module where needed
 _, gigachat_generate_service = create_gigachat_services(prompt_builder)
@@ -57,10 +58,17 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         category = message_data["category"]
         input_data = message_data["input_data"]
         
-        logger.info(f"Processing Kafka message: {request_id}")
+        logger.info(f"Processing Kafka message: {request_id} with category: {category}")
+        
+        # Check if this is chart processing request
+        if input_data and len(input_data) >= 1 and "chart_request" in input_data[0]:
+            # Process as chart generation request
+            logger.info(f"Processing chart request: {request_id}")
+            result = await chart_processing_service.process_chart_request(message_data)
+            return result
         
         # Check if this is spreadsheet data
-        if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
+        elif input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
             # Process as enhanced spreadsheet data
             import json
             spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
@@ -77,12 +85,26 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
                     db_request.completed_at = datetime.now()
                     db.commit()
         
-        logger.info(f"Request {request_id} processed successfully")
-        return {
-            "success": True,
-            "result": result,
-            "metadata": metadata
-        }
+            logger.info(f"Request {request_id} processed successfully")
+            return {
+                "success": True,
+                "result": result,
+                "metadata": metadata
+            }
+        
+        else:
+            # Unknown request type
+            logger.warning(f"Unknown request type for request {request_id}")
+            with get_db_session() as db:
+                db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
+                if db_request:
+                    db_request.status = RequestStatus.FAILED
+                    db_request.error_message = "Unknown request type"
+                    db.commit()
+            return {
+                "success": False,
+                "error": "Unknown request type"
+            }
         
     except Exception as e:
         logger.error(f"Error processing request {request_id}: {e}")

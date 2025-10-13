@@ -270,6 +270,7 @@ class TestChartAPIEndpoints:
         
         mock_request = Mock()
         mock_request.status = "completed"
+        mock_request.category = "chart-generation"
         mock_request.error_message = None
         mock_db.query.return_value.filter.return_value.first.return_value = mock_request
         
@@ -305,7 +306,14 @@ class TestChartAPIEndpoints:
         
         mock_request = Mock()
         mock_request.status = "completed"
-        mock_request.chart_config = self.sample_chart_config
+        mock_request.category = "chart-generation"
+        # Chart config is now stored in result_data JSONB field
+        mock_request.result_data = {
+            "chart_config": self.sample_chart_config,
+            "chart_type": "column",
+            "recommendations": [],
+            "data_analysis": {}
+        }
         mock_request.tokens_used = 200
         mock_request.processing_time = 2.5
         mock_db.query.return_value.filter.return_value.first.return_value = mock_request
@@ -330,6 +338,7 @@ class TestChartAPIEndpoints:
         
         mock_request = Mock()
         mock_request.status = "pending"
+        mock_request.category = "chart-generation"
         mock_db.query.return_value.filter.return_value.first.return_value = mock_request
         
         response = client.get("/api/v1/charts/result/test-request-id")

@@ -137,6 +137,8 @@ CREATE INDEX IF NOT EXISTS idx_ai_requests_user_id ON ai_requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_status ON ai_requests(status);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_created_at ON ai_requests(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_priority ON ai_requests(priority DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_requests_category ON ai_requests(category);
+CREATE INDEX IF NOT EXISTS idx_ai_requests_user_category_created ON ai_requests(user_id, category, created_at DESC);
 
 CREATE INDEX idx_ai_responses_request_id ON ai_feedback(ai_request_id);
 

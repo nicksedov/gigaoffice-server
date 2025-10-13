@@ -11,7 +11,7 @@ from loguru import logger
 from sqlalchemy.orm import Session
 
 from app.models.types.enums import RequestStatus
-from app.models.orm.chart_request import ChartRequest
+from app.models.orm.ai_request import AIRequest
 from app.models.api.chart import ChartGenerationRequest, DataSource
 from app.services.database.session import get_db_session
 from app.services.chart import chart_intelligence_service, chart_validation_service
@@ -49,7 +49,7 @@ class ChartProcessingService:
             
             # Update database status to processing
             with get_db_session() as db:
-                db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+                db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
                 if db_request:
                     db_request.status = RequestStatus.PROCESSING.value
                     db_request.started_at = start_time
@@ -63,15 +63,20 @@ class ChartProcessingService:
             
             # Update database with results
             with get_db_session() as db:
-                db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+                db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
                 if db_request:
                     if result["success"]:
                         db_request.status = RequestStatus.COMPLETED.value
-                        db_request.chart_config = result.get("chart_config")
-                        db_request.chart_type = result.get("chart_type")
-                        db_request.recommended_chart_types = result.get("recommendations", [])
-                        db_request.data_analysis = result.get("data_analysis", {})
-                        db_request.confidence_score = result.get("confidence_score", 0.0)
+                        # Store all chart results in result_data JSONB field
+                        db_request.result_data = {
+                            "chart_config": result.get("chart_config"),
+                            "chart_type": result.get("chart_type"),
+                            "recommendations": result.get("recommendations", []),
+                            "data_analysis": result.get("data_analysis", {}),
+                            "confidence_score": result.get("confidence_score", 0.0),
+                            "validation_errors": result.get("processing_metadata", {}).get("validation_errors", []),
+                            "compatibility_warnings": result.get("processing_metadata", {}).get("compatibility_warnings", [])
+                        }
                         db_request.tokens_used = result.get("tokens_used", 0)
                         self.processing_stats["charts_processed"] += 1
                     else:
@@ -94,7 +99,7 @@ class ChartProcessingService:
             
             # Update database status to failed
             with get_db_session() as db:
-                db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+                db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
                 if db_request:
                     db_request.status = RequestStatus.FAILED.value
                     db_request.error_message = str(e)
