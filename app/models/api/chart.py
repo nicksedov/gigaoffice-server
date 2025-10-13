@@ -14,7 +14,6 @@ class ChartType(str, Enum):
     LINE = "line"
     COLUMN = "column" 
     PIE = "pie"
-    HISTOGRAM = "histogram"
     BOX_PLOT = "box_plot"
     SCATTER = "scatter"
     AREA = "area"

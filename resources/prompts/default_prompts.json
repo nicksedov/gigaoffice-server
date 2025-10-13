@@ -115,14 +115,14 @@
     "name": "Временной ряд",
     "description": "Построение графика изменения величины",
     "template": "Построй график изменения величины во времени.",
-    "category": "data-diagram",
+    "category": "data-chart",
     "language": "ru"
   },
   {
     "name": "Круговая диаграмма",
     "description": "Построение круговой диаграммы величины",
     "template": "Построй круговую диаграмму распределения расходов.",
-    "category": "data-diagram",
+    "category": "data-chart",
     "language": "ru"
   },
   {

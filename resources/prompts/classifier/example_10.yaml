@@ -1,6 +1,6 @@
 task: Создай столбчатую диаграмму по данным о доходах
 response_table: |
   {
-    "category": "data-diagram",
+    "category": "data-chart",
     "confidence": 0.97
   }

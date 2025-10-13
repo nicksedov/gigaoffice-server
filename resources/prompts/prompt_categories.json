@@ -35,7 +35,7 @@
     "sort_order": 5
   },
   {
-    "name": "data-diagram",
+    "name": "data-chart",
     "display_name": "График или диаграмма",
     "description": "Создание графиков и диаграмм",
     "is_active": true,
