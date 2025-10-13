@@ -16,19 +16,13 @@ class ChartRequest(Base):
     
     # Chart-specific request data
     chart_instruction = Column(Text, nullable=False)
-    data_source = Column(JSON, nullable=False)  # DataSource model as JSON
+    chart_data = Column(JSON, nullable=False)  # DataSource model as JSON
     chart_preferences = Column(JSON)  # ChartPreferences model as JSON
-    r7_office_config = Column(JSON)  # R7OfficeConfig model as JSON
     
     # Generated chart configuration
     chart_config = Column(JSON)  # ChartConfig model as JSON
     chart_type = Column(String(20))  # Denormalized for quick querying
-    
-    # AI processing metadata
-    recommended_chart_types = Column(JSON)  # List of AI recommendations
-    data_analysis = Column(JSON)  # AI analysis of source data
-    confidence_score = Column(Float)  # AI confidence in recommendation
-    
+       
     # Response data
     error_message = Column(Text)
     
@@ -45,11 +39,3 @@ class ChartRequest(Base):
     # Queue info
     queue_position = Column(Integer)
     priority = Column(Integer, default=0)
-    
-    # Chart generation metadata
-    data_rows_count = Column(Integer)  # Number of data rows processed
-    data_columns_count = Column(Integer)  # Number of data columns
-    chart_complexity = Column(String(20))  # simple, medium, complex
-    
-    def __repr__(self):
-        return f"<ChartRequest(id={self.id}, user_id={self.user_id}, status={self.status}, chart_type={self.chart_type})>"

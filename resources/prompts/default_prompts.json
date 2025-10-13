@@ -112,18 +112,24 @@
     "language": "ru"
   },
   {
-    "name": "График",
+    "name": "Временной ряд",
     "description": "Построение графика изменения величины",
     "template": "Построй график изменения величины во времени.",
-    "category": "data-graph",
+    "category": "data-diagram",
     "language": "ru"
   },
   {
-    "name": "Диаграмма",
-    "description": "Построение диаграммы",
+    "name": "Круговая диаграмма",
+    "description": "Построение круговой диаграммы величины",
+    "template": "Построй круговую диаграмму распределения расходов.",
+    "category": "data-diagram",
+    "language": "ru"
+  },
+  {
+    "name": "Гистограмма",
+    "description": "Построение гистограммы",
     "template": "Построй гистограмму распределения величины",
     "category": "data-histogram",
     "language": "ru"
   }
-
 ]

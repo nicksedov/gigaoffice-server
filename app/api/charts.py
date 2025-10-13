@@ -21,9 +21,8 @@ from app.models.api.chart import (
     ChartGenerationResponse, ChartStatusResponse, ChartResultResponse, ChartValidationResponse,
     ChartConfig, DataSource
 )
-from app.models.orm.chart_request import ChartRequest
+from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
-from app.services.chart import chart_intelligence_service, chart_validation_service
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
 
@@ -42,152 +41,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 chart_router = APIRouter(prefix="/api/v1/charts", tags=["Chart Generation"])
 
-@chart_router.post("/generate", response_model=ChartGenerationResponse)
-@limiter.limit("10/minute")
-async def generate_chart(
-    request: Request,
-    chart_request: ChartGenerationRequest,
-    background_tasks: BackgroundTasks,
-    current_user: Optional[Dict] = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Generate chart with AI assistance - immediate response for simple charts"""
-    try:
-        request_id = str(uuid.uuid4())
-        user_id = current_user.get("id", 0) if current_user else 0
-        
-        # Validate data source
-        is_valid_data, data_errors = chart_validation_service.validate_data_source(chart_request.data_source)
-        if not is_valid_data:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid data source: {', '.join(data_errors)}"
-            )
-        
-        # Determine processing mode based on data complexity
-        data_rows_count = len(chart_request.data_source.data_rows)
-        data_cols_count = len(chart_request.data_source.headers)
-        is_complex = data_rows_count > 100 or data_cols_count > 10
-        
-        # Create database record
-        chart_preferences_json = chart_request.chart_preferences.dict() if chart_request.chart_preferences else None
-        r7_config_json = chart_request.r7_office_config.dict() if chart_request.r7_office_config else None
-        
-        db_request = ChartRequest(
-            id=request_id,
-            user_id=user_id,
-            status=RequestStatus.PENDING.value,
-            chart_instruction=chart_request.chart_instruction,
-            data_source=chart_request.data_source.dict(),
-            chart_preferences=chart_preferences_json,
-            r7_office_config=r7_config_json,
-            data_rows_count=data_rows_count,
-            data_columns_count=data_cols_count,
-            chart_complexity="complex" if is_complex else "simple"
-        )
-        
-        db.add(db_request)
-        db.commit()
-        
-        if is_complex:
-            # Queue for asynchronous processing
-            success = await kafka_service.send_request(
-                request_id=request_id,
-                user_id=user_id,
-                query=chart_request.chart_instruction,
-                input_range=chart_request.data_source.data_range,
-                category="chart_generation",
-                input_data=[{
-                    "chart_request": chart_request.dict(),
-                    "processing_type": "chart_generation"
-                }],
-                priority=1 if current_user and current_user.get("role") == "premium" else 0
-            )
-            
-            if not success:
-                raise HTTPException(status_code=500, detail="Failed to queue chart generation request")
-            
-            # Update status to queued
-            db_request.status = RequestStatus.PROCESSING.value
-            db.commit()
-            
-            return ChartGenerationResponse(
-                success=True,
-                request_id=request_id,
-                status="queued",
-                chart_config=None,
-                message="Chart generation request queued for processing",
-                error_message=None
-            )
-        
-        else:
-            # Process immediately for simple charts
-            try:
-                # Update status to processing
-                db_request.status = RequestStatus.PROCESSING.value
-                db.commit()
-                
-                # Get AI recommendation
-                recommendation = await chart_intelligence_service.recommend_chart_type(
-                    chart_request.data_source,
-                    chart_request.chart_instruction,
-                    chart_preferences_json
-                )
-                
-                # Generate chart configuration
-                chart_config = await chart_intelligence_service.generate_chart_config(
-                    chart_request.data_source,
-                    chart_request.chart_instruction,
-                    recommendation.primary_recommendation.recommended_chart_type,
-                    chart_preferences_json
-                )
-                
-                # Validate generated configuration
-                is_valid, validation_errors = chart_validation_service.validate_chart_config(chart_config)
-                is_compatible, compatibility_warnings = chart_validation_service.validate_r7_office_compatibility(chart_config)
-                
-                if not is_valid:
-                    logger.warning(f"Generated chart config has validation errors: {validation_errors}")
-                
-                # Update database with results
-                db_request.status = RequestStatus.COMPLETED.value
-                db_request.chart_config = chart_config.dict()
-                db_request.chart_type = chart_config.chart_type.value
-                db_request.recommended_chart_types = [rec.dict() for rec in [recommendation.primary_recommendation] + recommendation.alternative_recommendations]
-                db_request.data_analysis = recommendation.data_analysis
-                db_request.confidence_score = recommendation.primary_recommendation.confidence
-                db_request.tokens_used = recommendation.generation_metadata.get("tokens_used", 0)
-                db_request.processing_time = recommendation.generation_metadata.get("processing_time", 0.0)
-                
-                db.commit()
-                
-                return ChartGenerationResponse(
-                    success=True,
-                    request_id=request_id,
-                    status="completed",
-                    chart_config=chart_config,
-                    message="Chart generated successfully",
-                    error_message=None,
-                    tokens_used=db_request.tokens_used,
-                    processing_time=db_request.processing_time
-                )
-                
-            except Exception as e:
-                logger.error(f"Error processing chart generation: {e}")
-                
-                # Update status to failed
-                db_request.status = RequestStatus.FAILED.value
-                db_request.error_message = str(e)
-                db.commit()
-                
-                raise HTTPException(status_code=500, detail=f"Chart generation failed: {str(e)}")
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in chart generation endpoint: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 @chart_router.post("/process", response_model=ChartGenerationResponse)
 @limiter.limit("10/minute")
 async def process_chart_request(
@@ -201,30 +54,15 @@ async def process_chart_request(
     try:
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
-        
-        # Validate data source
-        is_valid_data, data_errors = chart_validation_service.validate_data_source(chart_request.data_source)
-        if not is_valid_data:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid data source: {', '.join(data_errors)}"
-            )
-        
-        # Create database record
-        chart_preferences_json = chart_request.chart_preferences.dict() if chart_request.chart_preferences else None
-        r7_config_json = chart_request.r7_office_config.dict() if chart_request.r7_office_config else None
-        
-        db_request = ChartRequest(
+        chart_json = json.dumps(chart_request.chart_data.list(), cls=DateTimeEncoder)
+        db_request = AIRequest(
             id=request_id,
             user_id=user_id,
-            status=RequestStatus.PENDING.value,
-            chart_instruction=chart_request.chart_instruction,
-            data_source=chart_request.data_source.dict(),
-            chart_preferences=chart_preferences_json,
-            r7_office_config=r7_config_json,
-            data_rows_count=len(chart_request.data_source.data_rows),
-            data_columns_count=len(chart_request.data_source.headers),
-            chart_complexity="async_requested"
+            status=RequestStatus.PENDING,
+            input_range=chart_request.data_range,
+            query_text=chart_request.query_text,
+            category=chart_request.category if chart_request.category is not None else 'data_chart',
+            input_data=spreadsheet_json
         )
         
         db.add(db_request)

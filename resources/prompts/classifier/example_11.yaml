@@ -1,6 +1,6 @@
 task: Построй график изменения цен за год
 response_table: |
   {
-    "category": "data-graph",
+    "category": "data-diagram",
     "confidence": 0.94
   }

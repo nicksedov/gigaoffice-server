@@ -11,8 +11,13 @@ from enum import Enum
 # Chart Type Enums
 class ChartType(str, Enum):
     """Supported chart types"""
-    GRAPH = "graph"
-    CHART = "chart" 
+    LINE = "line"
+    COLUMN = "column" 
+    PIE = "pie"
+    HISTOGRAM = "histogram"
+    BOX_PLOT = "box_plot"
+    SCATTER = "scatter"
+    AREA = "area"
     HISTOGRAM = "histogram"
 
 class ColorScheme(str, Enum):
@@ -45,6 +50,7 @@ class ChartSeries(BaseModel):
 # Core Data Models
 class ChartData(BaseModel):
     """Source data for chart generation"""
+    data_range: str = Field(..., description="Cell range reference for source data")
     chart_data: List[ChartSeries] = Field(..., description="Data series included in the chart")
     chart_type: str = Field(..., description="Type of chart to generate")
     query_text: str = Field(..., description="Natural language instruction for chart generation")

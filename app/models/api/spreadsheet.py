@@ -88,25 +88,6 @@ class ColumnDefinition(BaseModel):
     index: int = Field(..., description="Zero-based column index")
     format: str = Field('General', description="Display format for the data")
 
-class ChartPosition(BaseModel):
-    """Position and size specifications for charts"""
-    top: int = Field(..., description="Top position in pixels")
-    left: int = Field(..., description="Left position in pixels")
-    width: int = Field(..., description="Width in pixels")
-    height: int = Field(..., description="Height in pixels")
-
-class ChartStyle(BaseModel):
-    """Chart styling options"""
-    color_scheme: str = Field(default="office", description="Color scheme for the chart")
-
-class ChartDefinition(BaseModel):
-    """Chart definition"""
-    type: str = Field(..., description="Chart type (column, line, pie, etc.)")
-    title: str = Field(..., description="Chart title")
-    range: str = Field(..., description="Data range for the chart")
-    position: ChartPosition = Field(..., description="Position and size specifications")
-    style: ChartStyle = Field(default_factory=lambda: ChartStyle(), description="Chart styling options")
-
 class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation with style references"""
     metadata: SpreadsheetMetadata = Field(default_factory=lambda: SpreadsheetMetadata(created_at=None), description="Metadata section")
@@ -114,7 +95,6 @@ class SpreadsheetData(BaseModel):
     data: WorksheetData = Field(default_factory=lambda: WorksheetData(header=None, rows=[]), description="Data section containing header and rows")
     columns: Optional[List[ColumnDefinition]] = Field(default_factory=list, description="Column definitions")
     styles: List[StyleDefinition] = Field(default_factory=list, description="Centralized style definitions")
-    charts: Optional[List[ChartDefinition]] = Field(default_factory=list, description="Chart definitions")
 
 class SpreadsheetRequest(BaseModel):
     """Request model for enhanced spreadsheet processing with style references"""
