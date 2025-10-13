@@ -54,15 +54,21 @@ async def process_chart_request(
     try:
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
-        chart_json = json.dumps(chart_request.chart_data.list(), cls=DateTimeEncoder)
+        
+        # Prepare input_data for chart generation
+        input_data_payload = {
+            "chart_request": chart_request.dict(),
+            "processing_type": "chart_generation"
+        }
+        
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
             status=RequestStatus.PENDING,
-            input_range=chart_request.data_range,
-            query_text=chart_request.query_text,
-            category=chart_request.category if chart_request.category is not None else 'data_chart',
-            input_data=spreadsheet_json
+            input_range=chart_request.data_source.data_range,
+            query_text=chart_request.chart_instruction,
+            category="chart_generation",
+            input_data=input_data_payload
         )
         
         db.add(db_request)
@@ -75,10 +81,7 @@ async def process_chart_request(
             query=chart_request.chart_instruction,
             input_range=chart_request.data_source.data_range,
             category="chart_generation",
-            input_data=[{
-                "chart_request": chart_request.dict(),
-                "processing_type": "chart_generation"
-            }],
+            input_data=[input_data_payload],
             priority=1 if current_user and current_user.get("role") == "premium" else 0
         )
         
@@ -104,7 +107,10 @@ async def process_chart_request(
 async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
     """Get the processing status of a chart generation request"""
     try:
-        db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+        db_request = db.query(AIRequest).filter(
+            AIRequest.id == request_id,
+            AIRequest.category == "chart_generation"
+        ).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")
         
@@ -140,7 +146,10 @@ async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
 async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
     """Get the result of a chart generation request"""
     try:
-        db_request = db.query(ChartRequest).filter(ChartRequest.id == request_id).first()
+        db_request = db.query(AIRequest).filter(
+            AIRequest.id == request_id,
+            AIRequest.category == "chart_generation"
+        ).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")
         
@@ -162,24 +171,22 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
                 processing_time=None
             )
         
-        # Parse chart configuration if available
+        # Parse chart configuration from result_data JSON field
         chart_config = None
-        raw_chart_config = cast(Any, db_request.chart_config)
+        result_data = cast(Any, db_request.result_data)
         
-        if raw_chart_config is not None:
+        if result_data is not None and isinstance(result_data, dict):
             try:
-                if isinstance(raw_chart_config, str):
-                    chart_config_data = json.loads(raw_chart_config)
-                elif isinstance(raw_chart_config, dict):
-                    chart_config_data = raw_chart_config
-                else:
-                    chart_config_data = None
+                # Extract chart_config from result_data
+                chart_config_data = result_data.get("chart_config")
                 
                 if chart_config_data:
+                    if isinstance(chart_config_data, str):
+                        chart_config_data = json.loads(chart_config_data)
                     chart_config = ChartConfig(**chart_config_data)
                     
             except Exception as e:
-                logger.warning(f"Could not parse chart configuration: {e}")
+                logger.warning(f"Could not parse chart configuration from result_data: {e}")
         
         # Type-safe access to other attributes
         tokens_used_value = cast(Optional[int], db_request.tokens_used)
