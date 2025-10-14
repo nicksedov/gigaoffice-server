@@ -1,23 +1,27 @@
-import json
+"""
+Chart Processor Service
+Service for processing chart generation requests with GigaChat AI
+"""
+
 import time
 import asyncio
-from typing import Dict, Any, Optional, List, Tuple
-from datetime import datetime
+from typing import Dict, Any, Tuple
 from loguru import logger
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from app.services.gigachat.base import BaseGigaChatService
 from app.services.gigachat.response_parser import response_parser
 from app.services.chart import shared
-from app.models.api.spreadsheet import SpreadsheetData
+from app.models.api.chart import ChartConfig
 
-class SpreadsheetProcessorService:
+
+class ChartProcessorService:
     """
-    Service for processing enhanced spreadsheet data with GigaChat AI.
+    Service for processing chart generation requests with GigaChat AI.
     
-    This service handles the processing of spreadsheet data using the GigaChat AI service.
-    It takes spreadsheet data in a specific JSON format, sends it to GigaChat for processing,
-    and returns enhanced spreadsheet data with features like charts.
+    This service handles the processing of chart data using the GigaChat AI service.
+    It takes chart data in a specific JSON format, sends it to GigaChat for processing,
+    and returns chart configurations that can be used to generate visualizations.
     
     The service is used by the FastAPI application through the Kafka message handler
     in fastapi_config.py, which processes messages from the Kafka queue.
@@ -25,55 +29,54 @@ class SpreadsheetProcessorService:
     
     def __init__(self, gigachat_service: BaseGigaChatService):
         """
-        Initialize the spreadsheet processor service.
+        Initialize the chart processor service.
         
         Args:
             gigachat_service: An instance of a GigaChat service (cloud, mtls, or dryrun)
         """
         self.gigachat_service = gigachat_service
     
-    async def process_spreadsheet(
+    async def process_chart(
         self,
         query: str,
         category: str,
-        spreadsheet_data: Dict[str, Any],
+        chart_data: Dict[str, Any],
         temperature: float = 0.1
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """
-        Process enhanced spreadsheet data with GigaChat
+        Process chart generation request with GigaChat
         
         Args:
-            query: Processing instruction for the AI
-            category: Processing instruction category
-            spreadsheet_data: Enhanced spreadsheet data in JSON format
+            query: User instruction for chart generation
+            category: Category type (data-chart or data-histogram)
+            chart_data: Input data for chart generation
             temperature: Temperature for generation (0.0 - 1.0)
             
         Returns:
             Tuple[processed_result, metadata]
             
-        The spreadsheet_data should follow the structure of SpreadsheetData model class
+        The chart_data should contain the data needed for chart generation
         """
         try:
-            # Check rate limits using shared logic
+            # Check rate limits
             if not shared.check_rate_limit(self.gigachat_service):
                 raise Exception("Rate limit exceeded. Please wait before making another request.")
             
             # Prepare prompts using shared logic
             system_prompt, user_prompt = shared.prepare_prompts(
-                query, category, spreadsheet_data, self.gigachat_service
+                query, category, chart_data, self.gigachat_service
             )
             
-            # Count tokens using shared logic
+            # Count tokens
             input_tokens = shared.count_tokens(
                 system_prompt, user_prompt, self.gigachat_service
             )
             
-            # Validate token limit using shared logic
+            # Validate token limit
             shared.validate_token_limit(input_tokens, self.gigachat_service)
             
             # Check if client is initialized (for dryrun mode)
             if self.gigachat_service.client is None:
-                # Handle dryrun mode
                 logger.error("GigaChat service is unavailable")
                 raise Exception("GigaChat service is unavailable")
             
@@ -83,12 +86,12 @@ class SpreadsheetProcessorService:
                 HumanMessage(content=user_prompt)
             ]
             
-            # Add request time for rate limiting using shared logic
+            # Add request time for rate limiting
             shared.add_request_time(self.gigachat_service)
             
             # Make request to GigaChat
             start_time = time.time()
-            logger.info(f"Sending spreadsheet processing request to GigaChat: {query[:100]}...")
+            logger.info(f"Sending chart generation request to GigaChat: {query[:100]}...")
             
             response = await asyncio.to_thread(self.gigachat_service.client.invoke, messages)
             
@@ -101,13 +104,13 @@ class SpreadsheetProcessorService:
             
             self.gigachat_service.total_tokens_used += total_tokens
             
-            # Try to parse the response as JSON
-            try:
-                result_data = response_parser.parse_spreadsheet_data(response_content)
-                # Validate that this is spreadsheet data
-            except json.JSONDecodeError:
-                # If JSON parsing fails, treat as text response
-                result_data = SpreadsheetData()
+            # Parse the response as ChartConfig
+            result_data = response_parser.parse_chart_data(response_content)
+            
+            if result_data is None:
+                logger.warning("Failed to parse chart configuration from response")
+                # Return empty result on parsing failure
+                result_data = {}
             
             # Prepare metadata using shared logic
             metadata = shared.create_metadata(
@@ -119,28 +122,12 @@ class SpreadsheetProcessorService:
             )
             
             logger.info(
-                f"Spreadsheet processing completed successfully in {processing_time:.2f}s, "
+                f"Chart processing completed successfully in {processing_time:.2f}s, "
                 f"tokens: {total_tokens}"
             )
             
             return result_data, metadata
             
         except Exception as e:
-            logger.error(f"Error processing spreadsheet data: {e}")
+            logger.error(f"Error processing chart data: {e}")
             raise
-
-# Factory function to create processor
-def create_spreadsheet_processor(gigachat_service):
-    """
-    Create a spreadsheet processor with the given GigaChat service.
-    
-    This factory function is used in fastapi_config.py to create the spreadsheet processor
-    that is used by the Kafka message handler to process spreadsheet requests.
-    
-    Args:
-        gigachat_service: An instance of a GigaChat service (cloud, mtls, or dryrun)
-        
-    Returns:
-        SpreadsheetProcessorService: An instance of the spreadsheet processor service
-    """
-    return SpreadsheetProcessorService(gigachat_service)

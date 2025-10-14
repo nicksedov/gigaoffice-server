@@ -24,6 +24,7 @@ from app.models.orm.ai_request import AIRequest
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_service
 from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
+from app.services.chart import create_chart_processor  # Added import for chart processor
 
 # Create services in the module where needed
 gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat generation service")
@@ -31,6 +32,10 @@ gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GE
 # Create spreadsheet processor for handling enhanced spreadsheet data
 # This processor is used by the Kafka message handler to process spreadsheet requests
 spreadsheet_processor = create_spreadsheet_processor(gigachat_generate_service)  # Create spreadsheet processor
+
+# Create chart processor for handling chart generation requests
+# This processor is used by the Kafka message handler to process chart generation requests
+chart_processor = create_chart_processor(gigachat_generate_service)  # Create chart processor
 
 from app.services.kafka.service import kafka_service
 from app.prompts import prompt_manager
@@ -58,25 +63,37 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         category = message_data["category"]
         input_data = message_data["input_data"]
         
-        logger.info(f"Processing Kafka message: {request_id}")
+        logger.info(f"Processing Kafka message: {request_id} with category: {category}")
         
-        # Check if this is spreadsheet data
-        if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
+        # Route based on category
+        if category in ["data-chart", "data-histogram"]:
+            # Process as chart generation request
+            import json
+            chart_data = json.loads(input_data[0]["spreadsheet_data"]) if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0] else {}
+            result, metadata = await chart_processor.process_chart(query, category, chart_data)
+        elif category.startswith("spreadsheet-"):
             # Process as enhanced spreadsheet data
             import json
-            spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
-            result, metadata = await spreadsheet_processor.process_spreadsheet(query, category, spreadsheet_data)
+            if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
+                spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
+                result, metadata = await spreadsheet_processor.process_spreadsheet(query, category, spreadsheet_data)
+            else:
+                raise Exception(f"Invalid input data for spreadsheet processing")
+        else:
+            # Unknown category
+            logger.error(f"Unknown category: {category}")
+            raise Exception(f"Unknown category: {category}")
         
-            # Update database
-            with get_db_session() as db:
-                db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
-                if db_request:
-                    db_request.status = RequestStatus.COMPLETED
-                    db_request.result_data = result
-                    db_request.tokens_used = metadata.get("total_tokens", 0)
-                    db_request.processing_time = metadata.get("processing_time", 0)
-                    db_request.completed_at = datetime.now()
-                    db.commit()
+        # Update database
+        with get_db_session() as db:
+            db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
+            if db_request:
+                db_request.status = RequestStatus.COMPLETED
+                db_request.result_data = result
+                db_request.tokens_used = metadata.get("total_tokens", 0)
+                db_request.processing_time = metadata.get("processing_time", 0)
+                db_request.completed_at = datetime.now()
+                db.commit()
         
         logger.info(f"Request {request_id} processed successfully")
         return {
