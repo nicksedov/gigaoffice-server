@@ -171,14 +171,7 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
         
         if result_data is not None and isinstance(result_data, dict):
             try:
-                # Extract chart_config from result_data
-                chart_config_data = result_data.get("chart_config")
-                
-                if chart_config_data:
-                    if isinstance(chart_config_data, str):
-                        chart_config_data = json.loads(chart_config_data)
-                    chart_config = ChartConfig(**chart_config_data)
-                    
+                chart_config = ChartConfig(**result_data)
             except Exception as e:
                 logger.warning(f"Could not parse chart configuration from result_data: {e}")
         
