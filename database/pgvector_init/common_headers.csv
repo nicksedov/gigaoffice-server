@@ -210,6 +210,7 @@ whatsapp,whatsapp
 двойное налогообложение,double taxation
 дебет,debit
 дебиторская задолженность,receivables
+дедлайн,deadline
 действует до,valid until
 денежный поток,cash flow
 день,day
@@ -242,6 +243,7 @@ whatsapp,whatsapp
 доначисление,additional assessment
 дополнение,addition
 дополнительное соглашение,additional agreement
+дорожная карта,roadmap
 доставка,delivery
 доставка,shipping
 достаточность,sufficiency
@@ -561,6 +563,7 @@ whatsapp,whatsapp
 ограничение,constraint
 ограничение,limit
 огрн,
+ожидание,expectation
 ожидаемое время прибытия,eta
 окато,
 оквэд,
@@ -677,6 +680,8 @@ whatsapp,whatsapp
 получатель,recipient
 пользователь,user
 помещение,room
+порог,threshold
+пороговое значение,threshold value
 порт,port
 портфель,portfolio
 последнее изменение,last modified
@@ -694,6 +699,7 @@ whatsapp,whatsapp
 почтовый индекс,postal code
 права,permissions
 правило,rule
+предел,limit
 предзаказ,preorder
 предложение,offer
 предложение,proposal
@@ -754,6 +760,7 @@ whatsapp,whatsapp
 рабочее место,workplace
 радиус,radius
 разблокировка,unlock
+разброс,variance
 развитие,development
 раздел,section
 раздел,partition
@@ -764,6 +771,8 @@ whatsapp,whatsapp
 размерность,dimensions
 размеры,dimensions
 размещение,placement
+разница,difference
+разница,variation
 разрешение,permission
 разрешение,resolution
 разрешение экрана,screen resolution
@@ -1056,6 +1065,7 @@ whatsapp,whatsapp
 час,hour
 часовой пояс,timezone
 частота,frequency
+часть,part
 чат,chat
 численность,size
 число,total
