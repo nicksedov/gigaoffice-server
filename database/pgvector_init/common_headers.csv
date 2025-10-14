@@ -1,4 +1,4 @@
-﻿auc,auc
+auc,auc
 base64,base64
 csat,csat
 csi,csi
@@ -69,12 +69,16 @@ whatsapp,whatsapp
 активный,active
 актуальность,relevance
 акцизный налог,excise tax
+акционер,stockholder
+акционер,shareholder
+акционерный капитал,equity
 акция,stock
 аллергии,allergies
 аллергия,allergy
 альфа,alpha
 амортизация,depreciation
 амплитуда,range
+андеррайтер,underwriter
 аннотация,annotation
 аномалия,anomaly
 арендатор,tenant
@@ -100,6 +104,7 @@ whatsapp,whatsapp
 брандмауэр,firewall
 браузер,browser
 бренд,brand
+брокер,broker
 брутто,gross
 бюджет,budget
 бюджет проекта,project budget
@@ -185,6 +190,7 @@ whatsapp,whatsapp
 дальность,distance
 дата,date
 дата выдачи,issue date
+дата выхода,start date
 дата закрытия,close date
 дата изменения,modification date
 дата истечения,expiry date
@@ -229,6 +235,7 @@ whatsapp,whatsapp
 долгота,longitude
 должность,position
 доля,fraction
+доля,share
 дом,house
 домен,domain
 доначисление,additional assessment
@@ -258,6 +265,8 @@ whatsapp,whatsapp
 загрузки,downloads
 задача,task
 задолженность,debt
+заинтересованная сторона,stakeholder
+заинтересованное лицо,stakeholder
 заказ,order
 заказчик,customer
 заключение,conclusion
@@ -268,10 +277,12 @@ whatsapp,whatsapp
 запись,record
 запрос,request
 запрос,query
+заработная плата,salary
 зарезервировано,reserved
 зарплата,salary
 затраты,expenses
 зачет,offset
+заявка,bid
 звезды,stars
 здание,building
 земельный налог,land tax
@@ -388,6 +399,7 @@ whatsapp,whatsapp
 коэффициент,coefficient
 коэффициент,ratio
 коэффициент брака,defect rate
+коэффициент использования,utilization rate
 коэффициент кликабельности,click-through rate
 коэффициент конверсии,conversion rate
 кпп,
@@ -568,7 +580,9 @@ whatsapp,whatsapp
 освобождение от ндс,vat exemption
 основание,base
 основание,foundation
+основатель,founder
 особенности,features
+остаток,remainder
 ответ,answer
 ответ,response
 ответ,reply
@@ -650,6 +664,7 @@ whatsapp,whatsapp
 показатель,metric
 показатель кликабельности,click through rate
 показатель отказов,bounce rate
+показатель удержания,retention 
 покрытие,coverage
 пол,gender
 пол,sex
@@ -666,6 +681,7 @@ whatsapp,whatsapp
 последнее изменение,last modified
 последовательность,sequence
 пост,post
+поставка,supply
 поставщик,supplier
 поставщик,vendor
 постановление,resolution
@@ -678,6 +694,8 @@ whatsapp,whatsapp
 права,permissions
 правило,rule
 предзаказ,preorder
+предложение,offer
+предложение,proposal
 предмет,subject
 предоплата,prepayment
 премия,premium
@@ -695,6 +713,7 @@ whatsapp,whatsapp
 провинция,province
 проводимость,conductivity
 прогноз,forecast
+прогноз доходов,revenue forecast
 продление срока,extension
 продолжительность,duration
 продуктивность,productivity
@@ -792,6 +811,8 @@ whatsapp,whatsapp
 руководитель,executive
 руководитель,head
 руководитель,supervisor
+рынок,market
+рыночная доля,market share
 сайт,website
 сайт компании,company website
 самостоятельное исправление,voluntary correction
@@ -838,9 +859,14 @@ whatsapp,whatsapp
 слоган,tagline
 сложность,complexity
 смена,shift
+снаряжение,equipment
 снилс,
 сноска,footnote
 снято с производства,discontinued
+собственник,owner
+собственность,property
+собственность,ownership
+собственный капитал,net worth
 событие,event
 согласование,accept
 согласующий,approving
@@ -897,6 +923,7 @@ whatsapp,whatsapp
 стоимость клика,cost per click
 стоимость сделки,deal value
 столица,capital
+стоп-лосс,stop-loss
 страна,country
 страна происхождения,origin
 страна регистрации,country of registration
@@ -921,6 +948,8 @@ whatsapp,whatsapp
 таргет,target
 твердость,hardness
 тег,tag
+тейк-профит,take-profit
+текучесть,turnover
 текущий налог,current tax
 телефон,phone
 тема,subject
@@ -959,6 +988,7 @@ whatsapp,whatsapp
 углеводы,carbohydrates
 угол,angle
 удалено,deleted
+удержание,retention
 удовлетворенность,satisfaction
 удовлетворенность клиента,customer satisfaction
 узел,node
@@ -971,15 +1001,21 @@ whatsapp,whatsapp
 уреренность,confidence
 уровень,level
 уровень доступа,access level
+уровень удовлетворенности,satisfaction level
 условие,condition
 услуга,service
 усн,simplified taxation
+устав,charter
+уставный капитал,authorized capital
 устройство,device
 утверждающий,approver
+утилизация,utilization
 уф-индекс,uv index
 участник,contributor
+участник,stakeholder
 учебный год,academic year
 учебный план,curriculum
+учредитель,founder
 ущерб,expense
 фабрика,factory
 файл,file
@@ -999,6 +1035,7 @@ whatsapp,whatsapp
 фото,photo
 фреймворк,framework
 функция потерь,loss function
+характеристики,features
 хеш,hash
 хештег,hashtag
 хост,host
