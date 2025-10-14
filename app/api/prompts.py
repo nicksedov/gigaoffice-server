@@ -18,10 +18,10 @@ from app.models.orm.category import Category
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
-from app.services.gigachat.factory import create_gigachat_services
+from app.services.gigachat.factory import create_gigachat_service
 
 # Create services in the module where needed
-gigachat_classify_service, _ = create_gigachat_services(prompt_builder)
+gigachat_classify_service = create_gigachat_service(prompt_builder, "GIGACHAT_CLASSIFY_MODEL", "GigaChat prompt classification service")
 
 from app.prompts import prompt_manager
 from app.fastapi_config import security

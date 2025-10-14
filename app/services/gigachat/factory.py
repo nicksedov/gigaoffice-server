@@ -15,13 +15,13 @@ SERVICE_MODES = {
     "mtls": MtlsGigaChatService
 }
 
-def create_gigachat_service(prompt_builder, model_env_var):
+def create_gigachat_service(prompt_builder, model_env_var, service_description):
     """
     Возвращает экземпляр GigaChat-сервиса, использующий указанную модель
     """
     run_mode = os.getenv("GIGACHAT_RUN_MODE", "dryrun").lower()
     model_name = os.getenv(model_env_var, "GigaChat")
-    logger.info(f"Creating GigaChat service in {run_mode} mode with model={model_name}")
+    logger.info(f"Initializing {service_description} with model={model_name}")
 
     service_class = SERVICE_MODES.get(run_mode)
     if not service_class:
@@ -30,10 +30,3 @@ def create_gigachat_service(prompt_builder, model_env_var):
 
     # Передаем имя модели через конструктор
     return service_class(prompt_builder, model=model_name)
-
-# Создаем два глобальных экземпляра
-def create_gigachat_services(prompt_builder):
-    """Create both classification and generation services"""
-    gigachat_classify_service = create_gigachat_service(prompt_builder, "GIGACHAT_CLASSIFY_MODEL")
-    gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL")
-    return gigachat_classify_service, gigachat_generate_service

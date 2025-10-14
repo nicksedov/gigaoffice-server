@@ -12,10 +12,6 @@ from app.models.orm.ai_feedback import AIFeedback
 from app.services.database.session import get_db
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
-from app.services.gigachat.factory import create_gigachat_services
-
-# Create services in the module where needed
-gigachat_classify_service, gigachat_generate_service = create_gigachat_services(prompt_builder)
 
 feedback_router = APIRouter(prefix="/api", tags=["AI Feedback Processing"])
 

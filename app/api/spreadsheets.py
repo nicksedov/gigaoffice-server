@@ -29,13 +29,9 @@ from app.services.spreadsheet.style_registry import StyleValidator, create_style
 
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
-from app.services.gigachat.factory import create_gigachat_services
 
 # Import custom JSON encoder
 from app.utils.json_encoder import DateTimeEncoder
-
-# Create services in the module where needed
-_, gigachat_generate_service = create_gigachat_services(prompt_builder)
 
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security

@@ -12,10 +12,10 @@ from loguru import logger
 from app.models.api.service_metrics import MetricsResponse
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
-from app.services.gigachat.factory import create_gigachat_services
+from app.services.gigachat.factory import create_gigachat_service
 
 # Create services in the module where needed
-_, gigachat_generate_service = create_gigachat_services(prompt_builder)
+gigachat_metrics_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat statistics service")
 
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
@@ -39,7 +39,7 @@ async def get_metrics(
         if not current_user or current_user.get("role") not in ["admin", "premium"]:
             raise HTTPException(status_code=403, detail="Access denied")
         
-        gigachat_stats = gigachat_generate_service.get_usage_statistics()
+        gigachat_stats = gigachat_metrics_service.get_usage_statistics()
         kafka_info = kafka_service.get_queue_info()
         
         metrics = MetricsResponse(

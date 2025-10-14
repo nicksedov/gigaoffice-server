@@ -22,11 +22,12 @@ from app.models.types.enums import RequestStatus
 from app.models.orm.ai_request import AIRequest
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
-from app.services.gigachat.factory import create_gigachat_services
+from app.services.gigachat.factory import create_gigachat_service
 from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
 
 # Create services in the module where needed
-_, gigachat_generate_service = create_gigachat_services(prompt_builder)
+gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat generation service")
+
 # Create spreadsheet processor for handling enhanced spreadsheet data
 # This processor is used by the Kafka message handler to process spreadsheet requests
 spreadsheet_processor = create_spreadsheet_processor(gigachat_generate_service)  # Create spreadsheet processor

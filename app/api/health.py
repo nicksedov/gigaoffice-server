@@ -9,10 +9,10 @@ from app.models.api.health import PingResponse, ServiceHealth
 from app.fastapi_config import app_start_time, APP_VERSION
 from app.services.database.session import check_database_health
 from app.services.gigachat.prompt_builder import prompt_builder
-from app.services.gigachat.factory import create_gigachat_services
+from app.services.gigachat.factory import create_gigachat_service
 
 # Create services in the module where needed
-gigachat_classify_service, _ = create_gigachat_services(prompt_builder)
+gigachat_healthcheck_service = create_gigachat_service(prompt_builder, "GIGACHAT_CLASSIFY_MODEL", "GigaChat healthcheck service")
 
 from app.services.kafka.service import kafka_service
 
@@ -29,7 +29,7 @@ async def health_check():
     uptime = time.time() - app_start_time
     
     db_health = check_database_health()
-    gigachat_health = gigachat_classify_service.check_service_health()
+    gigachat_health = gigachat_healthcheck_service.check_service_health()
     kafka_health = kafka_service.get_health_status()
     
     health_status = ServiceHealth(
