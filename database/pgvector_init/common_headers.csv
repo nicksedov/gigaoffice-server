@@ -203,6 +203,7 @@ whatsapp,whatsapp
 дата регистрации,registration date
 дата рождения,birth date
 дата создания,creation date
+дата техобслуживания,maintenance date
 дата увольнения,termination date
 дата установки,installation date
 дата-центр,datacenter
@@ -898,6 +899,7 @@ whatsapp,whatsapp
 срок годности,expiration date
 срок давности,statute of limitations
 срок действия,validity period
+срок обслуживания,maintenance period
 срок подачи,filing deadline
 срок уплаты,payment deadline
 срочность,urgency
