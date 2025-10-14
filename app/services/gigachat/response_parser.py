@@ -62,6 +62,46 @@ class GigachatResponseParser:
         except Exception as e:
             logger.warning(f"Error processing spreadsheet response: {e}")
             return None
+    
+    def parse_chart_data(self, response_content: str) -> Optional[dict]:
+        """
+        Extract and validate ChartConfig structure from GigaChat response
+        
+        Args:
+            response_content: Raw AI response string
+            
+        Returns:
+            Parsed chart configuration dictionary or None if parsing failed
+        """
+        try:
+            # Required fields for ChartConfig
+            required_fields = ['chart_type', 'title', 'series_config', 'position', 'styling']
+            
+            # Try to extract JSON object from response
+            result_object = self.parse_object(response_content, required_fields)
+            
+            if result_object is None:
+                logger.warning("Could not extract valid JSON from chart response")
+                return None
+            
+            # Validate chart configuration structure
+            if isinstance(result_object, dict):
+                # Verify all required fields are present
+                missing_fields = [field for field in required_fields if field not in result_object]
+                
+                if missing_fields:
+                    logger.warning(f"Chart response missing required fields: {missing_fields}")
+                    return None
+                
+                logger.info("Successfully extracted chart configuration")
+                return result_object
+            else:
+                logger.warning("Chart response is not a dictionary")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Error processing chart response: {e}")
+            return None
 
 # Create global instance
 response_parser = GigachatResponseParser()
