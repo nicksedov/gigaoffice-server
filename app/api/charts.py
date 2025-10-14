@@ -104,8 +104,7 @@ async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
     """Get the processing status of a chart generation request"""
     try:
         db_request = db.query(AIRequest).filter(
-            AIRequest.id == request_id,
-            AIRequest.category == "chart_generation"
+            AIRequest.id == request_id
         ).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")
@@ -143,8 +142,7 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
     """Get the result of a chart generation request"""
     try:
         db_request = db.query(AIRequest).filter(
-            AIRequest.id == request_id,
-            AIRequest.category == "chart_generation"
+            AIRequest.id == request_id
         ).first()
         if not db_request:
             raise HTTPException(status_code=404, detail="Chart request not found")

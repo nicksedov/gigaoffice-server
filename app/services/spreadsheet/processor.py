@@ -56,7 +56,7 @@ class SpreadsheetProcessorService:
                 raise Exception("Rate limit exceeded. Please wait before making another request.")
             
             # Prepare the prompt specifically for spreadsheet data
-            user_prompt = self.gigachat_service.prompt_builder.prepare_spreadsheet_prompt(
+            user_prompt = self.gigachat_service.prompt_builder.prepare_user_prompt(
                 query, spreadsheet_data
             )
             

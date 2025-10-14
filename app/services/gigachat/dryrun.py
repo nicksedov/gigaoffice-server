@@ -129,7 +129,7 @@ class DryRunGigaChatService(BaseGigaChatService):
         
         # Генерируем промпты используя GigachatPromptBuilder
         system_prompt = self.prompt_builder.prepare_system_prompt(category)
-        user_prompt = self.prompt_builder.prepare_spreadsheet_prompt(query, input_data)
+        user_prompt = self.prompt_builder.prepare_user_prompt(query, input_data)
         
         # Формируем таблицу
         result_rows = []

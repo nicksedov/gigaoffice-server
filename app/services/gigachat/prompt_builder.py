@@ -95,7 +95,7 @@ class GigachatPromptBuilder:
         for ex in examples:
             task = ex['task']
             request_table_json = json.loads(ex['request_table']) if ex['request_table'] else None
-            request = self.prepare_spreadsheet_prompt(task, request_table_json)
+            request = self.prepare_user_prompt(task, request_table_json)
             prompt_lines.append(f"### Пример {example_id}:")
             prompt_lines.append(request)
             prompt_lines.append("Твой ответ:")
@@ -105,7 +105,7 @@ class GigachatPromptBuilder:
 
         return "\n".join(prompt_lines)
 
-    def prepare_spreadsheet_prompt(
+    def prepare_user_prompt(
         self,
         query: str,
         spreadsheet_data: Optional[Dict[str, Any]]
