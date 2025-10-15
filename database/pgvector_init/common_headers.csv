@@ -66,8 +66,10 @@ whatsapp,whatsapp
 актив,asset
 активация,activation
 активен,is active
+активность,activity
 активный,active
 актуальность,relevance
+акциз,excise
 акцизный налог,excise tax
 акционер,stockholder
 акционер,shareholder
@@ -148,6 +150,7 @@ whatsapp,whatsapp
 воронка продаж,pipeline
 временная разница,temporary difference
 время,time
+время на сайте,time on site
 время начала,start time
 время окончания,end time
 время отклика,response time
@@ -239,6 +242,7 @@ whatsapp,whatsapp
 доля,fraction
 доля,share
 дом,house
+домашний адрес,home address
 домен,domain
 доначисление,additional assessment
 дополнение,addition
@@ -278,6 +282,7 @@ whatsapp,whatsapp
 запас,inventory
 запись,entry
 запись,record
+запрет,ban
 запрос,request
 запрос,query
 заработная плата,salary
@@ -313,6 +318,8 @@ whatsapp,whatsapp
 интервью,interview
 испытание,test
 истечение срока,expiration
+источник,source
+источник трафика,traffic source
 источник лида,lead source
 исход,outcome
 исходящий ндс,output vat
@@ -481,6 +488,7 @@ whatsapp,whatsapp
 нагрев,heat
 название,title
 название кампании,campaign name
+назначение платежа,payment purpose
 назначенный агент,assigned agent
 наименование,name
 накладная,invoice
@@ -597,6 +605,7 @@ whatsapp,whatsapp
 отдел,department
 отделение,department
 отзыв,review
+отказ,refusal
 отклонение,deviation
 отложенный налог,deferred tax
 отметка,mark
@@ -684,6 +693,7 @@ whatsapp,whatsapp
 пороговое значение,threshold value
 порт,port
 портфель,portfolio
+посетители,visitors
 последнее изменение,last modified
 последовательность,sequence
 пост,post
@@ -758,6 +768,7 @@ whatsapp,whatsapp
 рабочая станция,workstation
 рабочее время,work time
 рабочее место,workplace
+рабочий адрес,work address
 радиус,radius
 разблокировка,unlock
 разброс,variance
@@ -813,6 +824,8 @@ whatsapp,whatsapp
 решение,decision
 решение,solution
 риск,risk
+род занятий,occupation
+род деятельности,occupation
 розничная цена,retail price
 роль,role
 рост,height
@@ -826,6 +839,7 @@ whatsapp,whatsapp
 сайт,website
 сайт компании,company website
 самостоятельное исправление,voluntary correction
+санкция,sanction
 сахар,sugar
 сбер id,sber id
 сбербизнес id,sberbuisness id
@@ -898,11 +912,14 @@ whatsapp,whatsapp
 справка,certificate
 среда,environment
 среднее,mean
+среднее время,average time
 среднее значение,mean value
+среднее расстояние,average distance
 среднестатистический,average
 средний балл,average score
 средний возраст,average age
 средний доход,average income
+средний размер,average size
 средняя точность,average precision
 срок,term
 срок годности,expiration date
@@ -978,6 +995,7 @@ whatsapp,whatsapp
 тип,type
 тип документа,document type
 тип занятости,employment type
+тип операции,transaction type 
 тип проблемы,issue type
 тип услуги,service type
 тип файла,file type
