@@ -13,7 +13,7 @@ from app.services.database.session import get_db
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 
-feedback_router = APIRouter(prefix="/api", tags=["AI Feedback Processing"])
+feedback_router = APIRouter(prefix="/api/v1", tags=["AI Feedback Processing"])
 
 @feedback_router.post("/feedback", response_model=AIFeedbackResponse)
 async def submit_ai_feedback(feedback: AIFeedbackRequest, db: Session = Depends(get_db)) -> AIFeedback:

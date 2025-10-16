@@ -27,7 +27,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return None
     return {"id": 1, "username": "demo_user", "role": "user"}
 
-metrics_router = APIRouter(prefix="/api", tags=["Metrics"])
+metrics_router = APIRouter(prefix="/api/v1", tags=["Metrics"])
 
 @metrics_router.get("/metrics", response_model=MetricsResponse)
 async def get_metrics(

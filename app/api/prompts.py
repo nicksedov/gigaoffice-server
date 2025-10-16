@@ -36,7 +36,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return None
     return {"id": 1, "username": "demo_user", "role": "user"}
 
-prompts_router = APIRouter(prefix="/api/prompts", tags=["Prompts"])
+prompts_router = APIRouter(prefix="/api/v1/prompts", tags=["Prompts"])
 
 @prompts_router.get("/categories", response_model=PromptCategoriesResponse)
 async def get_prompt_categories_endpoint():

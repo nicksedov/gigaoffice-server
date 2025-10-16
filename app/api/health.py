@@ -16,7 +16,7 @@ gigachat_healthcheck_service = create_gigachat_service(prompt_builder, "GIGACHAT
 
 from app.services.kafka.service import kafka_service
 
-health_router = APIRouter(prefix="/api", tags=["Health"])
+health_router = APIRouter(prefix="/api/v1", tags=["Health"])
 
 @health_router.get("/ping", response_model=PingResponse)
 async def ping():
