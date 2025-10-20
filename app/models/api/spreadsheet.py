@@ -72,11 +72,13 @@ class HeaderData(BaseModel):
     """Header row definition with style reference"""
     values: List[str] = Field(..., description="Header values")
     style: Optional[str] = Field(None, description="Style reference ID for the header row")
+    range: Optional[str] = Field(None, description="Cell range reference for the header row")
 
 class DataRow(BaseModel):
     """Data row definition with style reference"""
     values: List[Union[str, int, float, bool]] = Field(..., description="Row values")
     style: Optional[str] = Field(None, description="Style reference ID for this row")
+    range: Optional[str] = Field(None, description="Cell range reference for the this row")
 
 class WorksheetData(BaseModel):
     """Worksheet data structure"""
