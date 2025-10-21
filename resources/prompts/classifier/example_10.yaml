@@ -2,5 +2,5 @@ task: Создай столбчатую диаграмму по данным о 
 response_table: |
   {
     "category": "data-chart",
-    "confidence": 0.97
+    "confidence": 0.974
   }

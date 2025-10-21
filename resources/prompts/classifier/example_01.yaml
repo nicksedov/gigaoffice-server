@@ -2,5 +2,5 @@ task: Найди минимальное, максимальное, средне�
 response_table: |
   {
     "category": "spreadsheet-analysis",
-    "confidence": 0.97893
+    "confidence": 0.978
   }

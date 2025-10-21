@@ -2,5 +2,5 @@ task: Найди 10 городов с самым большим населени
 response_table: |
   {
     "category": "spreadsheet-search",
-    "confidence": 0.96553
+    "confidence": 0.965
   }

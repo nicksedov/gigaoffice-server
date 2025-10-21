@@ -2,5 +2,5 @@ task: Посчитай среднюю зарплату
 response_table: |
   {
     "category": "spreadsheet-analysis",
-    "confidence": 0.96855
+    "confidence": 0.968
   }

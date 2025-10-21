@@ -2,5 +2,5 @@ task: Сгенерируй набор данных с колонками "Имя
 response_table: |
   {
     "category": "spreadsheet-generation",
-    "confidence": 0.98345
+    "confidence": 0.983
   }

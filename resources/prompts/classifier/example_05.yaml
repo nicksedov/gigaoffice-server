@@ -2,5 +2,5 @@ task: Примени чередующиеся цвета строк для ул�
 response_table: |
   {
     "category": "spreadsheet-formatting",
-    "confidence": 0.95000
+    "confidence": 0.950
   }

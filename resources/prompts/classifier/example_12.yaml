@@ -2,5 +2,5 @@ task: Построй гистограмму распределения вели�
 response_table: |
   {
     "category": "data-histogram",
-    "confidence": 0.98
+    "confidence": 0.987
   }
