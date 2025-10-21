@@ -33,32 +33,67 @@ request_table: |
     ],
     "data": {
       "header": {
-        "values": ["Дата", "Продукт", "Сумма"],
+        "values": [
+          "Дата",
+          "Продукт",
+          "Сумма"
+        ],
+        "range": "A1:C1",
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["01.01.2024", "Товар A", 15000],
+          "values": [
+            "01.01.2024",
+            "Товар A",
+            15000
+          ],
+          "range": "A2:C2",
           "style": "even_row_style"
         },
         {
-          "values": ["02.01.2024", "Товар B", 8000],
+          "values": [
+            "02.01.2024",
+            "Товар B",
+            8000
+          ],
+          "range": "A3:C3",
           "style": "odd_row_style"
         },
         {
-          "values": ["03.01.2024", "Товар C", 12000],
+          "values": [
+            "03.01.2024",
+            "Товар C",
+            12000
+          ],
+          "range": "A4:C4",
           "style": "even_row_style"
         },
         {
-          "values": ["04.01.2024", "Товар D", 9000],
+          "values": [
+            "04.01.2024",
+            "Товар D",
+            9000
+          ],
+          "range": "A5:C5",
           "style": "odd_row_style"
         },
         {
-          "values": ["05.01.2024", "Товар E", 21000],
+          "values": [
+            "05.01.2024",
+            "Товар E",
+            21000
+          ],
+          "range": "A6:C6",
           "style": "even_row_style"
         },
         {
-          "values": ["06.01.2024", "Товар F", 7500],
+          "values": [
+            "06.01.2024",
+            "Товар F",
+            7500
+          ],
+          "range": "A7:C7",
           "style": "odd_row_style"
         }
       ]
@@ -112,20 +147,40 @@ response_table: |
     ],
     "data": {
       "header": {
-        "values": ["Дата", "Продукт", "Сумма"],
+        "values": [
+          "Дата",
+          "Продукт",
+          "Сумма"
+        ],
+        "range": "A1:C1",
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["01.01.2024", "Товар A", 15000],
+          "values": [
+            "01.01.2024",
+            "Товар A",
+            15000
+          ],
+          "range": "A2:C2",
           "style": "even_row_style"
         },
         {
-          "values": ["03.01.2024", "Товар C", 12000],
+          "values": [
+            "03.01.2024",
+            "Товар C",
+            12000
+          ],
+          "range": "A3:C3",
           "style": "odd_row_style"
         },
         {
-          "values": ["05.01.2024", "Товар E", 21000],
+          "values": [
+            "05.01.2024",
+            "Товар E",
+            21000
+          ],
+          "range": "A4:C4",
           "style": "even_row_style"
         }
       ]

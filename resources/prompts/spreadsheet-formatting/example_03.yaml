@@ -26,16 +26,31 @@ request_table: |
     ],
     "data": {
       "header": {
-        "values": ["Продукт", "Количество", "Цена"],
+        "values": [
+          "Продукт",
+          "Количество",
+          "Цена"
+        ],
+        "range": "A1:C1",
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["Товар A", "100", "1500"],
+          "values": [
+            "Товар A",
+            "100",
+            "1500"
+          ],
+          "range": "A2:C2",
           "style": "row_style"
         },
         {
-          "values": ["Товар B", "250", "800"],
+          "values": [
+            "Товар B",
+            "250",
+            "800"
+          ],
+          "range": "A3:C3",
           "style": "row_style"
         }
       ]
@@ -82,16 +97,31 @@ response_table: |
     ],
     "data": {
       "header": {
-        "values": ["Продукт", "Количество", "Цена"],
+        "values": [
+          "Продукт",
+          "Количество",
+          "Цена"
+        ],
+        "range": "A1:C1",
         "style": "header_style"
       },
       "rows": [
         {
-          "values": ["Товар A", 100, 1500],
+          "values": [
+            "Товар A",
+            100,
+            1500
+          ],
+          "range": "A2:C2",
           "style": "row_style"
         },
         {
-          "values": ["Товар B", 250, 800],
+          "values": [
+            "Товар B",
+            250,
+            800
+          ],
+          "range": "A3:C3",
           "style": "row_style"
         }
       ]

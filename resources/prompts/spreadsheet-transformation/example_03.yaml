@@ -10,17 +10,41 @@ request_table: |
     },
     "data": {
       "header": {
-        "values": ["Имя", "Фамилия", "Email", "Телефон"]
+        "values": [
+          "Имя",
+          "Фамилия",
+          "Email",
+          "Телефон"
+        ],
+        "range": "A1:D1"
       },
       "rows": [
         {
-          "values": ["Иван", "Иванов", "ivan@example.com", "+71234567890"]
+          "values": [
+            "Иван",
+            "Иванов",
+            "ivan@example.com",
+            "+71234567890"
+          ],
+          "range": "A2:D2"
         },
         {
-          "values": ["Петр", "Петров", "petr@example.com", "+70987654321"]
+          "values": [
+            "Петр",
+            "Петров",
+            "petr@example.com",
+            "+70987654321"
+          ],
+          "range": "A3:D3"
         },
         {
-          "values": ["Сидор", "Сидоров", "sidor@example.com", "+71112223344"]
+          "values": [
+            "Сидор",
+            "Сидоров",
+            "sidor@example.com",
+            "+71112223344"
+          ],
+          "range": "A4:D4"
         }
       ]
     },
@@ -67,20 +91,40 @@ response_table: |
     ],
     "data": {
       "header": {
-        "values": ["Полное имя", "Email", "Телефон"],
+        "values": [
+          "Полное имя",
+          "Email",
+          "Телефон"
+        ],
+        "range": "A1:C1",
         "style": "merge_header_style"
       },
       "rows": [
         {
-          "values": ["Иванов Иван", "ivan@example.com", "+71234567890"],
+          "values": [
+            "Иванов Иван",
+            "ivan@example.com",
+            "+71234567890"
+          ],
+          "range": "A2:C2",
           "style": "merged_field_style"
         },
         {
-          "values": ["Петров Петр", "petr@example.com", "+70987654321"],
+          "values": [
+            "Петров Петр",
+            "petr@example.com",
+            "+70987654321"
+          ],
+          "range": "A3:C3",
           "style": "merged_field_style"
         },
         {
-          "values": ["Сидоров Сидор", "sidor@example.com", "+71112223344"],
+          "values": [
+            "Сидоров Сидор",
+            "sidor@example.com",
+            "+71112223344"
+          ],
+          "range": "A4:C4",
           "style": "merged_field_style"
         }
       ]
