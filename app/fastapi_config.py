@@ -55,7 +55,12 @@ security = HTTPBearer(auto_error=False)
 app_start_time = time.time()
 
 async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Process AI request from Kafka queue"""
+    """Process AI request from Kafka queue
+    
+    Handles both spreadsheet and chart processing requests.
+    For chart requests, the input_data contains series with 'range' fields
+    instead of inline 'values'.
+    """
     try:
         request_id = message_data["id"]
         query = message_data["query"]
@@ -68,8 +73,10 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         # Route based on category
         if category in ["data-chart", "data-histogram"]:
             # Process as chart generation request
+            # Deserialize chart data with range-based series
             import json
             chart_data = json.loads(input_data[0]["spreadsheet_data"]) if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0] else {}
+            # chart_data will be a list of dicts with 'name', 'range', and 'format' fields
             result, metadata = await chart_processor.process_chart(query, category, chart_data)
         elif category.startswith("spreadsheet-"):
             # Process as enhanced spreadsheet data

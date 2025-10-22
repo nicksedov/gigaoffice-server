@@ -49,13 +49,17 @@ class ChartProcessorService:
         Args:
             query: User instruction for chart generation
             category: Category type (data-chart or data-histogram)
-            chart_data: Input data for chart generation
+            chart_data: Input data for chart generation with range-based series
+                Expected format: List of dicts with 'name', 'range', and 'format' fields
+                Example:
+                [
+                    {"name": "Время", "range": "A2:A18", "format": "hh:mm"},
+                    {"name": "Цена", "range": "B2:B18", "format": "#,##0.00"}
+                ]
             temperature: Temperature for generation (0.0 - 1.0)
             
         Returns:
             Tuple[processed_result, metadata]
-            
-        The chart_data should contain the data needed for chart generation
         """
         try:
             # Check rate limits

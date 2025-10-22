@@ -113,12 +113,26 @@ class GigachatPromptBuilder:
         """
         Подготовка специализированного промпта для обработки расширенных данных таблиц
         
+        Supports both spreadsheet data and chart data with range-based series.
+        For chart data, the spreadsheet_data parameter contains series with 'range' fields
+        instead of inline 'values'.
+        
         Args:
             query: Текст запроса пользователя
             spreadsheet_data: Расширенные данные таблицы в формате JSON
+                For chart requests, this will be a list of series with:
+                - name: Series name
+                - range: Cell range reference (e.g., "A2:A18")
+                - format: Value format (e.g., "hh:mm", "#,##0.00")
             
         Returns:
             str: Сформированный промпт для отправки в GigaChat
+            
+        Example for chart data:
+            spreadsheet_data = [
+                {"name": "Время", "range": "A2:A18", "format": "hh:mm"},
+                {"name": "Цена", "range": "B2:B18", "format": "#,##0.00"}
+            ]
         """
         prompt_parts: list[str] = []
         # 1. Задача

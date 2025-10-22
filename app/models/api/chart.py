@@ -83,9 +83,55 @@ class BorderStyle(str, Enum):
     DOTTED = "dotted"
 
 class ChartSeries(BaseModel):
+    """Chart data series model with cell range reference
+    
+    Example:
+        {
+            "name": "Время",
+            "range": "A2:A18",
+            "format": "hh:mm"
+        }
+    """
     name: str = Field(..., description="Series name displayed in the legend")
-    values: List[Union[str, int, float]] = Field(..., description="Y-values for the series")
-    format: Optional[str] = Field('General', description="Y-values format")
+    range: str = Field(..., description="Cell range reference (e.g., 'A2:A18', 'B:B', 'C1:C10')")
+    format: Optional[str] = Field('General', description="Value format (e.g., 'hh:mm', '#,##0.00')")
+    
+    @field_validator('range')
+    @classmethod
+    def validate_range(cls, v: str) -> str:
+        """Validate Excel-style cell range format
+        
+        Supported formats:
+        - Single cell: A1
+        - Column range: A:A or A1:A100
+        - Row range: 1:1
+        - Rectangle range: A1:C10
+        
+        Args:
+            v: Range string to validate
+            
+        Returns:
+            Validated range string
+            
+        Raises:
+            ValueError: If range format is invalid
+        """
+        import re
+        
+        if not v or not v.strip():
+            raise ValueError('Range field cannot be empty')
+        
+        # Pattern for Excel cell range notation
+        # Matches: A1, A1:B10, A:A, 1:1, etc.
+        pattern = r'^[A-Z]+[0-9]+:[A-Z]+[0-9]+$|^[A-Z]+:[A-Z]+$|^[0-9]+:[0-9]+$|^[A-Z]+[0-9]+$'
+        
+        if not re.match(pattern, v.strip().upper()):
+            raise ValueError(
+                f"Invalid range format: '{v}'. "
+                "Range must be in Excel notation (e.g., 'A1:B10', 'A:A', '1:1', 'C5')"
+            )
+        
+        return v.strip().upper()
 
 class ChartPosition(BaseModel):
     """Position and size specifications for charts"""

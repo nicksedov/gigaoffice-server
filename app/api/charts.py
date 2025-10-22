@@ -50,13 +50,32 @@ async def process_chart_request(
     current_user: Optional[Dict] = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Process chart generation request asynchronously"""
+    """Process chart generation request asynchronously
+    
+    This endpoint accepts chart generation requests with range-based data series.
+    The chart_data field contains series with 'range' references instead of inline values.
+    
+    Example request:
+    {
+        "data_range": "A1:C18",
+        "chart_data": [
+            {"name": "Время", "range": "A2:A18", "format": "hh:mm"},
+            {"name": "Цена открытия", "range": "B2:B18", "format": "#,##0.00"}
+        ],
+        "chart_type": "data-chart",
+        "query_text": "Построй график изменения величины во времени."
+    }
+    """
     try:
         request_id = str(uuid.uuid4())
         user_id = current_user.get("id", 0) if current_user else 0
         
-        chart_data_list = chart_request.chart_data      
-        chart_data_json = json.dumps(chart_data_list, default=lambda x: x.__dict__)
+        # Serialize chart data with range fields using Pydantic serialization
+        chart_data_list = chart_request.chart_data
+        # Use Pydantic's model_dump to serialize with range field
+        chart_data_dicts = [series.model_dump() for series in chart_data_list]
+        chart_data_json = json.dumps(chart_data_dicts, ensure_ascii=False)
+        
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
@@ -64,20 +83,20 @@ async def process_chart_request(
             input_range=chart_request.data_range,
             query_text=chart_request.query_text,
             category=chart_request.chart_type,
-            input_data=chart_data_json
+            input_data=chart_data_json  # Stores JSON with range field
         )
         
         db.add(db_request)
         db.commit()
         
-        # Send to Kafka for processing
+        # Send to Kafka for processing with range-based data
         success = await kafka_service.send_request(
             request_id=request_id,
             user_id=user_id,
             query=chart_request.query_text,
             input_range=chart_request.data_range,
             category=chart_request.chart_type,
-            input_data=[{"spreadsheet_data": chart_data_json}],
+            input_data=[{"spreadsheet_data": chart_data_json}],  # Range-based data in message
             priority=1 if current_user and current_user.get("role") == "premium" else 0
         )
         
