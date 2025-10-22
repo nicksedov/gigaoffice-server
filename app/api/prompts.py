@@ -12,7 +12,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from loguru import logger
 
-from app.models.api.prompt import PromptClassificationRequest, PresetPromptsResponse, PromptClassificationResponse
+from app.models.api.prompt import PromptClassificationRequest, PresetPromptsResponse, PromptClassificationResponse, PresetPromptInfo
 from app.models.api.category import PromptCategoriesResponse, CategoryDetailsResponse, CategoryInfo, PromptInfo
 from app.models.orm.category import Category
 from app.services.database.session import get_db
@@ -77,24 +77,26 @@ async def get_category_details(category_id: int, db: Session = Depends(get_db)):
         
         prompts = await prompt_manager.get_prompts_by_category(str(category_id))
         
-        category_info = CategoryInfo(
-            id=category.id,
-            name=category.name,
-            display_name=category.display_name,
-            description=category.description,
-            is_active=category.is_active,
-            sort_order=category.sort_order,
-            prompt_count=len(prompts)
-        )
+        # Use model_validate to convert ORM object to Pydantic model
+        category_info = CategoryInfo.model_validate({
+            "id": category.id,
+            "name": category.name,
+            "display_name": category.display_name,
+            "description": category.description,
+            "is_active": category.is_active,
+            "sort_order": category.sort_order,
+            "prompt_count": len(prompts)
+        })
         
-        prompt_infos = [
-            PromptInfo(
-                id=prompt.id,
-                name=prompt.name,
-                description=prompt.description,
-                template=prompt.template,
-                category_id=prompt.category_id
-            )
+        # Use model_validate to convert ORM objects to Pydantic models
+        prompt_infos: list[PromptInfo] = [
+            PromptInfo.model_validate({
+                "id": prompt.id,
+                "name": prompt.name,
+                "description": prompt.description,
+                "template": prompt.template,
+                "category_id": prompt.category_id
+            })
             for prompt in prompts
         ]
         
@@ -122,15 +124,16 @@ async def get_preset_prompts(
         else:
             prompts = await prompt_manager.get_prompts()
 
+        # Convert ORM objects to Pydantic models
         preset_prompt_infos = [
-            {
-                "id": prompt.id,
-                "name": prompt.name,
-                "template": prompt.template,
-                "category_id": prompt.category_id,
-                "category_name": prompt.category_obj.name if prompt.category_obj else None,
-                "category_display_name": prompt.category_obj.display_name if prompt.category_obj else None
-            }
+            PresetPromptInfo(
+                id=prompt.id,  # type: ignore[arg-type]
+                name=prompt.name,  # type: ignore[arg-type]
+                template=prompt.template,  # type: ignore[arg-type]
+                category_id=prompt.category_id,  # type: ignore[arg-type]
+                category_name=prompt.category_obj.name if prompt.category_obj else None,
+                category_display_name=prompt.category_obj.display_name if prompt.category_obj else None
+            )
             for prompt in prompts
         ]
 
