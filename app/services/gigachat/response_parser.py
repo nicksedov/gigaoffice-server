@@ -1,7 +1,10 @@
 import re
 import json
-from typing import Any, List, Optional
+from typing import Any, List, Optional, TYPE_CHECKING
 from loguru import logger
+
+if TYPE_CHECKING:
+    from app.services.chart.validator import ChartValidator, ChartValidationError
 
 class GigachatResponseParser:
 
@@ -74,6 +77,9 @@ class GigachatResponseParser:
             Parsed chart configuration dictionary or None if parsing failed
         """
         try:
+            # Lazy import to avoid circular dependency
+            from app.services.chart.validator import chart_validator, ChartValidationError
+            
             # Required fields for ChartConfig
             required_fields = ['chart_type', 'title', 'series_config', 'position', 'styling']
             
@@ -93,8 +99,16 @@ class GigachatResponseParser:
                     logger.warning(f"Chart response missing required fields: {missing_fields}")
                     return None
                 
-                logger.info("Successfully extracted chart configuration")
-                return result_object
+                # Validate chart configuration against ONLYOFFICE specification
+                try:
+                    chart_validator.validate_chart_config(result_object)
+                    logger.info("Successfully extracted and validated chart configuration")
+                    return result_object
+                except ChartValidationError as e:
+                    logger.error(f"Chart validation failed: {e.message}")
+                    logger.error(f"Validation details: {e.to_dict()}")
+                    # Return None to indicate validation failure
+                    return None
             else:
                 logger.warning("Chart response is not a dictionary")
                 return None

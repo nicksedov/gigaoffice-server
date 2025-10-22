@@ -49,7 +49,7 @@ request_table: |
   }
 response_table: |
   {
-    "chart_type": "line",
+    "chart_type": "lineNormal",
     "title": "Изменение цены во времени",
     "subtitle": null,
     "series_config": {

@@ -8,16 +8,57 @@ from typing import Optional, List, Dict, Any, Union, Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
-# Chart Type Enums
+# Chart Type Enums - ONLYOFFICE API Compliant
 class ChartType(str, Enum):
-    """Supported chart types"""
-    LINE = "line"
-    COLUMN = "column" 
+    """ONLYOFFICE-compliant chart types
+    
+    Complete enumeration matching the official ONLYOFFICE Spreadsheet API ChartType specification.
+    Organized by category for maintainability.
+    """
+    # Bar Charts (Vertical)
+    BAR = "bar"
+    BAR_STACKED = "barStacked"
+    BAR_STACKED_PERCENT = "barStackedPercent"
+    BAR_3D = "bar3D"
+    BAR_STACKED_3D = "barStacked3D"
+    BAR_STACKED_PERCENT_3D = "barStackedPercent3D"
+    BAR_STACKED_PERCENT_3D_PERSPECTIVE = "barStackedPercent3DPerspective"
+    
+    # Horizontal Bar Charts
+    HORIZONTAL_BAR = "horizontalBar"
+    HORIZONTAL_BAR_STACKED = "horizontalBarStacked"
+    HORIZONTAL_BAR_STACKED_PERCENT = "horizontalBarStackedPercent"
+    HORIZONTAL_BAR_3D = "horizontalBar3D"
+    HORIZONTAL_BAR_STACKED_3D = "horizontalBarStacked3D"
+    HORIZONTAL_BAR_STACKED_PERCENT_3D = "horizontalBarStackedPercent3D"
+    
+    # Line Charts
+    LINE_NORMAL = "lineNormal"
+    LINE_STACKED = "lineStacked"
+    LINE_STACKED_PERCENT = "lineStackedPercent"
+    LINE_3D = "line3D"
+    
+    # Pie Charts
     PIE = "pie"
-    BOX_PLOT = "box_plot"
+    PIE_3D = "pie3D"
+    DOUGHNUT = "doughnut"
+    
+    # Scatter & Stock
     SCATTER = "scatter"
+    STOCK = "stock"
+    
+    # Area Charts
     AREA = "area"
-    HISTOGRAM = "histogram"
+    AREA_STACKED = "areaStacked"
+    AREA_STACKED_PERCENT = "areaStackedPercent"
+    
+    # Combination Charts
+    COMBO_BAR_LINE = "comboBarLine"
+    COMBO_BAR_LINE_SECONDARY = "comboBarLineSecondary"
+    COMBO_CUSTOM = "comboCustom"
+    
+    # Special
+    UNKNOWN = "unknown"
 
 class ColorScheme(str, Enum):
     """Color scheme options for charts"""
@@ -87,7 +128,16 @@ class ChartConfig(BaseModel):
     position: ChartPosition = Field(..., description="Chart position and size")
     styling: ChartStyling = Field(..., description="Chart styling options")
 
-# Request Models
+# Response Models
+class ValidationErrorDetails(BaseModel):
+    """Detailed validation error information"""
+    error_type: str = Field(..., description="Type of error: validation_error, constraint_error, parsing_error")
+    field: str = Field(..., description="Field that failed validation")
+    invalid_value: Any = Field(..., description="The value that failed validation")
+    expected: Any = Field(..., description="Description of valid values or constraints")
+    suggestion: Optional[str] = Field(None, description="Suggested correction")
+
+
 class ChartGenerationRequest(BaseModel):
     """Request model for chart generation"""
     data_range: str = Field(..., description="Cell range reference for source data")
@@ -122,7 +172,7 @@ class ChartResultResponse(BaseModel):
         "status": "completed",
         "message": "Chart generated successfully",
         "chart_config": {
-            "chart_type": "line",
+            "chart_type": "lineNormal",
             "title": "Sales Over Time",
             ...
         },
@@ -137,6 +187,7 @@ class ChartResultResponse(BaseModel):
     chart_config: Optional[ChartConfig] = Field(None, description="Generated chart configuration")
     tokens_used: Optional[int] = Field(None, description="Number of tokens used", ge=0)
     processing_time: Optional[float] = Field(None, description="Processing time in seconds", ge=0.0)
+    error_details: Optional[ValidationErrorDetails] = Field(None, description="Detailed error information if validation failed")
     
     @field_validator('status')
     @classmethod

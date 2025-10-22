@@ -33,7 +33,7 @@ request_table: |
   }
 response_table: |
   {
-    "chart_type": "line",
+    "chart_type": "lineNormal",
     "title": "Изменение температуры по дням",
     "subtitle": "Погодные условия недели",
     "series_config": {

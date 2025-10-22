@@ -27,7 +27,7 @@ request_table: |
   }
 response_table: |
   {
-    "chart_type": "column",
+    "chart_type": "bar",
     "title": "Сравнение продаж по кварталам",
     "subtitle": "Динамика продаж трех продуктов в 2024 году",
     "series_config": {
