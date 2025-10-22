@@ -19,8 +19,8 @@ class MockGigaChatClient:
     def __init__(self, service):
         self.service = service
     
-    def _extract_data_from_user_prompt(self, content: str) -> Tuple[str, Optional[str], Optional[List[Dict]]]:
-        """Extract query, and input_data from user prompt"""
+    def _extract_data_from_user_prompt(self, content: str) -> Tuple[str, Optional[List[Dict]]]:
+        """Extract query and input_data from user prompt"""
         user_query = ""
         input_data = None
         
