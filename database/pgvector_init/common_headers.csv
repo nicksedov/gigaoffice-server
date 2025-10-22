@@ -443,6 +443,7 @@ whatsapp,whatsapp
 магний,magnesium
 макс,max
 максимальная глубина,max depth
+максимальная цена,max price
 максимальный,maximal
 максимум,maximum
 марганец,manganese
@@ -469,6 +470,7 @@ whatsapp,whatsapp
 метка,tag
 микросервис,microservice
 мин,min
+минимальная цена,min price
 минимальный,minimal
 минимальный платеж,minimum payment
 минимум,minimum
@@ -921,6 +923,7 @@ whatsapp,whatsapp
 средний доход,average income
 средний размер,average size
 средняя точность,average precision
+средняя цена,average price
 срок,term
 срок годности,expiration date
 срок давности,statute of limitations
@@ -1076,6 +1079,8 @@ whatsapp,whatsapp
 цель,target
 цена,price
 цена за единицу,unit price
+цена закрытия,closing price
+цена открытия,opening price
 цикл,cycle
 циклический подсчет,cycle count
 цинк,zinc
