@@ -1,0 +1,50 @@
+task: "Сравни распределение продаж в двух регионах с помощью гистограммы"
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Продажи",
+      "range": "A1:C200"
+    },
+    "data": {
+      "header": {
+        "values": ["Месяц", "Регион А", "Регион Б"],
+        "range": "A1:C1"
+      },
+      "rows": []
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General",
+        "range": "A2:A200"
+      },
+      {
+        "index": 1,
+        "format": "#,##0",
+        "range": "B2:B200",
+        "min": 15000.0,
+        "max": 98000.0,
+        "median": 45000.0,
+        "count": 199
+      },
+      {
+        "index": 2,
+        "format": "#,##0",
+        "range": "C2:C200",
+        "min": 12000.0,
+        "max": 105000.0,
+        "median": 48000.0,
+        "count": 199
+      }
+    ]
+  }
+response_table: |
+  {
+    "source_columns": [1, 2],
+    "recommended_bins": 10,
+    "range_column_name": "Диапазон продаж (руб.)",
+    "count_column_name": "Количество периодов"
+  }

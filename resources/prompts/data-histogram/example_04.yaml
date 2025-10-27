@@ -1,0 +1,41 @@
+task: "Построй гистограмму распределения результатов тестирования"
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Результаты",
+      "range": "A1:B500"
+    },
+    "data": {
+      "header": {
+        "values": ["Студент", "Балл"],
+        "range": "A1:B1"
+      },
+      "rows": []
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General",
+        "range": "A2:A500"
+      },
+      {
+        "index": 1,
+        "format": "0",
+        "range": "B2:B500",
+        "min": 0.0,
+        "max": 100.0,
+        "median": 67.0,
+        "count": 499
+      }
+    ]
+  }
+response_table: |
+  {
+    "source_columns": [1],
+    "recommended_bins": 15,
+    "range_column_name": "Диапазон баллов",
+    "count_column_name": "Количество студентов"
+  }

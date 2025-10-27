@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 class SpreadsheetMetadata(BaseModel):
     """Metadata for the enhanced spreadsheet data format"""
@@ -89,6 +89,35 @@ class ColumnDefinition(BaseModel):
     """Column definition with type and formatting"""
     index: int = Field(..., description="Zero-based column index")
     format: str = Field('General', description="Display format for the data")
+    range: str = Field(..., description="Cell range for this column (e.g., 'B2:B50')")
+    min: Optional[float] = Field(None, description="Minimum value (only for numerical columns)")
+    max: Optional[float] = Field(None, description="Maximum value (only for numerical columns)")
+    median: Optional[float] = Field(None, description="Median value (only for numerical columns)")
+    count: Optional[int] = Field(None, description="Count of values (only for numerical columns)")
+    
+    @field_validator('min', 'max', 'median')
+    @classmethod
+    def validate_statistical_consistency(cls, v, info):
+        """Validate statistical field consistency"""
+        return v
+    
+    @model_validator(mode='after')
+    def validate_stats(self):
+        """Validate that statistical metadata is consistent"""
+        if self.min is not None and self.max is not None:
+            if self.min > self.max:
+                raise ValueError('min must be less than or equal to max')
+        
+        if self.median is not None:
+            if self.min is not None and self.median < self.min:
+                raise ValueError('median must be greater than or equal to min')
+            if self.max is not None and self.median > self.max:
+                raise ValueError('median must be less than or equal to max')
+        
+        if self.count is not None and self.count <= 0:
+            raise ValueError('count must be greater than 0')
+        
+        return self
 
 class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation with style references"""

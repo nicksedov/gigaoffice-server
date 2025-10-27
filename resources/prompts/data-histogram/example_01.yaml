@@ -1,0 +1,41 @@
+task: "Построй гистограмму распределения цен товаров"
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Товары",
+      "range": "A1:B100"
+    },
+    "data": {
+      "header": {
+        "values": ["Товар", "Цена"],
+        "range": "A1:B1"
+      },
+      "rows": []
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General",
+        "range": "A2:A100"
+      },
+      {
+        "index": 1,
+        "format": "#,##0.00",
+        "range": "B2:B100",
+        "min": 50.0,
+        "max": 5000.0,
+        "median": 850.0,
+        "count": 99
+      }
+    ]
+  }
+response_table: |
+  {
+    "source_columns": [1],
+    "recommended_bins": 12,
+    "range_column_name": "Диапазон цен (руб.)",
+    "count_column_name": "Количество товаров"
+  }

@@ -1,0 +1,46 @@
+task: "Построй гистограмму распределения зарплат сотрудников по отделам"
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Зарплаты",
+      "range": "A1:C150"
+    },
+    "data": {
+      "header": {
+        "values": ["Сотрудник", "Отдел", "Зарплата"],
+        "range": "A1:C1"
+      },
+      "rows": []
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General",
+        "range": "A2:A150"
+      },
+      {
+        "index": 1,
+        "format": "General",
+        "range": "B2:B150"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00",
+        "range": "C2:C150",
+        "min": 35000.0,
+        "max": 250000.0,
+        "median": 75000.0,
+        "count": 149
+      }
+    ]
+  }
+response_table: |
+  {
+    "source_columns": [2],
+    "recommended_bins": 10,
+    "range_column_name": "Диапазон зарплат (руб.)",
+    "count_column_name": "Количество сотрудников"
+  }

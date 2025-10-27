@@ -1,0 +1,41 @@
+task: "Построй гистограмму распределения времени выполнения задач"
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Задачи",
+      "range": "A1:B50"
+    },
+    "data": {
+      "header": {
+        "values": ["Задача", "Время (мин)"],
+        "range": "A1:B1"
+      },
+      "rows": []
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General",
+        "range": "A2:A50"
+      },
+      {
+        "index": 1,
+        "format": "0",
+        "range": "B2:B50",
+        "min": 5.0,
+        "max": 120.0,
+        "median": 35.0,
+        "count": 49
+      }
+    ]
+  }
+response_table: |
+  {
+    "source_columns": [1],
+    "recommended_bins": 8,
+    "range_column_name": "Временной интервал (мин)",
+    "count_column_name": "Количество задач"
+  }
