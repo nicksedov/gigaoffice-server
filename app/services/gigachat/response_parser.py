@@ -66,6 +66,69 @@ class GigachatResponseParser:
             logger.warning(f"Error processing spreadsheet response: {e}")
             return None
     
+    def parse_histogram_data(self, response_content: str) -> Optional[dict]:
+        """
+        Extract and validate histogram configuration from GigaChat response
+        
+        Args:
+            response_content: Raw AI response string
+            
+        Returns:
+            Parsed histogram configuration dictionary or None if parsing failed
+        """
+        try:
+            # Required fields for HistogramResponse
+            required_fields = ['source_columns', 'recommended_bins', 'range_column_name', 'count_column_name']
+            
+            # Try to extract JSON object from response
+            result_object = self.parse_object(response_content, required_fields)
+            
+            if result_object is None:
+                logger.warning("Could not extract valid JSON from histogram response")
+                return None
+            
+            # Validate histogram configuration structure
+            if isinstance(result_object, dict):
+                # Verify all required fields are present
+                missing_fields = [field for field in required_fields if field not in result_object]
+                
+                if missing_fields:
+                    logger.warning(f"Histogram response missing required fields: {missing_fields}")
+                    return None
+                
+                # Validate field types and constraints
+                source_columns = result_object.get('source_columns')
+                recommended_bins = result_object.get('recommended_bins')
+                range_column_name = result_object.get('range_column_name')
+                count_column_name = result_object.get('count_column_name')
+                
+                # Type and constraint validation
+                if not isinstance(source_columns, list) or len(source_columns) == 0:
+                    logger.warning("Histogram response field 'source_columns' must be a non-empty list")
+                    return None
+                
+                if not isinstance(recommended_bins, int) or recommended_bins < 1 or recommended_bins > 100:
+                    logger.warning(f"Histogram response field 'recommended_bins' must be an integer between 1-100, got: {recommended_bins}")
+                    return None
+                
+                if not isinstance(range_column_name, str) or not range_column_name.strip():
+                    logger.warning("Histogram response field 'range_column_name' must be a non-empty string")
+                    return None
+                
+                if not isinstance(count_column_name, str) or not count_column_name.strip():
+                    logger.warning("Histogram response field 'count_column_name' must be a non-empty string")
+                    return None
+                
+                logger.info("Successfully extracted and validated histogram configuration")
+                return result_object
+            else:
+                logger.warning("Histogram response is not a dictionary")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Error processing histogram response: {e}")
+            return None
+    
     def parse_chart_data(self, response_content: str) -> Optional[dict]:
         """
         Extract and validate ChartConfig structure from GigaChat response

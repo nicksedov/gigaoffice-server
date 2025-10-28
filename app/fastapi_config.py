@@ -25,6 +25,7 @@ from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.gigachat.factory import create_gigachat_service
 from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
 from app.services.chart import create_chart_processor  # Added import for chart processor
+from app.services.histogram import create_histogram_processor  # Added import for histogram processor
 
 # Create services in the module where needed
 gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat generation service")
@@ -36,6 +37,10 @@ spreadsheet_processor = create_spreadsheet_processor(gigachat_generate_service) 
 # Create chart processor for handling chart generation requests
 # This processor is used by the Kafka message handler to process chart generation requests
 chart_processor = create_chart_processor(gigachat_generate_service)  # Create chart processor
+
+# Create histogram processor for handling histogram analysis requests
+# This processor is used by the Kafka message handler to process histogram analysis requests
+histogram_processor = create_histogram_processor(gigachat_generate_service)  # Create histogram processor
 
 from app.services.kafka.service import kafka_service
 from app.prompts import prompt_manager
@@ -71,7 +76,13 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"Processing Kafka message: {request_id} with category: {category}")
         
         # Route based on category
-        if category in ["data-chart", "data-histogram"]:
+        if category == "data-histogram":
+            # Process as histogram analysis request
+            # Deserialize spreadsheet data with statistical metadata
+            import json
+            spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"]) if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0] else {}
+            result, metadata = await histogram_processor.process_histogram(query, category, spreadsheet_data)
+        elif category == "data-chart":
             # Process as chart generation request
             # Deserialize chart data with range-based series
             import json
