@@ -147,7 +147,7 @@ async def get_preset_prompts(
         raise HTTPException(status_code=500, detail=str(e))
 
 @prompts_router.post("/classify", response_model=PromptClassificationResponse)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def classify_prompt(
     request: Request,
     classification_request: PromptClassificationRequest,

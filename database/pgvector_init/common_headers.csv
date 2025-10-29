@@ -297,6 +297,7 @@ whatsapp,whatsapp
 значение,value
 значимость,significance
 зона,zone
+идентификатор,id
 идентификатор,identifier
 идентификатор клиента,customer id
 избыточность,redundancy
@@ -1061,6 +1062,7 @@ whatsapp,whatsapp
 фамилия,lastname
 фамилия,last name
 физический подсчет,physical count
+фио,full name
 фискальный накопитель,fiscal drive
 фискальный признак,fiscal basis
 флаг,flag

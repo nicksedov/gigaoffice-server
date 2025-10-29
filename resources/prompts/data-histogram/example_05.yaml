@@ -1,0 +1,41 @@
+task: "Покажи распределение температуры за месяц"
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Погода",
+      "range": "A1:B32"
+    },
+    "data": {
+      "header": {
+        "values": ["Дата", "Температура"],
+        "range": "A1:B1"
+      },
+      "rows": []
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "DD.MM.YYYY",
+        "range": "A2:A32"
+      },
+      {
+        "index": 1,
+        "format": "0.0",
+        "range": "B2:B32",
+        "min": 18.5,
+        "max": 23.8,
+        "median": 21.2,
+        "count": 31
+      }
+    ]
+  }
+response_table: |
+  {
+    "source_columns": [1],
+    "recommended_bins": 6,
+    "range_column_name": "Диапазон температур (°C)",
+    "count_column_name": "Количество дней"
+  }

@@ -21,6 +21,13 @@ from .chart import (
     ChartStatusResponse, 
     ChartResultResponse
 )
+from .histogram import (
+    HistogramRequest,
+    HistogramResponse,
+    HistogramProcessResponse,
+    HistogramStatusResponse,
+    HistogramResultResponse
+)
 
 __all__ = [
     'UserCreate', 'UserResponse',
@@ -37,5 +44,8 @@ __all__ = [
     # Chart API models
     'ChartType', 'ColorScheme', 'LegendPosition', 'BorderStyle',
     'ChartPosition', 'ChartStyling', 'SeriesConfig', 'ChartConfig',
-    'ChartGenerationRequest', 'ChartGenerationResponse', 'ChartStatusResponse', 'ChartResultResponse'
+    'ChartGenerationRequest', 'ChartGenerationResponse', 'ChartStatusResponse', 'ChartResultResponse',
+    # Histogram API models
+    'HistogramRequest', 'HistogramResponse', 'HistogramProcessResponse', 
+    'HistogramStatusResponse', 'HistogramResultResponse'
 ]
