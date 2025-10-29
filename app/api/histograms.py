@@ -45,7 +45,7 @@ histogram_router = APIRouter(prefix="/api/v1/histograms", tags=["Histogram Analy
 
 
 @histogram_router.post("/process", response_model=HistogramProcessResponse)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def process_histogram_request(
     request: Request,
     histogram_request: HistogramRequest,

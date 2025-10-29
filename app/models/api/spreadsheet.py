@@ -89,7 +89,7 @@ class ColumnDefinition(BaseModel):
     """Column definition with type and formatting"""
     index: int = Field(..., description="Zero-based column index")
     format: str = Field('General', description="Display format for the data")
-    range: str = Field(..., description="Cell range for this column (e.g., 'B2:B50')")
+    range: Optional[str] = Field(None, description="Cell range for this column (e.g., 'B2:B50')")
     min: Optional[float] = Field(None, description="Minimum value (only for numerical columns)")
     max: Optional[float] = Field(None, description="Maximum value (only for numerical columns)")
     median: Optional[float] = Field(None, description="Median value (only for numerical columns)")

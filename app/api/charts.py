@@ -42,7 +42,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 chart_router = APIRouter(prefix="/api/v1/charts", tags=["Chart Generation"])
 
 @chart_router.post("/process", response_model=ChartGenerationResponse)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def process_chart_request(
     request: Request,
     chart_request: ChartGenerationRequest,

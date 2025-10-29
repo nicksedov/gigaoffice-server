@@ -55,7 +55,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 spreadsheet_router = APIRouter(prefix="/api/v1/spreadsheets", tags=["Spreadsheet Processing"])
 
 @spreadsheet_router.post("/process", response_model=SpreadsheetProcessResponse)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def process_spreadsheet_request(
     request: Request,
     spreadsheet_request: SpreadsheetRequest,
@@ -256,7 +256,7 @@ async def validate_spreadsheet_data(
         raise HTTPException(status_code=500, detail=str(e))
 
 @spreadsheet_router.post("/data/search", response_model=List[SearchResult])
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def search_spreadsheet_data(
     request: Request,
     search_request: SpreadsheetSearchRequest,
