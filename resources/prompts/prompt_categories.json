@@ -43,8 +43,8 @@
   },
   {
     "name": "data-histogram",
-    "display_name": "Гистограмма",
-    "description": "Создание гистограмм",
+    "display_name": "Построить распределение",
+    "description": "Создание гистограмм распределения величины",
     "is_active": true,
     "sort_order": 7
   },  {
