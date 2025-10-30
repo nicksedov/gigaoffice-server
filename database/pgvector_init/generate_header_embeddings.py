@@ -167,8 +167,8 @@ def main():
 
         if DB_VECTOR_SUPPORT:
             cur.execute(f"""
-                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING {vector_prefix}ivfflat (embedding {vector_prefix}vector_l2_ops);
-                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING {vector_prefix}ivfflat (embedding {vector_prefix}vector_cosine_ops);
+                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding {vector_prefix}vector_l2_ops);
+                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding {vector_prefix}vector_cosine_ops);
                 """)
     print(f"Загружено {inserted_count} новых эмбеддингов в таблицу {EMBEDDING_TABLE}")
     print(f"Всего в таблице: {len(headers)} терминов")
