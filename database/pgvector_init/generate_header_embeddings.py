@@ -13,6 +13,7 @@ DB_NAME = os.getenv("DB_NAME", "gigaoffice")
 DB_USER = os.getenv("DB_USER", "gigaoffice")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 DB_SCHEMA = os.getenv("DB_SCHEMA", "")
+DB_EXTENSIONS_SCHEMA = os.getenv("DB_EXTENSIONS_SCHEMA", "")
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 DB_VECTOR_SUPPORT = os.getenv("DB_VECTOR_SUPPORT", "false").lower() == "true"
 MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
@@ -133,7 +134,10 @@ def main():
         cur.execute(f"DROP TABLE IF EXISTS {EMBEDDING_TABLE};")
         
         print(f"Создаем таблицу {EMBEDDING_TABLE}...")
-        embedding_type = f"VECTOR({MODEL_DIMENSION})" if DB_VECTOR_SUPPORT else "INTEGER"
+        vector_prefix=""
+        if DB_EXTENSIONS_SCHEMA:
+            vector_prefix = f"{DB_EXTENSIONS_SCHEMA}."
+        embedding_type = f"{vector_prefix}VECTOR({MODEL_DIMENSION})" if DB_VECTOR_SUPPORT else "INTEGER"
         if DB_VECTOR_SUPPORT:
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         cur.execute(f"""
