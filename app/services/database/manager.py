@@ -17,24 +17,12 @@ from app.models.orm.base import Base
 from app.resource_loader import resource_loader
 
 class DatabaseManager:
-    """Менеджер работы с БД и пулом соединений"""
+    """
+    Менеджер работы с БД и пулом соединений
     
-    # PostgreSQL reserved keywords that should not be used as schema names
-    RESERVED_KEYWORDS = {
-        'all', 'analyse', 'analyze', 'and', 'any', 'array', 'as', 'asc', 'asymmetric',
-        'authorization', 'binary', 'both', 'case', 'cast', 'check', 'collate', 'collation',
-        'column', 'concurrently', 'constraint', 'create', 'cross', 'current_catalog',
-        'current_date', 'current_role', 'current_schema', 'current_time', 'current_timestamp',
-        'current_user', 'default', 'deferrable', 'desc', 'distinct', 'do', 'else', 'end',
-        'except', 'false', 'fetch', 'for', 'foreign', 'freeze', 'from', 'full', 'grant',
-        'group', 'having', 'ilike', 'in', 'initially', 'inner', 'intersect', 'into', 'is',
-        'isnull', 'join', 'lateral', 'leading', 'left', 'like', 'limit', 'localtime',
-        'localtimestamp', 'natural', 'not', 'notnull', 'null', 'offset', 'on', 'only', 'or',
-        'order', 'outer', 'overlaps', 'placing', 'primary', 'references', 'returning', 'right',
-        'select', 'session_user', 'similar', 'some', 'symmetric', 'table', 'tablesample',
-        'then', 'to', 'trailing', 'true', 'union', 'unique', 'user', 'using', 'variadic',
-        'verbose', 'when', 'where', 'window', 'with'
-    }
+    Reserved words are retrieved from SQLAlchemy's PostgreSQL dialect
+    to ensure synchronization with the database version.
+    """
     
     def __init__(self):
         # Приоритет переменных окружения над конфигом
@@ -81,6 +69,9 @@ class DatabaseManager:
             bind=self.engine,
             expire_on_commit=False
         )
+        
+        # Retrieve reserved words from SQLAlchemy dialect
+        self._reserved_words = self._get_reserved_words()
     
     def _validate_schema_name(self, schema_name: str) -> str:
         """
@@ -111,13 +102,67 @@ class DatabaseManager:
             raise ValueError(error_msg)
         
         # Check if it's a reserved keyword (case-insensitive)
-        if schema_name.lower() in self.RESERVED_KEYWORDS:
+        if self._reserved_words and schema_name.lower() in self._reserved_words:
             error_msg = f"Invalid schema name '{schema_name}': cannot use PostgreSQL reserved keyword"
             logger.error(error_msg)
             raise ValueError(error_msg)
         
         logger.debug(f"Schema name '{schema_name}' validated successfully")
         return schema_name
+    
+    def _get_reserved_words(self) -> set:
+        """
+        Retrieve PostgreSQL reserved words from SQLAlchemy dialect.
+        
+        Attempts multiple attribute access patterns to retrieve reserved words
+        from the dialect or identifier preparer. Falls back to empty set if
+        unavailable, with appropriate logging.
+        
+        Returns:
+            Set of lowercase reserved words, or empty set if unavailable
+        """
+        try:
+            # Try to access dialect's reserved_words
+            if hasattr(self.engine.dialect, 'reserved_words'):
+                reserved = self.engine.dialect.reserved_words
+                if reserved and hasattr(reserved, '__iter__'):
+                    result = {word.lower() for word in reserved}
+                    logger.info(f"Retrieved {len(result)} reserved words from dialect.reserved_words")
+                    return result
+            
+            # Try to access RESERVED_WORDS (uppercase attribute)
+            if hasattr(self.engine.dialect, 'RESERVED_WORDS'):
+                reserved = self.engine.dialect.RESERVED_WORDS
+                if reserved and hasattr(reserved, '__iter__'):
+                    result = {word.lower() for word in reserved}
+                    logger.info(f"Retrieved {len(result)} reserved words from dialect.RESERVED_WORDS")
+                    return result
+            
+            # Try to access preparer's reserved words
+            if hasattr(self.engine.dialect, 'preparer'):
+                preparer = self.engine.dialect.preparer
+                if hasattr(preparer, 'reserved_words'):
+                    reserved = preparer.reserved_words
+                    if reserved and hasattr(reserved, '__iter__'):
+                        result = {word.lower() for word in reserved}
+                        logger.info(f"Retrieved {len(result)} reserved words from dialect.preparer.reserved_words")
+                        return result
+            
+            # If no attributes found, log warning and return empty set
+            logger.warning(
+                "Could not retrieve reserved words from SQLAlchemy dialect. "
+                "Schema validation will skip reserved word checking. "
+                "This may allow reserved keywords as schema names."
+            )
+            return set()
+            
+        except Exception as e:
+            # Defensive error handling - catch any unexpected errors
+            logger.error(
+                f"Error retrieving reserved words from dialect: {e}. "
+                "Falling back to empty set. Schema validation will be limited."
+            )
+            return set()
     
     def create_tables(self):
         """Создание всех таблиц"""
