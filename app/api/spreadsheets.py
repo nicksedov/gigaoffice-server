@@ -288,7 +288,6 @@ async def search_spreadsheet_data(
             # Perform search using the unified search method
             results = vector_search_service.search(
                 search_string, 
-                "header_embeddings", 
                 search_mode, 
                 limit
             )
