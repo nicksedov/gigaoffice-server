@@ -17,7 +17,6 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 DB_SCHEMA = os.getenv("DB_SCHEMA", "")
 DB_EXTENSIONS_SCHEMA = os.getenv("DB_EXTENSIONS_SCHEMA", "")
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
-DB_VECTOR_SUPPORT = os.getenv("DB_VECTOR_SUPPORT", "false").lower() == "true"
 MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ai-forever/ru-en-RoSBERTa")
 PROMPTS_DIRECTORY = os.getenv("PROMPTS_DIRECTORY", "resources/prompts")
@@ -244,24 +243,22 @@ def main():
     MODEL_DIMENSION = 0
     embeddings = np.zeros(len(examples))
     
-    if DB_VECTOR_SUPPORT:
-        model_path = f"{MODEL_CACHE_PATH}/{EMBEDDING_MODEL_NAME}" if MODEL_CACHE_PATH else EMBEDDING_MODEL_NAME
-        logger.info(f"Initializing embedding model: {model_path}")
+    model_path = f"{MODEL_CACHE_PATH}/{EMBEDDING_MODEL_NAME}" if MODEL_CACHE_PATH else EMBEDDING_MODEL_NAME
+    logger.info(f"Initializing embedding model: {model_path}")
+    
+    try:
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer(model_path)
+        MODEL_DIMENSION = model.get_sentence_embedding_dimension()
+        logger.info(f"Model dimension: {MODEL_DIMENSION}")
         
-        try:
-            from sentence_transformers import SentenceTransformer
-            model = SentenceTransformer(model_path)
-            MODEL_DIMENSION = model.get_sentence_embedding_dimension()
-            logger.info(f"Model dimension: {MODEL_DIMENSION}")
-            
-            # Generate embeddings from lemmatized prompts
-            lemmatized_prompts = [ex.lemmatized_prompt for ex in examples]
-            embeddings = model.encode(lemmatized_prompts, normalize_embeddings=True)
-            logger.info(f"Generated {len(embeddings)} embeddings")
-        except Exception as e:
-            logger.error(f"Failed to load embedding model: {e}")
-            logger.warning("Continuing without embeddings")
-            DB_VECTOR_SUPPORT = False
+        # Generate embeddings from lemmatized prompts
+        lemmatized_prompts = [ex.lemmatized_prompt for ex in examples]
+        embeddings = model.encode(lemmatized_prompts, normalize_embeddings=True)
+        logger.info(f"Generated {len(embeddings)} embeddings")
+    except Exception as e:
+        logger.error(f"Failed to load embedding model: {e}")
+        return
     
     # Connect to database
     logger.info(f"Connecting to database: {DB_HOST}:{DB_PORT}/{DB_NAME}")
@@ -288,9 +285,8 @@ def main():
         cur.execute(f"DROP TABLE IF EXISTS {EXAMPLES_TABLE};")
         
         # Create vector extension if needed
-        if DB_VECTOR_SUPPORT:
-            logger.info("Creating vector extension...")
-            cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        logger.info("Creating vector extension...")
+        cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         
         # Create table
         logger.info(f"Creating table {EXAMPLES_TABLE}...")
@@ -298,7 +294,7 @@ def main():
         if DB_EXTENSIONS_SCHEMA:
             vector_prefix = f"{DB_EXTENSIONS_SCHEMA}."
         
-        embedding_type = f"{vector_prefix}VECTOR({MODEL_DIMENSION})" if DB_VECTOR_SUPPORT else "INTEGER"
+        embedding_type = f"{vector_prefix}VECTOR({MODEL_DIMENSION})"
         
         cur.execute(f"""
             CREATE TABLE {EXAMPLES_TABLE} (
@@ -332,7 +328,7 @@ def main():
                         example.category,
                         example.prompt_text,
                         example.lemmatized_prompt,
-                        emb.tolist() if DB_VECTOR_SUPPORT else None,
+                        emb.tolist(),
                         json.dumps(example.request_json) if example.request_json else None,
                         json.dumps(example.response_json),
                         example.language,
@@ -350,16 +346,15 @@ def main():
         cur.execute(f"CREATE INDEX {EXAMPLES_TABLE}_idx_category ON {EXAMPLES_TABLE} (category);")
         cur.execute(f"CREATE INDEX {EXAMPLES_TABLE}_idx_lemmatized ON {EXAMPLES_TABLE} (lemmatized_prompt);")
         
-        if DB_VECTOR_SUPPORT:
-            logger.info("Creating vector indexes...")
-            cur.execute(f"""
-                CREATE INDEX {EXAMPLES_TABLE}_idx_embedding_l2 
-                ON {EXAMPLES_TABLE} USING ivfflat (embedding {vector_prefix}vector_l2_ops);
-            """)
-            cur.execute(f"""
-                CREATE INDEX {EXAMPLES_TABLE}_idx_embedding_cos 
-                ON {EXAMPLES_TABLE} USING ivfflat (embedding {vector_prefix}vector_cosine_ops);
-            """)
+        logger.info("Creating vector indexes...")
+        cur.execute(f"""
+            CREATE INDEX {EXAMPLES_TABLE}_idx_embedding_l2 
+            ON {EXAMPLES_TABLE} USING ivfflat (embedding {vector_prefix}vector_l2_ops);
+        """)
+        cur.execute(f"""
+            CREATE INDEX {EXAMPLES_TABLE}_idx_embedding_cos 
+            ON {EXAMPLES_TABLE} USING ivfflat (embedding {vector_prefix}vector_cosine_ops);
+        """)
         
         logger.info("Indexes created successfully")
     
@@ -367,7 +362,6 @@ def main():
     logger.info("Knowledge base generation completed successfully!")
     logger.info(f"Total examples processed: {len(examples)}")
     logger.info(f"Total examples inserted: {inserted_count}")
-    logger.info(f"Vector support: {'enabled' if DB_VECTOR_SUPPORT else 'disabled'}")
     logger.info("=" * 60)
 
 
