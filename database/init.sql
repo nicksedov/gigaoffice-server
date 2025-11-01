@@ -238,6 +238,26 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA gigaoffice TO gigao
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA gigaoffice TO gigaoffice;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA gigaoffice TO gigaoffice;
 
+-- Prompt Examples Knowledge Base Table
+-- This table stores few-shot prompt examples for AI prompt construction
+-- It is populated by the generate_prompt_examples.py script
+CREATE TABLE IF NOT EXISTS prompt_examples (
+    id SERIAL PRIMARY KEY,
+    category VARCHAR(100) NOT NULL,
+    prompt_text TEXT NOT NULL,
+    lemmatized_prompt TEXT,
+    embedding INTEGER,  -- Will be VECTOR type if pgvector is enabled
+    request_json JSONB,
+    response_json JSONB NOT NULL,
+    language VARCHAR(2),
+    source_file VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes for prompt examples table
+CREATE INDEX IF NOT EXISTS prompt_examples_idx_category ON prompt_examples(category);
+CREATE INDEX IF NOT EXISTS prompt_examples_idx_lemmatized ON prompt_examples(lemmatized_prompt);
+
 -- Log completion
 INSERT INTO service_metrics (
     total_requests, successful_requests, failed_requests, pending_requests
