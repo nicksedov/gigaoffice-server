@@ -286,7 +286,7 @@ async def search_spreadsheet_data(
         # Search for each string using the specified mode
         for search_string in search_strings:
             # Perform search using the unified search method
-            results = vector_search_service.search(
+            results = header_vector_search.search(
                 search_string, 
                 search_mode, 
                 limit
@@ -307,7 +307,7 @@ async def search_spreadsheet_data(
     except HTTPException:
         raise
     except ValueError as e:
-        # Handle search_mode validation errors from vector_search_service
+        # Handle search_mode validation errors from header_vector_search
         logger.error(f"Invalid search mode: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
