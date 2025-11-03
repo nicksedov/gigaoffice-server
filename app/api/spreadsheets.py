@@ -36,8 +36,7 @@ from app.utils.json_encoder import DateTimeEncoder
 from app.services.kafka.service import kafka_service
 from app.fastapi_config import security
 
-# Import for vector search functionality
-from app.services.database.vector_search import vector_search_service
+from app.services.database.vector_search import header_vector_search
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
