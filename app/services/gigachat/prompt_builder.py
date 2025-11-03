@@ -6,7 +6,9 @@ import glob
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from string import Template
+from loguru import logger
 from app.resource_loader import resource_loader
+from app.services.database.vector_search import prompt_example_search
 
 """
 GigaChat Prompt Builder
@@ -41,28 +43,78 @@ class GigachatPromptBuilder:
         with open(prompt_path, 'r', encoding='utf-8') as f:
             return f.read().strip()
     
-    def _load_examples(self, prompt_type: str) -> List[Dict[str, str]]:
-        """Load examples from example_*.yaml files"""
+    def _load_examples_from_files(self, prompt_type: str) -> List[Dict[str, str]]:
+        """
+        Load examples from example_*.yaml files (fallback method).
+        
+        Args:
+            prompt_type: Prompt category type
+            
+        Returns:
+            List of example dictionaries
+        """
         category_dir = self.PROMPT_CATEGORY_DIRS.get(prompt_type, self.PROMPT_CATEGORY_DIRS['spreadsheet-analysis'])
         examples_dir = os.path.join(self.resources_dir, category_dir)
         
         if not os.path.exists(examples_dir):
-            raise FileNotFoundError(f"Examples directory not found: {examples_dir}")
+            logger.warning(f"Examples directory not found: {examples_dir}")
+            return []
             
         example_files = glob.glob(os.path.join(examples_dir, 'example_*.yaml'))
         example_files.sort()  # Ensure consistent ordering
         
         examples = []
         for example_file in example_files:
-            with open(example_file, 'r', encoding='utf-8') as f:
-                example_data = yaml.safe_load(f)
-                examples.append({
-                    'task': example_data.get('task', ''),
-                    'request_table': example_data.get('request_table', ''),
-                    'response_table': example_data.get('response_table', '')
-                })
+            try:
+                with open(example_file, 'r', encoding='utf-8') as f:
+                    example_data = yaml.safe_load(f)
+                    examples.append({
+                        'task': example_data.get('task', ''),
+                        'request_table': example_data.get('request_table', ''),
+                        'response_table': example_data.get('response_table', '')
+                    })
+            except Exception as e:
+                logger.error(f"Error loading example file {example_file}: {e}")
         
         return examples
+    
+    def _load_examples(self, prompt_type: str, user_query: Optional[str] = None) -> List[Dict[str, str]]:
+        """
+        Load examples using database vector search with file-based fallback.
+        
+        Args:
+            prompt_type: Prompt category type
+            user_query: User's query text for relevance-based selection (optional)
+            
+        Returns:
+            List of top 3 most relevant examples (or all available if less than 3)
+        """
+        # If no user query provided, fall back to file-based loading
+        if not user_query:
+            logger.info(f"No user query provided, loading all examples from files for {prompt_type}")
+            return self._load_examples_from_files(prompt_type)
+        
+        try:
+            # Attempt to load examples from database using vector search
+            logger.info(f"Loading examples from database for category '{prompt_type}' with query: {user_query[:50]}...")
+            examples = prompt_example_search.search_examples(
+                query=user_query,
+                category=prompt_type,
+                search_mode="fulltext",
+                limit=3
+            )
+            
+            if examples:
+                logger.info(f"Successfully loaded {len(examples)} examples from database")
+                return examples
+            else:
+                logger.warning(f"No examples found in database for category '{prompt_type}', falling back to files")
+                return self._load_examples_from_files(prompt_type)
+                
+        except Exception as e:
+            # Fallback to file-based loading on any error
+            logger.error(f"Error loading examples from database: {e}. Falling back to file-based loading.")
+            return self._load_examples_from_files(prompt_type)
     
     def prepare_classifier_system_prompt(self, categories: List[Dict[str, Any]]) -> str:
         """Подготовка системного промпта для классификатора пользовательского запроса"""
@@ -79,15 +131,21 @@ class GigachatPromptBuilder:
 
     def prepare_system_prompt(
         self, 
-        prompt_type: str = 'spreadsheet-analysis'
+        prompt_type: str = 'spreadsheet-analysis',
+        user_query: Optional[str] = None
     ) -> str:
         """
         Формирует системный промпт с общей частью и релевантными примерами.
-        Аргумент:
+        
+        Args:
             prompt_type: тип промпта, например 'spreadsheet-analysis', 'spreadsheet-transformation', 'spreadsheet-search' или 'spreadsheet-generation'
+            user_query: пользовательский запрос для отбора релевантных примеров (optional)
+            
+        Returns:
+            Сформированный системный промпт
         """
         system_prompt = self._load_system_prompt(prompt_type)
-        examples = self._load_examples(prompt_type)
+        examples = self._load_examples(prompt_type, user_query)
         
         prompt_lines = [system_prompt, "", "## Примеры:"]
         
@@ -149,3 +207,4 @@ class GigachatPromptBuilder:
 
 # Create global instance
 prompt_builder = GigachatPromptBuilder()
+

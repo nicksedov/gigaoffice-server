@@ -40,7 +40,7 @@ def prepare_prompts(
     Returns:
         Tuple[str, str]: (system_prompt, user_prompt)
     """
-    system_prompt = gigachat_service.prompt_builder.prepare_system_prompt(category)
+    system_prompt = gigachat_service.prompt_builder.prepare_system_prompt(category, query)
     user_prompt = gigachat_service.prompt_builder.prepare_user_prompt(query, data)
     
     return system_prompt, user_prompt
