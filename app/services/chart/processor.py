@@ -15,6 +15,7 @@ from app.models.orm.chart_request import ChartRequest
 from app.models.api.chart import ChartGenerationRequest, DataSource
 from app.services.database.session import get_db_session
 from app.services.chart import chart_intelligence_service, chart_validation_service
+from app.services.monitoring import performance_monitor
 
 class ChartProcessingService:
     """Service for processing chart generation requests from Kafka"""
@@ -84,6 +85,32 @@ class ChartProcessingService:
                     db.commit()
             
             self.processing_stats["total_processing_time"] += processing_time
+            
+            # Record metrics for monitoring
+            error_category = None
+            if not result["success"] and "error" in result:
+                # Try to categorize the error
+                error_msg = result["error"].lower()
+                if "validation" in error_msg:
+                    error_category = "validation"
+                elif "gigachat" in error_msg or "ai" in error_msg:
+                    error_category = "ai_service"
+                elif "database" in error_msg:
+                    error_category = "database"
+                else:
+                    error_category = "unknown"
+            
+            performance_monitor.record_chart_request(
+                request_id=request_id,
+                user_id=message_data.get("user_id", 0),
+                chart_type=result.get("chart_type", "unknown"),
+                data_rows_count=len(chart_request.data_source.data_rows),
+                data_columns_count=len(chart_request.data_source.headers),
+                processing_time=processing_time,
+                tokens_used=result.get("tokens_used", 0),
+                status="completed" if result["success"] else "failed",
+                error_category=error_category
+            )
             
             logger.info(f"Chart processing completed for request {request_id} in {processing_time:.2f}s")
             

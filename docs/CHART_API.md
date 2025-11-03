@@ -20,17 +20,6 @@ The Chart Generation API provides intelligent chart creation capabilities for th
 /api/v1/charts
 ```
 
-### Authentication
-All endpoints require Bearer token authentication:
-```
-Authorization: Bearer <your-token>
-```
-
-### Rate Limiting
-- 10 requests per minute per user
-
----
-
 ## Endpoints Reference
 
 ### 1. Generate Chart (Immediate/Queued)
@@ -522,7 +511,6 @@ import requests
 # Generate a chart
 response = requests.post(
     "https://api.gigaoffice.com/api/v1/charts/generate",
-    headers={"Authorization": "Bearer your-token"},
     json={
         "data_source": {
             "worksheet_name": "Sales Data",
@@ -552,7 +540,6 @@ const generateChart = async (dataSource, instruction) => {
   const response = await fetch('/api/v1/charts/generate', {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer your-token',
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({

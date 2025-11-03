@@ -18,7 +18,12 @@ class ChartValidationService:
     def __init__(self):
         self.r7_office_supported_chart_types = {
             ChartType.COLUMN, ChartType.LINE, ChartType.PIE, ChartType.AREA,
-            ChartType.SCATTER, ChartType.BAR, ChartType.DOUGHNUT
+            ChartType.SCATTER, ChartType.BAR, ChartType.DOUGHNUT, ChartType.HISTOGRAM
+        }
+        
+        # Chart types with limited R7-Office support
+        self.r7_office_limited_support = {
+            ChartType.BOX_PLOT, ChartType.RADAR
         }
         
         self.r7_office_max_dimensions = {
@@ -30,6 +35,25 @@ class ChartValidationService:
         
         self.r7_office_supported_fonts = {
             "Arial", "Times New Roman", "Calibri", "Tahoma", "Verdana"
+        }
+        
+        # R7-Office specific feature support matrix
+        self.r7_office_features = {
+            "animation": {ChartType.COLUMN, ChartType.LINE, ChartType.PIE, ChartType.BAR},
+            "3d_effects": {ChartType.COLUMN, ChartType.PIE, ChartType.AREA},
+            "data_labels": {ChartType.COLUMN, ChartType.LINE, ChartType.PIE, ChartType.BAR, ChartType.AREA, ChartType.DOUGHNUT},
+            "gradient_fills": {ChartType.COLUMN, ChartType.PIE, ChartType.AREA, ChartType.DOUGHNUT},
+            "trend_lines": {ChartType.SCATTER, ChartType.LINE},
+            "error_bars": {ChartType.COLUMN, ChartType.LINE, ChartType.SCATTER},
+            "secondary_axis": {ChartType.COLUMN, ChartType.LINE, ChartType.AREA}
+        }
+        
+        # R7-Office version compatibility
+        self.r7_office_version_features = {
+            "1.0": ["basic_charts", "simple_styling"],
+            "1.1": ["basic_charts", "simple_styling", "data_labels", "basic_animation"],
+            "1.2": ["basic_charts", "simple_styling", "data_labels", "basic_animation", "gradient_fills", "3d_effects"],
+            "2.0": ["all_features"]
         }
     
     def validate_chart_config(self, chart_config: ChartConfig) -> Tuple[bool, List[str]]:
@@ -76,7 +100,10 @@ class ChartValidationService:
         try:
             # Check chart type support
             if chart_config.chart_type not in self.r7_office_supported_chart_types:
-                warnings.append(f"Chart type '{chart_config.chart_type.value}' may not be fully supported in R7-Office")
+                if chart_config.chart_type in self.r7_office_limited_support:
+                    warnings.append(f"Chart type '{chart_config.chart_type.value}' has limited support in R7-Office - advanced features may not work")
+                else:
+                    warnings.append(f"Chart type '{chart_config.chart_type.value}' may not be supported in R7-Office")
             
             # Check dimensions
             pos = chart_config.position
@@ -93,6 +120,11 @@ class ChartValidationService:
             # Check color scheme
             if chart_config.styling.color_scheme == ColorScheme.CUSTOM and not chart_config.styling.custom_colors:
                 warnings.append("Custom color scheme selected but no custom colors provided")
+            
+            # Enhanced R7-Office specific validation
+            warnings.extend(self._validate_r7_office_features(chart_config))
+            warnings.extend(self._validate_r7_office_performance(chart_config))
+            warnings.extend(self._validate_r7_office_api_compatibility(chart_config))
             
             # Validate R7-Office specific properties
             r7_props = chart_config.r7_office_properties
@@ -281,6 +313,87 @@ class ChartValidationService:
         
         return warnings
     
+    def _validate_r7_office_features(self, chart_config: ChartConfig) -> List[str]:
+        """Validate R7-Office feature compatibility"""
+        warnings = []
+        
+        chart_type = chart_config.chart_type
+        r7_props = chart_config.r7_office_properties
+        
+        # Check animation support
+        if r7_props.get("enable_animation") and chart_type not in self.r7_office_features["animation"]:
+            warnings.append(f"Animation may not be supported for {chart_type.value} charts in R7-Office")
+        
+        # Check 3D effects support
+        if r7_props.get("enable_3d") and chart_type not in self.r7_office_features["3d_effects"]:
+            warnings.append(f"3D effects may not be supported for {chart_type.value} charts in R7-Office")
+        
+        # Check data labels support
+        if chart_config.series_config.show_data_labels and chart_type not in self.r7_office_features["data_labels"]:
+            warnings.append(f"Data labels may not be fully supported for {chart_type.value} charts in R7-Office")
+        
+        # Check gradient fills
+        if (chart_config.styling.color_scheme == ColorScheme.CUSTOM and 
+            chart_config.styling.custom_colors and 
+            chart_type not in self.r7_office_features["gradient_fills"]):
+            warnings.append(f"Custom gradient colors may not be supported for {chart_type.value} charts in R7-Office")
+        
+        return warnings
+    
+    def _validate_r7_office_performance(self, chart_config: ChartConfig) -> List[str]:
+        """Validate R7-Office performance considerations"""
+        warnings = []
+        
+        # Check chart size for performance
+        total_pixels = chart_config.position.width * chart_config.position.height
+        if total_pixels > 1500000:  # 1.5M pixels
+            warnings.append("Large chart size may impact R7-Office performance")
+        
+        # Check complex styling
+        if (chart_config.styling.custom_colors and 
+            len(chart_config.styling.custom_colors) > 10):
+            warnings.append("Too many custom colors may impact R7-Office rendering performance")
+        
+        # Check font size extremes
+        if chart_config.styling.font_size > 48:
+            warnings.append("Very large font sizes may cause layout issues in R7-Office")
+        elif chart_config.styling.font_size < 8:
+            warnings.append("Very small font sizes may be unreadable in R7-Office")
+        
+        # Check multiple series performance
+        if len(chart_config.series_config.y_axis_columns) > 8:
+            warnings.append("Too many data series may impact R7-Office chart performance")
+        
+        return warnings
+    
+    def _validate_r7_office_api_compatibility(self, chart_config: ChartConfig) -> List[str]:
+        """Validate R7-Office API version compatibility"""
+        warnings = []
+        
+        api_version = chart_config.r7_office_properties.get("api_version", "1.0")
+        
+        # Check version-specific features
+        if api_version not in self.r7_office_version_features:
+            warnings.append(f"R7-Office API version {api_version} may not be supported")
+            return warnings
+        
+        supported_features = self.r7_office_version_features[api_version]
+        
+        # Check feature availability based on version
+        if "all_features" not in supported_features:
+            if chart_config.series_config.show_data_labels and "data_labels" not in supported_features:
+                warnings.append(f"Data labels require R7-Office API version 1.1 or higher (current: {api_version})")
+            
+            if (chart_config.r7_office_properties.get("enable_animation") and 
+                "basic_animation" not in supported_features):
+                warnings.append(f"Chart animation requires R7-Office API version 1.1 or higher (current: {api_version})")
+            
+            if (chart_config.styling.color_scheme == ColorScheme.CUSTOM and 
+                "gradient_fills" not in supported_features):
+                warnings.append(f"Custom color schemes require R7-Office API version 1.2 or higher (current: {api_version})")
+        
+        return warnings
+    
     def validate_data_source(self, data_source: DataSource) -> Tuple[bool, List[str]]:
         """Validate data source for chart generation"""
         errors = []
@@ -289,6 +402,17 @@ class ChartValidationService:
             # Validate headers
             if not data_source.headers:
                 errors.append("Data source must have headers")
+            else:
+                # Check for duplicate headers
+                if len(data_source.headers) != len(set(data_source.headers)):
+                    errors.append("Data headers must be unique")
+                
+                # Check header format
+                for i, header in enumerate(data_source.headers):
+                    if not header or not header.strip():
+                        errors.append(f"Header at index {i} cannot be empty")
+                    elif len(header) > 100:
+                        errors.append(f"Header '{header}' exceeds 100 character limit")
             
             # Validate data rows
             if not data_source.data_rows:
@@ -299,6 +423,14 @@ class ChartValidationService:
                 for i, row in enumerate(data_source.data_rows):
                     if len(row) != expected_columns:
                         errors.append(f"Row {i} has {len(row)} columns, expected {expected_columns}")
+                
+                # Enhanced data quality checks
+                quality_errors = self._validate_data_quality(data_source)
+                errors.extend(quality_errors)
+                
+                # Chart-specific data validation
+                chart_errors = self._validate_chart_data_requirements(data_source)
+                errors.extend(chart_errors)
             
             # Validate data range
             range_errors = self._validate_data_range(data_source.data_range)
@@ -307,12 +439,105 @@ class ChartValidationService:
             # Validate worksheet name
             if not data_source.worksheet_name or not data_source.worksheet_name.strip():
                 errors.append("Worksheet name cannot be empty")
+            elif len(data_source.worksheet_name) > 50:
+                errors.append("Worksheet name cannot exceed 50 characters")
             
         except Exception as e:
             logger.error(f"Error validating data source: {e}")
             errors.append(f"Data source validation error: {str(e)}")
         
         return len(errors) == 0, errors
+    
+    def _validate_data_quality(self, data_source: DataSource) -> List[str]:
+        """Validate data quality for chart generation"""
+        errors = []
+        
+        # Check for excessive missing data
+        total_cells = len(data_source.data_rows) * len(data_source.headers)
+        missing_cells = 0
+        
+        for row in data_source.data_rows:
+            for cell in row:
+                if cell is None or cell == '':
+                    missing_cells += 1
+        
+        missing_rate = missing_cells / total_cells if total_cells > 0 else 0
+        if missing_rate > 0.5:
+            errors.append(f"Data has {missing_rate:.1%} missing values - chart quality may be poor")
+        
+        # Check for data type consistency in columns
+        for col_idx, header in enumerate(data_source.headers):
+            column_values = []
+            for row in data_source.data_rows:
+                if len(row) > col_idx and row[col_idx] is not None and row[col_idx] != '':
+                    column_values.append(row[col_idx])
+            
+            if column_values:
+                # Check type consistency
+                types = set(type(val).__name__ for val in column_values)
+                if len(types) > 2:  # Allow some type variation (e.g., int and float)
+                    errors.append(f"Column '{header}' has inconsistent data types: {', '.join(types)}")
+        
+        # Check for minimum data requirements
+        if len(data_source.data_rows) < 2:
+            errors.append("At least 2 data rows required for meaningful chart generation")
+        
+        return errors
+    
+    def _validate_chart_data_requirements(self, data_source: DataSource) -> List[str]:
+        """Validate data requirements for different chart types"""
+        errors = []
+        
+        # General numerical data validation
+        numerical_columns = 0
+        categorical_columns = 0
+        
+        for col_idx, header in enumerate(data_source.headers):
+            column_values = []
+            for row in data_source.data_rows:
+                if len(row) > col_idx and row[col_idx] is not None and row[col_idx] != '':
+                    column_values.append(row[col_idx])
+            
+            if not column_values:
+                continue
+                
+            # Check if column is numerical
+            numeric_count = 0
+            for val in column_values:
+                try:
+                    float(val)
+                    numeric_count += 1
+                except (ValueError, TypeError):
+                    continue
+            
+            if numeric_count / len(column_values) > 0.7:
+                numerical_columns += 1
+            else:
+                categorical_columns += 1
+        
+        # Validate minimum requirements
+        if numerical_columns == 0:
+            errors.append("At least one numerical column required for chart generation")
+        
+        # Check for pie chart specific requirements
+        if len(data_source.headers) == 2 and categorical_columns >= 1 and numerical_columns >= 1:
+            # Check for negative values in numerical column (bad for pie charts)
+            for col_idx in range(1, len(data_source.headers)):
+                has_negative = False
+                for row in data_source.data_rows:
+                    if len(row) > col_idx:
+                        try:
+                            val = float(row[col_idx])
+                            if val < 0:
+                                has_negative = True
+                                break
+                        except (ValueError, TypeError):
+                            continue
+                
+                if has_negative:
+                    errors.append("Negative values detected - may not be suitable for pie/doughnut charts")
+        
+        return errors
     
     def get_validation_summary(self, chart_config: ChartConfig) -> Dict[str, Any]:
         """Get comprehensive validation summary"""
