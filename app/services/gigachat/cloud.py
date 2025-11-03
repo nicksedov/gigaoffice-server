@@ -6,7 +6,6 @@ Cloud GigaChat Service
 import os
 from langchain_gigachat.chat_models import GigaChat
 from loguru import logger
-from app.resource_loader import resource_loader
 from app.services.gigachat.base import BaseGigaChatService
 
 class CloudGigaChatService(BaseGigaChatService):
@@ -15,11 +14,9 @@ class CloudGigaChatService(BaseGigaChatService):
     def _init_client(self):
         """Инициализация клиента GigaChat для облачного режима"""
         try:
-            config = resource_loader.get_config("gigachat_config")
-            
             self.credentials = os.getenv("GIGACHAT_CREDENTIALS")
-            self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
-            self.timeout = os.getenv("GIGACHAT_REQUEST_TIMEOUT", config.get("timeout"))
+            self.base_url = os.getenv("GIGACHAT_BASE_URL", "https://gigachat.devices.sberbank.ru/api/v1")
+            self.timeout = float(os.getenv("GIGACHAT_REQUEST_TIMEOUT", "60.0"))
             
             if not self.credentials:
                 raise ValueError("GIGACHAT_CREDENTIALS environment variable is required for cloud mode")

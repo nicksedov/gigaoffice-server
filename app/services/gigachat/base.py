@@ -11,7 +11,6 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from loguru import logger
-from app.resource_loader import resource_loader
 from app.prompts import prompt_manager
 from app.services.gigachat.response_parser import response_parser
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -21,14 +20,13 @@ class BaseGigaChatService(ABC):
     """Базовый абстрактный класс для GigaChat сервисов"""
     
     def __init__(self, prompt_builder, model=None):
-        config = resource_loader.get_config("gigachat_config")
-        self.model = model or os.getenv("GIGACHAT_GENERATE_MODEL", config.get("model"))
-        self.scope = os.getenv("GIGACHAT_SCOPE", config.get("scope"))
-        self.verify_ssl_certs = os.getenv("GIGACHAT_VERIFY_SSL", str(config.get("verify_ssl_certs", False))).lower() == "true"
+        self.model = model or os.getenv("GIGACHAT_GENERATE_MODEL", "GigaChat")
+        self.scope = os.getenv("GIGACHAT_SCOPE", "GIGACHAT_API_PERS")
+        self.verify_ssl_certs = os.getenv("GIGACHAT_VERIFY_SSL", "false").lower() == "true"
         
         # Rate limiting settings
-        self.max_requests_per_minute = int(os.getenv("GIGACHAT_MAX_REQUESTS_PER_MINUTE", config.get("max_requests_per_minute", 20)))
-        self.max_tokens_per_request = int(os.getenv("GIGACHAT_MAX_TOKENS_PER_REQUEST", config.get("max_tokens_per_request", 8192)))
+        self.max_requests_per_minute = int(os.getenv("GIGACHAT_MAX_REQUESTS_PER_MINUTE", "20"))
+        self.max_tokens_per_request = int(os.getenv("GIGACHAT_MAX_TOKENS_PER_REQUEST", "32768"))
         
         # Request tracking
         self.request_times = []

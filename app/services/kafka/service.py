@@ -12,7 +12,6 @@ from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from aiokafka.admin import AIOKafkaAdminClient, NewTopic
 from loguru import logger
 from dataclasses import dataclass
-from app.resource_loader import resource_loader
 
 # Import custom JSON encoder
 from app.utils.json_encoder import DateTimeEncoder
@@ -37,19 +36,18 @@ class KafkaService:
     """Сервис для работы с Apache Kafka через aiokafka"""
     
     def __init__(self):
-        # Kafka configuration
-        config = resource_loader.get_config("kafka_config")
-        self.bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", config.get("bootstrap_servers"))
-        self.topic_requests = os.getenv("KAFKA_TOPIC_REQUESTS", config["topics"]["requests"])
-        self.topic_responses = os.getenv("KAFKA_TOPIC_RESPONSES", config["topics"]["responses"])
-        self.topic_dlq = os.getenv("KAFKA_TOPIC_DLQ", config["topics"]["dlq"])
+        # Kafka configuration from environment variables
+        self.bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+        self.topic_requests = os.getenv("KAFKA_TOPIC_REQUESTS", "gigaoffice-requests")
+        self.topic_responses = os.getenv("KAFKA_TOPIC_RESPONSES", "gigaoffice-responses")
+        self.topic_dlq = os.getenv("KAFKA_TOPIC_DLQ", "gigaoffice-dlq")
         
         # Consumer group settings
-        self.consumer_group = os.getenv("KAFKA_CONSUMER_GROUP", config["consumer_group"])
+        self.consumer_group = os.getenv("KAFKA_CONSUMER_GROUP", "gigaoffice-consumers")
         
         # Queue settings
-        self.max_queue_size = int(os.getenv("MAX_QUEUE_SIZE", config["max_queue_size"]))
-        self.max_processing_time = int(os.getenv("MAX_PROCESSING_TIME", config["max_queue_size"]))
+        self.max_queue_size = int(os.getenv("KAFKA_MAX_QUEUE_SIZE", "1000"))
+        self.max_processing_time = int(os.getenv("KAFKA_MAX_PROCESSING_TIME", "300"))
         
         # Initialize components
         self.producer = None
@@ -72,21 +70,27 @@ class KafkaService:
         if self._initialized:
             return
             
-        config = resource_loader.get_config("kafka_config")
         try:
-            # Producer configuration
+            # Producer configuration from environment variables
             producer_config = {
                 'bootstrap_servers': self.bootstrap_servers,
                 'client_id': 'gigaoffice-producer',
-                **config.get("producer_config", {})
+                'acks': os.getenv("KAFKA_PRODUCER_ACKS", "all"),
+                'retry_backoff_ms': int(os.getenv("KAFKA_PRODUCER_RETRY_BACKOFF_MS", "100")),
+                'linger_ms': int(os.getenv("KAFKA_PRODUCER_LINGER_MS", "1")),
+                'compression_type': os.getenv("KAFKA_PRODUCER_COMPRESSION_TYPE", "gzip")
             }
             
-            # Consumer configuration  
+            # Consumer configuration from environment variables
             consumer_config = {
                 'bootstrap_servers': self.bootstrap_servers,
                 'group_id': self.consumer_group,
                 'client_id': 'gigaoffice-consumer',
-                **config.get("consumer_config", {})
+                'auto_offset_reset': os.getenv("KAFKA_CONSUMER_AUTO_OFFSET_RESET", "earliest"),
+                'enable_auto_commit': os.getenv("KAFKA_CONSUMER_ENABLE_AUTO_COMMIT", "false").lower() == "true",
+                'max_poll_records': int(os.getenv("KAFKA_CONSUMER_MAX_POLL_RECORDS", "500")),
+                'session_timeout_ms': int(os.getenv("KAFKA_CONSUMER_SESSION_TIMEOUT_MS", "10000")),
+                'heartbeat_interval_ms': int(os.getenv("KAFKA_CONSUMER_HEARTBEAT_INTERVAL_MS", "3000"))
             }
             
             # Admin configuration

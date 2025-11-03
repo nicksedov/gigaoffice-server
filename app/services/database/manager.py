@@ -14,7 +14,6 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import SQLAlchemyError
 from loguru import logger
 from app.models.orm.base import Base
-from app.resource_loader import resource_loader
 
 class DatabaseManager:
     """
@@ -25,14 +24,13 @@ class DatabaseManager:
     """
     
     def __init__(self):
-        # Приоритет переменных окружения над конфигом
-        config = resource_loader.get_config("database_config")
-        host = os.getenv("DB_HOST", config.get("host"))
-        port = os.getenv("DB_PORT", config.get("port"))
-        name = os.getenv("DB_NAME", config.get("name"))
-        user = os.getenv("DB_USER", config.get("user"))
-        password = os.getenv("DB_PASSWORD", config.get("password"))
-        echo_flag = os.getenv("DB_ECHO", str(config.get("echo", False))).lower() == "true"
+        # Read all configuration from environment variables
+        host = os.getenv("DB_HOST", "localhost")
+        port = os.getenv("DB_PORT", "5432")
+        name = os.getenv("DB_NAME", "gigaoffice")
+        user = os.getenv("DB_USER", "gigaoffice")
+        password = os.getenv("DB_PASSWORD", "")
+        echo_flag = os.getenv("DB_ECHO", "false").lower() == "true"
         
         # Read and validate DB_SCHEMA environment variable
         schema = os.getenv("DB_SCHEMA", "").strip()
@@ -47,12 +45,17 @@ class DatabaseManager:
         url = f"postgresql://{user}:{password}@{host}:{port}/{name}"
         
         # Prepare engine configuration with optional schema search_path
+        pool_size = int(os.getenv("DB_POOL_SIZE", "20"))
+        max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "30"))
+        pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "3600"))
+        pool_pre_ping = os.getenv("DB_POOL_PRE_PING", "true").lower() == "true"
+        
         engine_config = {
             "poolclass": QueuePool,
-            "pool_size": config.get("pool_size", 20),
-            "max_overflow": config.get("max_overflow", 30),
-            "pool_pre_ping": True,
-            "pool_recycle": 3600,
+            "pool_size": pool_size,
+            "max_overflow": max_overflow,
+            "pool_pre_ping": pool_pre_ping,
+            "pool_recycle": pool_recycle,
             "echo": echo_flag
         }
         
@@ -196,7 +199,11 @@ class DatabaseManager:
         """Получение информации о базе данных"""
         try:
             with self.engine.connect() as connection:
-                sql_query = resource_loader.load_sql("sql/database_info.sql")
+                # Load SQL query from file
+                from pathlib import Path
+                sql_file_path = Path("resources") / "sql" / "database_info.sql"
+                with open(sql_file_path, 'r', encoding='utf-8') as f:
+                    sql_query = f.read().strip()
                 result = connection.execute(text(sql_query)).fetchone()
                 
                 # Get current schema

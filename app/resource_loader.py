@@ -121,18 +121,6 @@ class ResourceLoader:
             logger.error(f"Error getting message {message_key}: {e}")
             return message_key
     
-    def get_config(self, config_name: str) -> Dict[str, Any]:
-        """
-        Получает конфигурацию из файла
-        
-        Args:
-            config_name: Имя конфигурационного файла (без расширения)
-            
-        Returns:
-            Конфигурация как словарь
-        """
-        return self.load_json(f"config/{config_name}.json")
-    
     def get_prompt_template(self, prompt_name: str) -> str:
         """
         Получает шаблон промпта

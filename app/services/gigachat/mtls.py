@@ -6,7 +6,6 @@ mTLS GigaChat Service
 import os
 from langchain_gigachat.chat_models import GigaChat
 from loguru import logger
-from app.resource_loader import resource_loader
 from app.services.gigachat.base import BaseGigaChatService
 
 class MtlsGigaChatService(BaseGigaChatService):
@@ -15,10 +14,8 @@ class MtlsGigaChatService(BaseGigaChatService):
     def _init_client(self):
         """Инициализация клиента GigaChat для mTLS режима"""
         try:
-            config = resource_loader.get_config("gigachat_config")
-            
             # Получаем параметры для mTLS подключения
-            self.base_url = os.getenv("GIGACHAT_BASE_URL", config.get("base_url"))
+            self.base_url = os.getenv("GIGACHAT_BASE_URL", "https://gigachat.devices.sberbank.ru/api/v1")
             self.ca_bundle_file = os.getenv("GIGACHAT_MTLS_CA_BUNDLE_FILE")
             self.cert_file = os.getenv("GIGACHAT_MTLS_CERT_FILE")
             self.key_file = os.getenv("GIGACHAT_MTLS_KEY_FILE")
@@ -33,11 +30,11 @@ class MtlsGigaChatService(BaseGigaChatService):
                 raise ValueError("GIGACHAT_MTLS_KEY_FILE environment variable is required for mTLS mode")
             
             # Проверяем существование файлов
-            if str(self.verify_ssl_certs).lower() == 'true' and not os.path.exists(self.ca_bundle_file):
+            if str(self.verify_ssl_certs).lower() == 'true' and self.ca_bundle_file and not os.path.exists(self.ca_bundle_file):
                 raise FileNotFoundError(f"CA bundle file not found: {self.ca_bundle_file}")
-            if not os.path.exists(self.cert_file):
+            if self.cert_file and not os.path.exists(self.cert_file):
                 raise FileNotFoundError(f"Certificate file not found: {self.cert_file}")
-            if not os.path.exists(self.key_file):
+            if self.key_file and not os.path.exists(self.key_file):
                 raise FileNotFoundError(f"Key file not found: {self.key_file}")
             
             # Инициализируем клиент для mTLS режима
