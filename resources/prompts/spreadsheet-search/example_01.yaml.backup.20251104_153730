@@ -1,0 +1,202 @@
+task: Найди все строки, где сумма больше 10000
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Продажи",
+      "range": "A1:C7"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "even_row_style",
+        "background_color": "#F2F2F2",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "odd_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Дата",
+          "Продукт",
+          "Сумма"
+        ],
+        "range": "A1:C1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": [
+            "01.01.2024",
+            "Товар A",
+            15000
+          ],
+          "range": "A2:C2",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "02.01.2024",
+            "Товар B",
+            8000
+          ],
+          "range": "A3:C3",
+          "style": "odd_row_style"
+        },
+        {
+          "values": [
+            "03.01.2024",
+            "Товар C",
+            12000
+          ],
+          "range": "A4:C4",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "04.01.2024",
+            "Товар D",
+            9000
+          ],
+          "range": "A5:C5",
+          "style": "odd_row_style"
+        },
+        {
+          "values": [
+            "05.01.2024",
+            "Товар E",
+            21000
+          ],
+          "range": "A6:C6",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "06.01.2024",
+            "Товар F",
+            7500
+          ],
+          "range": "A7:C7",
+          "style": "odd_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Продажи",
+      "range": "A1:C4"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "even_row_style",
+        "background_color": "#F2F2F2",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "odd_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Дата",
+          "Продукт",
+          "Сумма"
+        ],
+        "range": "A1:C1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": [
+            "01.01.2024",
+            "Товар A",
+            15000
+          ],
+          "range": "A2:C2",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "03.01.2024",
+            "Товар C",
+            12000
+          ],
+          "range": "A3:C3",
+          "style": "odd_row_style"
+        },
+        {
+          "values": [
+            "05.01.2024",
+            "Товар E",
+            21000
+          ],
+          "range": "A4:C4",
+          "style": "even_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "#,##0.00"
+      }
+    ]
+  }

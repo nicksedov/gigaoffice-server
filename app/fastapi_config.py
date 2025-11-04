@@ -90,11 +90,13 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
             # chart_data will be a list of dicts with 'name', 'range', and 'format' fields
             result, metadata = await chart_processor.process_chart(query, category, chart_data)
         elif category.startswith("spreadsheet-"):
-            # Process as enhanced spreadsheet data
+            # Process as enhanced spreadsheet data with category-specific preprocessing
             import json
             if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
                 spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
-                result, metadata = await spreadsheet_processor.process_spreadsheet(query, category, spreadsheet_data)
+                # Create category-specific processor for optimal data preprocessing
+                processor = create_spreadsheet_processor_for_category(category, gigachat_generate_service)
+                result, metadata = await processor.process_spreadsheet(query, category, spreadsheet_data)
             else:
                 raise Exception(f"Invalid input data for spreadsheet processing")
         else:

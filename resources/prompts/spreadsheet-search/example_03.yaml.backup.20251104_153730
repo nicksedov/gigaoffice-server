@@ -1,0 +1,221 @@
+task: Найди все заказы в диапазоне дат с 01.01.2024 по 03.01.2024
+request_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Заказы",
+      "range": "A1:D10"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "even_row_style",
+        "background_color": "#F2F2F2",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "odd_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Номер",
+          "Дата",
+          "Клиент",
+          "Сумма"
+        ],
+        "range": "A1:D1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": [
+            "001",
+            "30.12.2023",
+            "Клиент A",
+            15000
+          ],
+          "range": "A2:D2",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "002",
+            "01.01.2024",
+            "Клиент B",
+            8000
+          ],
+          "range": "A3:D3",
+          "style": "odd_row_style"
+        },
+        {
+          "values": [
+            "003",
+            "02.01.2024",
+            "Клиент C",
+            12000
+          ],
+          "range": "A4:D4",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "004",
+            "03.01.2024",
+            "Клиент D",
+            9000
+          ],
+          "range": "A5:D5",
+          "style": "odd_row_style"
+        },
+        {
+          "values": [
+            "005",
+            "04.01.2024",
+            "Клиент E",
+            21000
+          ],
+          "range": "A6:D6",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "006",
+            "05.01.2024",
+            "Клиент F",
+            7500
+          ],
+          "range": "A7:D7",
+          "style": "odd_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
+        "format": "#,##0.00"
+      }
+    ]
+  }
+response_table: |
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Заказы",
+      "range": "A1:D4"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "even_row_style",
+        "background_color": "#F2F2F2",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "odd_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Номер",
+          "Дата",
+          "Клиент",
+          "Сумма"
+        ],
+        "range": "A1:D1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": [
+            "002",
+            "01.01.2024",
+            "Клиент B",
+            8000
+          ],
+          "range": "A2:D2",
+          "style": "even_row_style"
+        },
+        {
+          "values": [
+            "003",
+            "02.01.2024",
+            "Клиент C",
+            12000
+          ],
+          "range": "A3:D3",
+          "style": "odd_row_style"
+        },
+        {
+          "values": [
+            "004",
+            "03.01.2024",
+            "Клиент D",
+            9000
+          ],
+          "range": "A4:D4",
+          "style": "even_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
+        "format": "#,##0.00"
+      }
+    ]
+  }

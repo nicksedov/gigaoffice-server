@@ -1,143 +1,36 @@
-task: Сделай заголовки жирным шрифтом и переведи столбцы Количество и Цена в числовой формат
-request_table: |
-  {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C4"
-    },
-    "styles": [
-      {
-        "id": "header_style",
-        "background_color": "#4472C4",
-        "font_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_size": 11
-      },
-      {
-        "id": "row_style",
-        "background_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      }
-    ],
-    "data": {
-      "header": {
-        "values": [
-          "Продукт",
-          "Количество",
-          "Цена"
-        ],
-        "range": "A1:C1",
-        "style": "header_style"
-      },
-      "rows": [
-        {
-          "values": [
-            "Товар A",
-            "100",
-            "1500"
-          ],
-          "range": "A2:C2",
-          "style": "row_style"
-        },
-        {
-          "values": [
-            "Товар B",
-            "250",
-            "800"
-          ],
-          "range": "A3:C3",
-          "style": "row_style"
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "General"
-      },
-      {
-        "index": 1,
-        "format": "General"
-      },
-      {
-        "index": 2,
-        "format": "General"
-      }
-    ]
-  }
-response_table: |
-  {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C4"
-    },
-    "styles": [
-      {
-        "id": "header_style",
-        "background_color": "#4472C4",
-        "font_color": "#FFFFFF",
-        "font_weight": "bold",
-        "font_size": 11
-      },
-      {
-        "id": "row_style",
-        "background_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      }
-    ],
-    "data": {
-      "header": {
-        "values": [
-          "Продукт",
-          "Количество",
-          "Цена"
-        ],
-        "range": "A1:C1",
-        "style": "header_style"
-      },
-      "rows": [
-        {
-          "values": [
-            "Товар A",
-            100,
-            1500
-          ],
-          "range": "A2:C2",
-          "style": "row_style"
-        },
-        {
-          "values": [
-            "Товар B",
-            250,
-            800
-          ],
-          "range": "A3:C3",
-          "style": "row_style"
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "General"
-      },
-      {
-        "index": 1,
-        "format": "#,##0"
-      },
-      {
-        "index": 2,
-        "format": "#,##0.00"
-      }
-    ]
-  }
+task: Сделай заголовки жирным шрифтом и переведи столбцы Количество и Цена в числовой
+  формат
+request_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
+  : {\n    \"name\": \"Продажи\",\n    \"range\": \"A1:C4\"\n  },\n  \"styles\": [\n\
+  \    {\n      \"id\": \"header_style\",\n      \"background_color\": \"#4472C4\"\
+  ,\n      \"font_color\": \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n    \
+  \  \"font_size\": 11\n    },\n    {\n      \"id\": \"row_style\",\n      \"background_color\"\
+  : \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n      \"font_style\": \"normal\"\
+  ,\n      \"font_size\": 11\n    }\n  ],\n  \"data\": {\n    \"header\": {\n    \
+  \  \"values\": [\n        \"Продукт\",\n        \"Количество\",\n        \"Цена\"\
+  \n      ],\n      \"range\": \"A1:C1\",\n      \"style\": \"header_style\"\n   \
+  \ },\n    \"rows\": [\n      {\n        \"values\": [\n          \"\",\n       \
+  \   \"\",\n          \"\"\n        ],\n        \"range\": \"A2:C2\",\n        \"\
+  style\": \"row_style\"\n      },\n      {\n        \"values\": [\n          \"\"\
+  ,\n          \"\",\n          \"\"\n        ],\n        \"range\": \"A3:C3\",\n\
+  \        \"style\": \"row_style\"\n      }\n    ]\n  },\n  \"columns\": [\n    {\n\
+  \      \"index\": 0,\n      \"format\": \"General\"\n    },\n    {\n      \"index\"\
+  : 1,\n      \"format\": \"General\"\n    },\n    {\n      \"index\": 2,\n      \"\
+  format\": \"General\"\n    }\n  ]\n}"
+response_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
+  : {\n    \"name\": \"Продажи\",\n    \"range\": \"A1:C4\"\n  },\n  \"styles\": [\n\
+  \    {\n      \"id\": \"header_style\",\n      \"background_color\": \"#4472C4\"\
+  ,\n      \"font_color\": \"#FFFFFF\",\n      \"font_weight\": \"bold\",\n      \"\
+  font_size\": 11\n    },\n    {\n      \"id\": \"row_style\",\n      \"background_color\"\
+  : \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n      \"font_style\": \"normal\"\
+  ,\n      \"font_size\": 11\n    }\n  ],\n  \"data\": {\n    \"header\": {\n    \
+  \  \"values\": [\n        \"Продукт\",\n        \"Количество\",\n        \"Цена\"\
+  \n      ],\n      \"range\": \"A1:C1\",\n      \"style\": \"header_style\"\n   \
+  \ },\n    \"rows\": [\n      {\n        \"values\": [\n          \"Товар A\",\n\
+  \          100,\n          1500\n        ],\n        \"range\": \"A2:C2\",\n   \
+  \     \"style\": \"row_style\"\n      },\n      {\n        \"values\": [\n     \
+  \     \"Товар B\",\n          250,\n          800\n        ],\n        \"range\"\
+  : \"A3:C3\",\n        \"style\": \"row_style\"\n      }\n    ]\n  },\n  \"columns\"\
+  : [\n    {\n      \"index\": 0,\n      \"format\": \"General\"\n    },\n    {\n\
+  \      \"index\": 1,\n      \"format\": \"#,##0\"\n    },\n    {\n      \"index\"\
+  : 2,\n      \"format\": \"#,##0.00\"\n    }\n  ]\n}"

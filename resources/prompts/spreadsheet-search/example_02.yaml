@@ -1,220 +1,45 @@
 task: Найди все продукты, названия которых содержат "Товар"
-request_table: |
-  {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Каталог",
-      "range": "A1:C10"
-    },
-    "styles": [
-      {
-        "id": "header_style",
-        "background_color": "#4472C4",
-        "font_color": "#FFFFFF",
-        "font_weight": "bold",
-        "font_size": 11
-      },
-      {
-        "id": "even_row_style",
-        "background_color": "#F2F2F2",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      },
-      {
-        "id": "odd_row_style",
-        "background_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      }
-    ],
-    "data": {
-      "header": {
-        "values": [
-          "Код",
-          "Название",
-          "Цена"
-        ],
-        "range": "A1:C1",
-        "style": "header_style"
-      },
-      "rows": [
-        {
-          "values": [
-            "A001",
-            "Товар A",
-            1500
-          ],
-          "range": "A2:C2",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "B002",
-            "Услуга B",
-            2000
-          ],
-          "range": "A3:C3",
-          "style": "odd_row_style"
-        },
-        {
-          "values": [
-            "C003",
-            "Товар C",
-            1200
-          ],
-          "range": "A4:C4",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "D004",
-            "Материал D",
-            800
-          ],
-          "range": "A5:C5",
-          "style": "odd_row_style"
-        },
-        {
-          "values": [
-            "E005",
-            "Товар E",
-            2100
-          ],
-          "range": "A6:C6",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "F006",
-            "Работа F",
-            3000
-          ],
-          "range": "A7:C7",
-          "style": "odd_row_style"
-        },
-        {
-          "values": [
-            "G007",
-            "Товар G",
-            950
-          ],
-          "range": "A8:C8",
-          "style": "even_row_style"
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "General"
-      },
-      {
-        "index": 1,
-        "format": "General"
-      },
-      {
-        "index": 2,
-        "format": "#,##0.00"
-      }
-    ]
-  }
-response_table: |
-  {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Каталог",
-      "range": "A1:C5"
-    },
-    "styles": [
-      {
-        "id": "header_style",
-        "background_color": "#4472C4",
-        "font_color": "#FFFFFF",
-        "font_weight": "bold",
-        "font_size": 11
-      },
-      {
-        "id": "even_row_style",
-        "background_color": "#F2F2F2",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      },
-      {
-        "id": "odd_row_style",
-        "background_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      }
-    ],
-    "data": {
-      "header": {
-        "values": [
-          "Код",
-          "Название",
-          "Цена"
-        ],
-        "range": "A1:C1",
-        "style": "header_style"
-      },
-      "rows": [
-        {
-          "values": [
-            "A001",
-            "Товар A",
-            1500
-          ],
-          "range": "A2:C2",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "C003",
-            "Товар C",
-            1200
-          ],
-          "range": "A3:C3",
-          "style": "odd_row_style"
-        },
-        {
-          "values": [
-            "E005",
-            "Товар E",
-            2100
-          ],
-          "range": "A4:C4",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "G007",
-            "Товар G",
-            950
-          ],
-          "range": "A5:C5",
-          "style": "odd_row_style"
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "General"
-      },
-      {
-        "index": 1,
-        "format": "General"
-      },
-      {
-        "index": 2,
-        "format": "#,##0.00"
-      }
-    ]
-  }
+request_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
+  : {\n    \"name\": \"Каталог\",\n    \"range\": \"A1:C10\"\n  },\n  \"data\": {\n\
+  \    \"header\": {\n      \"values\": [\n        \"Код\",\n        \"Название\"\
+  ,\n        \"Цена\"\n      ],\n      \"range\": \"A1:C1\"\n    },\n    \"rows\"\
+  : [\n      {\n        \"values\": [\n          \"A001\",\n          \"Товар A\"\
+  ,\n          1500\n        ],\n        \"range\": \"A2:C2\"\n      },\n      {\n\
+  \        \"values\": [\n          \"B002\",\n          \"Услуга B\",\n         \
+  \ 2000\n        ],\n        \"range\": \"A3:C3\"\n      },\n      {\n        \"\
+  values\": [\n          \"C003\",\n          \"Товар C\",\n          1200\n     \
+  \   ],\n        \"range\": \"A4:C4\"\n      },\n      {\n        \"values\": [\n\
+  \          \"D004\",\n          \"Материал D\",\n          800\n        ],\n   \
+  \     \"range\": \"A5:C5\"\n      },\n      {\n        \"values\": [\n         \
+  \ \"E005\",\n          \"Товар E\",\n          2100\n        ],\n        \"range\"\
+  : \"A6:C6\"\n      },\n      {\n        \"values\": [\n          \"F006\",\n   \
+  \       \"Работа F\",\n          3000\n        ],\n        \"range\": \"A7:C7\"\n\
+  \      },\n      {\n        \"values\": [\n          \"G007\",\n          \"Товар\
+  \ G\",\n          950\n        ],\n        \"range\": \"A8:C8\"\n      }\n    ]\n\
+  \  },\n  \"columns\": [\n    {\n      \"index\": 0,\n      \"format\": \"General\"\
+  \n    },\n    {\n      \"index\": 1,\n      \"format\": \"General\"\n    },\n  \
+  \  {\n      \"index\": 2,\n      \"format\": \"#,##0.00\"\n    }\n  ]\n}"
+response_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
+  : {\n    \"name\": \"Каталог\",\n    \"range\": \"A1:C5\"\n  },\n  \"styles\": [\n\
+  \    {\n      \"id\": \"header_style\",\n      \"background_color\": \"#4472C4\"\
+  ,\n      \"font_color\": \"#FFFFFF\",\n      \"font_weight\": \"bold\",\n      \"\
+  font_size\": 11\n    },\n    {\n      \"id\": \"even_row_style\",\n      \"background_color\"\
+  : \"#F2F2F2\",\n      \"font_weight\": \"normal\",\n      \"font_style\": \"normal\"\
+  ,\n      \"font_size\": 11\n    },\n    {\n      \"id\": \"odd_row_style\",\n  \
+  \    \"background_color\": \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n  \
+  \    \"font_style\": \"normal\",\n      \"font_size\": 11\n    }\n  ],\n  \"data\"\
+  : {\n    \"header\": {\n      \"values\": [\n        \"Код\",\n        \"Название\"\
+  ,\n        \"Цена\"\n      ],\n      \"range\": \"A1:C1\",\n      \"style\": \"\
+  header_style\"\n    },\n    \"rows\": [\n      {\n        \"values\": [\n      \
+  \    \"A001\",\n          \"Товар A\",\n          1500\n        ],\n        \"range\"\
+  : \"A2:C2\",\n        \"style\": \"even_row_style\"\n      },\n      {\n       \
+  \ \"values\": [\n          \"C003\",\n          \"Товар C\",\n          1200\n \
+  \       ],\n        \"range\": \"A3:C3\",\n        \"style\": \"odd_row_style\"\n\
+  \      },\n      {\n        \"values\": [\n          \"E005\",\n          \"Товар\
+  \ E\",\n          2100\n        ],\n        \"range\": \"A4:C4\",\n        \"style\"\
+  : \"even_row_style\"\n      },\n      {\n        \"values\": [\n          \"G007\"\
+  ,\n          \"Товар G\",\n          950\n        ],\n        \"range\": \"A5:C5\"\
+  ,\n        \"style\": \"odd_row_style\"\n      }\n    ]\n  },\n  \"columns\": [\n\
+  \    {\n      \"index\": 0,\n      \"format\": \"General\"\n    },\n    {\n    \
+  \  \"index\": 1,\n      \"format\": \"General\"\n    },\n    {\n      \"index\"\
+  : 2,\n      \"format\": \"#,##0.00\"\n    }\n  ]\n}"

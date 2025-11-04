@@ -1,202 +1,42 @@
 task: Найди все строки, где сумма больше 10000
-request_table: |
-  {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C7"
-    },
-    "styles": [
-      {
-        "id": "header_style",
-        "background_color": "#4472C4",
-        "font_color": "#FFFFFF",
-        "font_weight": "bold",
-        "font_size": 11
-      },
-      {
-        "id": "even_row_style",
-        "background_color": "#F2F2F2",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      },
-      {
-        "id": "odd_row_style",
-        "background_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      }
-    ],
-    "data": {
-      "header": {
-        "values": [
-          "Дата",
-          "Продукт",
-          "Сумма"
-        ],
-        "range": "A1:C1",
-        "style": "header_style"
-      },
-      "rows": [
-        {
-          "values": [
-            "01.01.2024",
-            "Товар A",
-            15000
-          ],
-          "range": "A2:C2",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "02.01.2024",
-            "Товар B",
-            8000
-          ],
-          "range": "A3:C3",
-          "style": "odd_row_style"
-        },
-        {
-          "values": [
-            "03.01.2024",
-            "Товар C",
-            12000
-          ],
-          "range": "A4:C4",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "04.01.2024",
-            "Товар D",
-            9000
-          ],
-          "range": "A5:C5",
-          "style": "odd_row_style"
-        },
-        {
-          "values": [
-            "05.01.2024",
-            "Товар E",
-            21000
-          ],
-          "range": "A6:C6",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "06.01.2024",
-            "Товар F",
-            7500
-          ],
-          "range": "A7:C7",
-          "style": "odd_row_style"
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "dd/mm/yyyy"
-      },
-      {
-        "index": 1,
-        "format": "General"
-      },
-      {
-        "index": 2,
-        "format": "#,##0.00"
-      }
-    ]
-  }
-response_table: |
-  {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Продажи",
-      "range": "A1:C4"
-    },
-    "styles": [
-      {
-        "id": "header_style",
-        "background_color": "#4472C4",
-        "font_color": "#FFFFFF",
-        "font_weight": "bold",
-        "font_size": 11
-      },
-      {
-        "id": "even_row_style",
-        "background_color": "#F2F2F2",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      },
-      {
-        "id": "odd_row_style",
-        "background_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_style": "normal",
-        "font_size": 11
-      }
-    ],
-    "data": {
-      "header": {
-        "values": [
-          "Дата",
-          "Продукт",
-          "Сумма"
-        ],
-        "range": "A1:C1",
-        "style": "header_style"
-      },
-      "rows": [
-        {
-          "values": [
-            "01.01.2024",
-            "Товар A",
-            15000
-          ],
-          "range": "A2:C2",
-          "style": "even_row_style"
-        },
-        {
-          "values": [
-            "03.01.2024",
-            "Товар C",
-            12000
-          ],
-          "range": "A3:C3",
-          "style": "odd_row_style"
-        },
-        {
-          "values": [
-            "05.01.2024",
-            "Товар E",
-            21000
-          ],
-          "range": "A4:C4",
-          "style": "even_row_style"
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "dd/mm/yyyy"
-      },
-      {
-        "index": 1,
-        "format": "General"
-      },
-      {
-        "index": 2,
-        "format": "#,##0.00"
-      }
-    ]
-  }
+request_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
+  : {\n    \"name\": \"Продажи\",\n    \"range\": \"A1:C7\"\n  },\n  \"data\": {\n\
+  \    \"header\": {\n      \"values\": [\n        \"Дата\",\n        \"Продукт\"\
+  ,\n        \"Сумма\"\n      ],\n      \"range\": \"A1:C1\"\n    },\n    \"rows\"\
+  : [\n      {\n        \"values\": [\n          \"01.01.2024\",\n          \"Товар\
+  \ A\",\n          15000\n        ],\n        \"range\": \"A2:C2\"\n      },\n  \
+  \    {\n        \"values\": [\n          \"02.01.2024\",\n          \"Товар B\"\
+  ,\n          8000\n        ],\n        \"range\": \"A3:C3\"\n      },\n      {\n\
+  \        \"values\": [\n          \"03.01.2024\",\n          \"Товар C\",\n    \
+  \      12000\n        ],\n        \"range\": \"A4:C4\"\n      },\n      {\n    \
+  \    \"values\": [\n          \"04.01.2024\",\n          \"Товар D\",\n        \
+  \  9000\n        ],\n        \"range\": \"A5:C5\"\n      },\n      {\n        \"\
+  values\": [\n          \"05.01.2024\",\n          \"Товар E\",\n          21000\n\
+  \        ],\n        \"range\": \"A6:C6\"\n      },\n      {\n        \"values\"\
+  : [\n          \"06.01.2024\",\n          \"Товар F\",\n          7500\n       \
+  \ ],\n        \"range\": \"A7:C7\"\n      }\n    ]\n  },\n  \"columns\": [\n   \
+  \ {\n      \"index\": 0,\n      \"format\": \"dd/mm/yyyy\"\n    },\n    {\n    \
+  \  \"index\": 1,\n      \"format\": \"General\"\n    },\n    {\n      \"index\"\
+  : 2,\n      \"format\": \"#,##0.00\"\n    }\n  ]\n}"
+response_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
+  : {\n    \"name\": \"Продажи\",\n    \"range\": \"A1:C4\"\n  },\n  \"styles\": [\n\
+  \    {\n      \"id\": \"header_style\",\n      \"background_color\": \"#4472C4\"\
+  ,\n      \"font_color\": \"#FFFFFF\",\n      \"font_weight\": \"bold\",\n      \"\
+  font_size\": 11\n    },\n    {\n      \"id\": \"even_row_style\",\n      \"background_color\"\
+  : \"#F2F2F2\",\n      \"font_weight\": \"normal\",\n      \"font_style\": \"normal\"\
+  ,\n      \"font_size\": 11\n    },\n    {\n      \"id\": \"odd_row_style\",\n  \
+  \    \"background_color\": \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n  \
+  \    \"font_style\": \"normal\",\n      \"font_size\": 11\n    }\n  ],\n  \"data\"\
+  : {\n    \"header\": {\n      \"values\": [\n        \"Дата\",\n        \"Продукт\"\
+  ,\n        \"Сумма\"\n      ],\n      \"range\": \"A1:C1\",\n      \"style\": \"\
+  header_style\"\n    },\n    \"rows\": [\n      {\n        \"values\": [\n      \
+  \    \"01.01.2024\",\n          \"Товар A\",\n          15000\n        ],\n    \
+  \    \"range\": \"A2:C2\",\n        \"style\": \"even_row_style\"\n      },\n  \
+  \    {\n        \"values\": [\n          \"03.01.2024\",\n          \"Товар C\"\
+  ,\n          12000\n        ],\n        \"range\": \"A3:C3\",\n        \"style\"\
+  : \"odd_row_style\"\n      },\n      {\n        \"values\": [\n          \"05.01.2024\"\
+  ,\n          \"Товар E\",\n          21000\n        ],\n        \"range\": \"A4:C4\"\
+  ,\n        \"style\": \"even_row_style\"\n      }\n    ]\n  },\n  \"columns\": [\n\
+  \    {\n      \"index\": 0,\n      \"format\": \"dd/mm/yyyy\"\n    },\n    {\n \
+  \     \"index\": 1,\n      \"format\": \"General\"\n    },\n    {\n      \"index\"\
+  : 2,\n      \"format\": \"#,##0.00\"\n    }\n  ]\n}"
