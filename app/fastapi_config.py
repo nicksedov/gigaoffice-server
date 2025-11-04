@@ -30,10 +30,6 @@ from app.services.histogram import create_histogram_processor  # Added import fo
 # Create services in the module where needed
 gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat generation service")
 
-# Create spreadsheet processor for handling enhanced spreadsheet data
-# This processor is used by the Kafka message handler to process spreadsheet requests
-spreadsheet_processor = create_spreadsheet_processor(gigachat_generate_service)  # Create spreadsheet processor
-
 # Create chart processor for handling chart generation requests
 # This processor is used by the Kafka message handler to process chart generation requests
 chart_processor = create_chart_processor(gigachat_generate_service)  # Create chart processor
@@ -95,7 +91,7 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
             if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
                 spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
                 # Create category-specific processor for optimal data preprocessing
-                processor = create_spreadsheet_processor_for_category(category, gigachat_generate_service)
+                processor = create_spreadsheet_processor(category, gigachat_generate_service)
                 result, metadata = await processor.process_spreadsheet(query, category, spreadsheet_data)
             else:
                 raise Exception(f"Invalid input data for spreadsheet processing")

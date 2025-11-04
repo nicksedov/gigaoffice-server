@@ -21,17 +21,14 @@ PROCESSOR_MAPPING: Dict[str, Type[BaseSpreadsheetProcessor]] = {
     'spreadsheet-analysis': AnalysisProcessor,
     'spreadsheet-search': SearchProcessor,
     'spreadsheet-generation': GenerationProcessor,
-    'spreadsheet-transformation': TransformationProcessor,
-    # Reuse analysis processor for chart categories (focuses on data)
-    'data-chart': AnalysisProcessor,
-    'data-histogram': AnalysisProcessor,
+    'spreadsheet-transformation': TransformationProcessor
 }
 
 # Default processor for unknown categories (most complete data)
 DEFAULT_PROCESSOR = TransformationProcessor
 
 
-def create_processor(
+def create_spreadsheet_processor(
     category: str,
     gigachat_service: BaseGigaChatService
 ) -> BaseSpreadsheetProcessor:
@@ -65,26 +62,3 @@ def create_processor(
         logger.debug(f"Creating {processor_class.__name__} for category '{category}'")
     
     return processor_class(gigachat_service)
-
-
-def create_spreadsheet_processor(gigachat_service: BaseGigaChatService) -> BaseSpreadsheetProcessor:
-    """
-    Legacy factory function for backward compatibility.
-    
-    Creates a TransformationProcessor (most complete data) by default.
-    New code should use create_processor() with explicit category.
-    
-    Args:
-        gigachat_service: Initialized GigaChat service instance
-        
-    Returns:
-        TransformationProcessor instance
-        
-    .. deprecated::
-        Use create_processor() instead to get category-specific preprocessing.
-    """
-    logger.warning(
-        "create_spreadsheet_processor() is deprecated. "
-        "Use create_processor(category, gigachat_service) instead."
-    )
-    return TransformationProcessor(gigachat_service)

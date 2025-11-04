@@ -157,7 +157,3 @@ class BaseSpreadsheetProcessor(ABC):
         except Exception as e:
             logger.error(f"Error processing spreadsheet data: {e}")
             raise
-"""
-Base Spreadsheet Processor
-Abstract base class for category-specific spreadsheet processors
-"""

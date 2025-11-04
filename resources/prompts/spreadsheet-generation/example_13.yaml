@@ -1,0 +1,107 @@
+task: Создай каталог автомобилей с полями 'Модель', 'Год выпуска', 'Тип топлива',
+  'Коробка передач', 'Цена, руб'. Добавь 5 популярных моделей на российском рынке
+response_table: |-
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Автомобили",
+      "range": "A1:E7"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold"
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Модель",
+          "Год выпуска",
+          "Тип топлива",
+          "Коробка передач",
+          "Цена, руб"
+        ],
+        "range": "A1:E1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": [
+            "Toyota Camry",
+            2023,
+            "Гибрид",
+            "Автомат",
+            2450000
+          ],
+          "range": "A2:E2"
+        },
+        {
+          "values": [
+            "BMW X5",
+            2023,
+            "Бензин",
+            "Автомат",
+            6800000
+          ],
+          "range": "A3:E3"
+        },
+        {
+          "values": [
+            "Volkswagen Polo",
+            2022,
+            "Бензин",
+            "Механика",
+            1400000
+          ],
+          "range": "A4:E4"
+        },
+        {
+          "values": [
+            "Mercedes-Benz E-Class",
+            2023,
+            "Дизель",
+            "Автомат",
+            7200000
+          ],
+          "range": "A5:E5"
+        },
+        {
+          "values": [
+            "Lada Vesta",
+            2023,
+            "Бензин",
+            "Механика",
+            650000
+          ],
+          "range": "A6:E6"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "0"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
+        "format": "General"
+      },
+      {
+        "index": 4,
+        "format": "#,##0"
+      }
+    ]
+  }
