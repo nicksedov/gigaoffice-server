@@ -95,13 +95,16 @@ response_table: |
     "styles": [
       {
         "id": "sorted_header_style",
-        "background_color": "#E8F4FD",
-        "font_color": "#1F4E79",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
         "font_weight": "bold"
       },
       {
         "id": "deduplicated_row_style",
-        "background_color": "#F0F8FF"
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
       }
     ],
     "data": {

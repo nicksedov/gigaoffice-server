@@ -1,46 +1,184 @@
 task: Найди все заказы в диапазоне дат с 01.01.2024 по 03.01.2024
-request_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
-  : {\n    \"name\": \"Заказы\",\n    \"range\": \"A1:D10\"\n  },\n  \"data\": {\n\
-  \    \"header\": {\n      \"values\": [\n        \"Номер\",\n        \"Дата\",\n\
-  \        \"Клиент\",\n        \"Сумма\"\n      ],\n      \"range\": \"A1:D1\"\n\
-  \    },\n    \"rows\": [\n      {\n        \"values\": [\n          \"001\",\n \
-  \         \"30.12.2023\",\n          \"Клиент A\",\n          15000\n        ],\n\
-  \        \"range\": \"A2:D2\"\n      },\n      {\n        \"values\": [\n      \
-  \    \"002\",\n          \"01.01.2024\",\n          \"Клиент B\",\n          8000\n\
-  \        ],\n        \"range\": \"A3:D3\"\n      },\n      {\n        \"values\"\
-  : [\n          \"003\",\n          \"02.01.2024\",\n          \"Клиент C\",\n  \
-  \        12000\n        ],\n        \"range\": \"A4:D4\"\n      },\n      {\n  \
-  \      \"values\": [\n          \"004\",\n          \"03.01.2024\",\n          \"\
-  Клиент D\",\n          9000\n        ],\n        \"range\": \"A5:D5\"\n      },\n\
-  \      {\n        \"values\": [\n          \"005\",\n          \"04.01.2024\",\n\
-  \          \"Клиент E\",\n          21000\n        ],\n        \"range\": \"A6:D6\"\
-  \n      },\n      {\n        \"values\": [\n          \"006\",\n          \"05.01.2024\"\
-  ,\n          \"Клиент F\",\n          7500\n        ],\n        \"range\": \"A7:D7\"\
-  \n      }\n    ]\n  },\n  \"columns\": [\n    {\n      \"index\": 0,\n      \"format\"\
-  : \"General\"\n    },\n    {\n      \"index\": 1,\n      \"format\": \"dd/mm/yyyy\"\
-  \n    },\n    {\n      \"index\": 2,\n      \"format\": \"General\"\n    },\n  \
-  \  {\n      \"index\": 3,\n      \"format\": \"#,##0.00\"\n    }\n  ]\n}"
-response_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
-  : {\n    \"name\": \"Заказы\",\n    \"range\": \"A1:D4\"\n  },\n  \"styles\": [\n\
-  \    {\n      \"id\": \"header_style\",\n      \"background_color\": \"#4472C4\"\
-  ,\n      \"font_color\": \"#FFFFFF\",\n      \"font_weight\": \"bold\",\n      \"\
-  font_size\": 11\n    },\n    {\n      \"id\": \"even_row_style\",\n      \"background_color\"\
-  : \"#F2F2F2\",\n      \"font_weight\": \"normal\",\n      \"font_style\": \"normal\"\
-  ,\n      \"font_size\": 11\n    },\n    {\n      \"id\": \"odd_row_style\",\n  \
-  \    \"background_color\": \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n  \
-  \    \"font_style\": \"normal\",\n      \"font_size\": 11\n    }\n  ],\n  \"data\"\
-  : {\n    \"header\": {\n      \"values\": [\n        \"Номер\",\n        \"Дата\"\
-  ,\n        \"Клиент\",\n        \"Сумма\"\n      ],\n      \"range\": \"A1:D1\"\
-  ,\n      \"style\": \"header_style\"\n    },\n    \"rows\": [\n      {\n       \
-  \ \"values\": [\n          \"002\",\n          \"01.01.2024\",\n          \"Клиент\
-  \ B\",\n          8000\n        ],\n        \"range\": \"A2:D2\",\n        \"style\"\
-  : \"even_row_style\"\n      },\n      {\n        \"values\": [\n          \"003\"\
-  ,\n          \"02.01.2024\",\n          \"Клиент C\",\n          12000\n       \
-  \ ],\n        \"range\": \"A3:D3\",\n        \"style\": \"odd_row_style\"\n    \
-  \  },\n      {\n        \"values\": [\n          \"004\",\n          \"03.01.2024\"\
-  ,\n          \"Клиент D\",\n          9000\n        ],\n        \"range\": \"A4:D4\"\
-  ,\n        \"style\": \"even_row_style\"\n      }\n    ]\n  },\n  \"columns\": [\n\
-  \    {\n      \"index\": 0,\n      \"format\": \"General\"\n    },\n    {\n    \
-  \  \"index\": 1,\n      \"format\": \"dd/mm/yyyy\"\n    },\n    {\n      \"index\"\
-  : 2,\n      \"format\": \"General\"\n    },\n    {\n      \"index\": 3,\n      \"\
-  format\": \"#,##0.00\"\n    }\n  ]\n}"
+request_table: |-
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Заказы",
+      "range": "A1:D10"
+    },
+    "data": {
+      "header": {
+        "values": [
+          "Номер",
+          "Дата",
+          "Клиент",
+          "Сумма"
+        ],
+        "range": "A1:D1"
+      },
+      "rows": [
+        {
+          "values": [
+            "001",
+            "30.12.2023",
+            "Клиент A",
+            15000
+          ],
+          "range": "A2:D2"
+        },
+        {
+          "values": [
+            "002",
+            "01.01.2024",
+            "Клиент B",
+            8000
+          ],
+          "range": "A3:D3"
+        },
+        {
+          "values": [
+            "003",
+            "02.01.2024",
+            "Клиент C",
+            12000
+          ],
+          "range": "A4:D4"
+        },
+        {
+          "values": [
+            "004",
+            "03.01.2024",
+            "Клиент D",
+            9000
+          ],
+          "range": "A5:D5"
+        },
+        {
+          "values": [
+            "005",
+            "04.01.2024",
+            "Клиент E",
+            21000
+          ],
+          "range": "A6:D6"
+        },
+        {
+          "values": [
+            "006",
+            "05.01.2024",
+            "Клиент F",
+            7500
+          ],
+          "range": "A7:D7"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
+        "format": "#,##0.00"
+      }
+    ]
+  }
+response_table: |-
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Заказы",
+      "range": "A1:D4"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Номер",
+          "Дата",
+          "Клиент",
+          "Сумма"
+        ],
+        "range": "A1:D1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "values": [
+            "002",
+            "01.01.2024",
+            "Клиент B",
+            8000
+          ],
+          "range": "A2:D2",
+          "style": "row_style"
+        },
+        {
+          "values": [
+            "003",
+            "02.01.2024",
+            "Клиент C",
+            12000
+          ],
+          "range": "A3:D3",
+          "style": "row_style"
+        },
+        {
+          "values": [
+            "004",
+            "03.01.2024",
+            "Клиент D",
+            9000
+          ],
+          "range": "A4:D4",
+          "style": "row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "dd/mm/yyyy"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
+        "format": "#,##0.00"
+      }
+    ]
+  }

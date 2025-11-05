@@ -1,53 +1,57 @@
-task: Преобразуй даты в формат ДД.ММ.ГГГГ и числа в формат #,##0.00
+task: Объедини поля "Имя" и "Фамилия" в одно поле "Полное имя" и удалите исходные поля
 request_table: |
   {
     "metadata": {
       "version": "1.0"
     },
     "worksheet": {
-      "name": "Финансы",
-      "range": "A1:C5"
+      "name": "Клиенты",
+      "range": "A1:D5"
     },
     "data": {
       "header": {
         "values": [
-          "Дата",
-          "Описание",
-          "Сумма"
+          "Имя",
+          "Фамилия",
+          "Email",
+          "Телефон"
         ],
-        "range": "A1:C1"
+        "range": "A1:D1"
       },
       "rows": [
         {
           "values": [
-            "2024-01-01",
-            "Продажа",
-            "15000"
+            "Иван",
+            "Иванов",
+            "ivan@example.com",
+            "+71234567890"
           ],
-          "range": "A2:C2"
+          "range": "A2:D2"
         },
         {
           "values": [
-            "2024-01-02",
-            "Покупка",
-            "-8000.5"
+            "Петр",
+            "Петров",
+            "petr@example.com",
+            "+70987654321"
           ],
-          "range": "A3:C3"
+          "range": "A3:D3"
         },
         {
           "values": [
-            "2024-01-03",
-            "Оплата",
-            "-3000"
+            "Сидор",
+            "Сидоров",
+            "sidor@example.com",
+            "+71112223344"
           ],
-          "range": "A4:C4"
+          "range": "A4:D4"
         }
       ]
     },
     "columns": [
       {
         "index": 0,
-        "format": "dd/mm/yyyy"
+        "format": "General"
       },
       {
         "index": 1,
@@ -55,6 +59,10 @@ request_table: |
       },
       {
         "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
         "format": "General"
       }
     ]
@@ -65,66 +73,66 @@ response_table: |
       "version": "1.0"
     },
     "worksheet": {
-      "name": "Финансы",
+      "name": "Клиенты",
       "range": "A1:C5"
     },
     "styles": [
       {
-        "id": "conversion_header_style",
-        "background_color": "#E8F5E8",
-        "font_color": "#2D5A2D",
+        "id": "merge_header_style",
+        "background_color": "#FFF2E8",
+        "font_color": "#8B4513",
         "font_weight": "bold"
       },
       {
-        "id": "converted_value_style",
-        "background_color": "#F0FFF0",
-        "font_style": "italic"
+        "id": "merged_field_style",
+        "background_color": "#FFFAF0",
+        "horizontal_alignment": "left"
       }
     ],
     "data": {
       "header": {
         "values": [
-          "Дата",
-          "Описание",
-          "Сумма"
+          "Полное имя",
+          "Email",
+          "Телефон"
         ],
         "range": "A1:C1",
-        "style": "conversion_header_style"
+        "style": "merge_header_style"
       },
       "rows": [
         {
           "values": [
-            "01.01.2024",
-            "Продажа",
-            15000.0
+            "Иванов Иван",
+            "ivan@example.com",
+            "+71234567890"
           ],
           "range": "A2:C2",
-          "style": "converted_value_style"
+          "style": "merged_field_style"
         },
         {
           "values": [
-            "02.01.2024",
-            "Покупка",
-            -8000.5
+            "Петров Петр",
+            "petr@example.com",
+            "+70987654321"
           ],
           "range": "A3:C3",
-          "style": "converted_value_style"
+          "style": "merged_field_style"
         },
         {
           "values": [
-            "03.01.2024",
-            "Оплата",
-            -3000.0
+            "Сидоров Сидор",
+            "sidor@example.com",
+            "+71112223344"
           ],
           "range": "A4:C4",
-          "style": "converted_value_style"
+          "style": "merged_field_style"
         }
       ]
     },
     "columns": [
       {
         "index": 0,
-        "format": "dd/mm/yyyy"
+        "format": "General"
       },
       {
         "index": 1,
@@ -132,7 +140,7 @@ response_table: |
       },
       {
         "index": 2,
-        "format": "#,##0.00"
+        "format": "General"
       }
     ]
   }

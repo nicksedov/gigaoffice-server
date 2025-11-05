@@ -1,37 +1,122 @@
 task: Примени чередующиеся цвета строк для улучшения читаемости
-request_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
-  : {\n    \"name\": \"Отчет\",\n    \"range\": \"A1:C4\"\n  },\n  \"styles\": [\n\
-  \    {\n      \"id\": \"header_style\",\n      \"background_color\": \"#4472C4\"\
-  ,\n      \"font_color\": \"#FFFFFF\",\n      \"font_weight\": \"bold\",\n      \"\
-  font_size\": 11\n    },\n    {\n      \"id\": \"row_style\",\n      \"background_color\"\
-  : \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n      \"font_style\": \"normal\"\
-  ,\n      \"font_size\": 11\n    }\n  ],\n  \"data\": {\n    \"header\": {\n    \
-  \  \"values\": [\n        \"Дата\",\n        \"Описание\",\n        \"Сумма\"\n\
-  \      ],\n      \"range\": \"A1:C1\",\n      \"style\": \"header_style\"\n    },\n\
-  \    \"rows\": [\n      {\n        \"values\": [\n          \"\",\n          \"\"\
-  ,\n          \"\"\n        ],\n        \"range\": \"A2:C2\",\n        \"style\"\
-  : \"row_style\"\n      },\n      {\n        \"values\": [\n          \"\",\n   \
-  \       \"\",\n          \"\"\n        ],\n        \"range\": \"A3:C3\",\n     \
-  \   \"style\": \"row_style\"\n      },\n      {\n        \"values\": [\n       \
-  \   \"\",\n          \"\",\n          \"\"\n        ],\n        \"range\": \"A4:C4\"\
-  ,\n        \"style\": \"row_style\"\n      }\n    ]\n  }\n}"
-response_table: "{\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"worksheet\"\
-  : {\n    \"name\": \"Отчет\",\n    \"range\": \"A1:C4\"\n  },\n  \"styles\": [\n\
-  \    {\n      \"id\": \"header_style\",\n      \"background_color\": \"#4472C4\"\
-  ,\n      \"font_color\": \"#FFFFFF\",\n      \"font_weight\": \"bold\",\n      \"\
-  font_size\": 11\n    },\n    {\n      \"id\": \"even_row_style\",\n      \"background_color\"\
-  : \"#F2F2F2\",\n      \"font_weight\": \"normal\",\n      \"font_style\": \"normal\"\
-  ,\n      \"font_size\": 11\n    },\n    {\n      \"id\": \"odd_row_style\",\n  \
-  \    \"background_color\": \"#FFFFFF\",\n      \"font_weight\": \"normal\",\n  \
-  \    \"font_style\": \"normal\",\n      \"font_size\": 11\n    }\n  ],\n  \"data\"\
-  : {\n    \"header\": {\n      \"values\": [\n        \"Дата\",\n        \"Описание\"\
-  ,\n        \"Сумма\"\n      ],\n      \"range\": \"A1:C1\",\n      \"style\": \"\
-  header_style\"\n    },\n    \"rows\": [\n      {\n        \"values\": [\n      \
-  \    \"01.01.2024\",\n          \"Продажа товара\",\n          15000\n        ],\n\
-  \        \"range\": \"A2:C2\",\n        \"style\": \"even_row_style\"\n      },\n\
-  \      {\n        \"values\": [\n          \"02.01.2024\",\n          \"Покупка\
-  \ материалов\",\n          -8000\n        ],\n        \"range\": \"A3:C3\",\n  \
-  \      \"style\": \"odd_row_style\"\n      },\n      {\n        \"values\": [\n\
-  \          \"03.01.2024\",\n          \"Оплата услуг\",\n          -3000\n     \
-  \   ],\n        \"range\": \"A4:C4\",\n        \"style\": \"even_row_style\"\n \
-  \     }\n    ]\n  }\n}"
+request_table: |-
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Отчет",
+      "range": "A1:C4"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Дата",
+          "Описание",
+          "Сумма"
+        ],
+        "range": "A1:C1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "range": "A2:C2",
+          "style": "row_style"
+        },
+        {
+          "range": "A3:C3",
+          "style": "row_style"
+        },
+        {
+          "range": "A4:C4",
+          "style": "row_style"
+        }
+      ]
+    }
+  }
+response_table: |-
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Отчет",
+      "range": "A1:C4"
+    },
+    "styles": [
+      {
+        "id": "header_style",
+        "background_color": "#4472C4",
+        "font_color": "#FFFFFF",
+        "font_weight": "bold",
+        "font_size": 11
+      },
+      {
+        "id": "even_row_style",
+        "background_color": "#F2F2F2",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      },
+      {
+        "id": "odd_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal",
+        "font_size": 11
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Дата",
+          "Описание",
+          "Сумма"
+        ],
+        "range": "A1:C1",
+        "style": "header_style"
+      },
+      "rows": [
+        {
+          "range": "A2:C2",
+          "style": "even_row_style"
+        },
+        {
+          "range": "A3:C3",
+          "style": "odd_row_style"
+        },
+        {
+          "range": "A4:C4",
+          "style": "even_row_style"
+        }
+      ]
+      "columns": [
+        {
+          "index": 0,
+          "format": "dd.mm.yyyy"
+        },
+        {
+          "index": 1,
+          "format": "General"
+        },
+        {
+          "index": 2,
+          "format": "#,##0"
+        }
+      ]

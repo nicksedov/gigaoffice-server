@@ -1,4 +1,4 @@
-task: Раздели поле "Полное имя" на три отдельных поля: "Имя", "Фамилия" и "Отчество" (если есть)
+task: Добавь в таблицу колонку 'Пол' со значениями 'М' и 'Ж'
 request_table: |-
   {
     "metadata": {
@@ -11,88 +11,13 @@ request_table: |-
     "data": {
       "header": {
         "values": [
-          "Полное имя",
-          "Email",
-          "Телефон"
-        ],
-        "range": "A1:C1"
-      },
-      "rows": [
-        {
-          "values": [
-            "Иванов Иван Иванович",
-            "ivan@example.com",
-            "+71234567890"
-          ],
-          "range": "A2:C2"
-        },
-        {
-          "values": [
-            "Петров Петр Петрович",
-            "petr@example.com",
-            "+70987654321"
-          ],
-          "range": "A3:C3"
-        },
-        {
-          "values": [
-            "Сидоров Сидор Сидорович",
-            "sidor@example.com",
-            "+71112223344"
-          ],
-          "range": "A4:C4"
-        }
-      ]
-    },
-    "columns": [
-      {
-        "index": 0,
-        "format": "General"
-      },
-      {
-        "index": 1,
-        "format": "General"
-      },
-      {
-        "index": 2,
-        "format": "General"
-      }
-    ]
-  }
-response_table: |-
-  {
-    "metadata": {
-      "version": "1.0"
-    },
-    "worksheet": {
-      "name": "Клиенты",
-      "range": "A1:E5"
-    },
-    "styles": [
-      {
-        "id": "split_header_style",
-        "background_color": "#E8F0FE",
-        "font_color": "#174EA6",
-        "font_weight": "bold"
-      },
-      {
-        "id": "split_row_style",
-        "background_color": "#FFFFFF",
-        "font_weight": "normal",
-        "font_style": "normal"
-      }
-    ],
-    "data": {
-      "header": {
-        "values": [
           "Фамилия",
           "Имя",
           "Отчество",
           "Email",
           "Телефон"
         ],
-        "range": "A1:E1",
-        "style": "split_header_style"
+        "range": "A1:E1"
       },
       "rows": [
         {
@@ -103,8 +28,7 @@ response_table: |-
             "ivan@example.com",
             "+71234567890"
           ],
-          "range": "A2:E2",
-          "style": "split_row_style"
+          "range": "A2:E2"
         },
         {
           "values": [
@@ -114,8 +38,7 @@ response_table: |-
             "petr@example.com",
             "+70987654321"
           ],
-          "range": "A3:E3",
-          "style": "split_row_style"
+          "range": "A3:E3"
         },
         {
           "values": [
@@ -125,8 +48,7 @@ response_table: |-
             "sidor@example.com",
             "+71112223344"
           ],
-          "range": "A4:E4",
-          "style": "split_row_style"
+          "range": "A4:E4"
         }
       ]
     },
@@ -149,6 +71,112 @@ response_table: |-
       },
       {
         "index": 4,
+        "format": "General"
+      },
+      {
+        "index": 5,
+        "format": "General"
+      }
+    ]
+  }
+response_table: |-
+  {
+    "metadata": {
+      "version": "1.0"
+    },
+    "worksheet": {
+      "name": "Клиенты",
+      "range": "A1:F5"
+    },
+    "styles": [
+      {
+        "id": "add_gender_header_style",
+        "background_color": "#E8F0FE",
+        "font_color": "#174EA6",
+        "font_weight": "bold"
+      },
+      {
+        "id": "add_gender_row_style",
+        "background_color": "#FFFFFF",
+        "font_weight": "normal",
+        "font_style": "normal"
+      }
+    ],
+    "data": {
+      "header": {
+        "values": [
+          "Фамилия",
+          "Имя",
+          "Отчество",
+          "Email",
+          "Телефон",
+          "Пол"
+        ],
+        "range": "A1:F1",
+        "style": "add_gender_header_style"
+      },
+      "rows": [
+        {
+          "values": [
+            "Иванов",
+            "Иван",
+            "Иванович",
+            "ivan@example.com",
+            "+71234567890",
+            "М"
+          ],
+          "range": "A2:F2",
+          "style": "add_gender_row_style"
+        },
+        {
+          "values": [
+            "Петров",
+            "Петр",
+            "Петрович",
+            "petr@example.com",
+            "+70987654321",
+            "М"
+          ],
+          "range": "A3:F3",
+          "style": "add_gender_row_style"
+        },
+        {
+          "values": [
+            "Сидоров",
+            "Сидор",
+            "Сидорович",
+            "sidor@example.com",
+            "+71112223344",
+            "М"
+          ],
+          "range": "A4:F4",
+          "style": "add_gender_row_style"
+        }
+      ]
+    },
+    "columns": [
+      {
+        "index": 0,
+        "format": "General"
+      },
+      {
+        "index": 1,
+        "format": "General"
+      },
+      {
+        "index": 2,
+        "format": "General"
+      },
+      {
+        "index": 3,
+        "format": "General"
+      },
+      {
+        "index": 4,
+        "format": "General"
+      },
+      {
+        "index": 5,
         "format": "General"
       }
     ]

@@ -1,5 +1,5 @@
-task: Сделай заголовки жирным шрифтом и переведи столбцы Количество и Цена в числовой формат
-request_table: |
+task: Переведи столбцы Количество и Цена в числовой формат
+request_table: |-
   {
     "metadata": {
       "version": "1.0"
@@ -36,20 +36,12 @@ request_table: |
       },
       "rows": [
         {
-          "values": [
-            "Товар A",
-            "100",
-            "1500"
-          ],
+          "values": ["Товар А", "10", "1500"],
           "range": "A2:C2",
           "style": "row_style"
         },
         {
-          "values": [
-            "Товар B",
-            "250",
-            "800"
-          ],
+          "values": ["Товар B", "25", "799.99"],
           "range": "A3:C3",
           "style": "row_style"
         }
@@ -70,7 +62,7 @@ request_table: |
       }
     ]
   }
-response_table: |
+response_table: |-
   {
     "metadata": {
       "version": "1.0"
@@ -84,7 +76,7 @@ response_table: |
         "id": "header_style",
         "background_color": "#4472C4",
         "font_color": "#FFFFFF",
-        "font_weight": "bold",
+        "font_weight": "normal",
         "font_size": 11
       },
       {
@@ -107,20 +99,12 @@ response_table: |
       },
       "rows": [
         {
-          "values": [
-            "Товар A",
-            100,
-            1500
-          ],
+          "values": ["Товар А", 10, 1500],
           "range": "A2:C2",
           "style": "row_style"
         },
         {
-          "values": [
-            "Товар B",
-            250,
-            800
-          ],
+          "values": ["Товар B", 25, 799.99],
           "range": "A3:C3",
           "style": "row_style"
         }
