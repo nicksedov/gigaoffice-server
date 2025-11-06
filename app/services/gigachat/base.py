@@ -90,6 +90,26 @@ class BaseGigaChatService(ABC):
                     
                 if not all(key in result for key in ['category', 'confidence']):
                     raise ValueError("Invalid response format")
+                
+                # Extract and validate required_table_info with defaults
+                table_info = result.get('required_table_info', {})
+                if not isinstance(table_info, dict):
+                    logger.warning(f"Invalid or missing required_table_info in response, using defaults")
+                    table_info = {}
+                
+                # Build required_table_info with defaults for missing fields
+                required_table_info = {
+                    "needs_column_headers": table_info.get("needs_column_headers", False),
+                    "needs_header_styles": table_info.get("needs_header_styles", False),
+                    "needs_cell_values": table_info.get("needs_cell_values", False),
+                    "needs_cell_styles": table_info.get("needs_cell_styles", False),
+                    "needs_column_metadata": table_info.get("needs_column_metadata", False)
+                }
+                
+                # Log if any fields were missing
+                missing_fields = [field for field in required_table_info.keys() if field not in table_info]
+                if missing_fields:
+                    logger.warning(f"Missing table info fields in LLM response: {missing_fields}, using defaults")
                     
                 for category in categories:
                     if result['category'] == category['name']:
@@ -98,13 +118,15 @@ class BaseGigaChatService(ABC):
                             "success": True,
                             "query_text": query,
                             "category": category,
-                            "confidence": result['confidence']
+                            "confidence": result['confidence'],
+                            "required_table_info": required_table_info
                         }
                 return {
                     "success": True,
                     "query_text": query,
                     "category": { "name": "uncertain" },
-                    "confidence": 0
+                    "confidence": 0,
+                    "required_table_info": required_table_info
                 }
                 
             except (json.JSONDecodeError, ValueError) as e:

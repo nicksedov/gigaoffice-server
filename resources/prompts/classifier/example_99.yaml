@@ -2,5 +2,12 @@ task: Нарисуй зимний пейзаж
 response_table: |
   {
     "category": "uncertain",
-    "confidence": 1.00000
+    "confidence": 1.00000,
+    "required_table_info": {
+      "needs_column_headers": false,
+      "needs_header_styles": false,
+      "needs_cell_values": false,
+      "needs_cell_styles": false,
+      "needs_column_metadata": false
+    }
   }

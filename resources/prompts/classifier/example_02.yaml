@@ -2,5 +2,12 @@ task: Посчитай среднюю зарплату
 response_table: |
   {
     "category": "spreadsheet-analysis",
-    "confidence": 0.968
+    "confidence": 0.968,
+    "required_table_info": {
+      "needs_column_headers": true,
+      "needs_header_styles": false,
+      "needs_cell_values": true,
+      "needs_cell_styles": false,
+      "needs_column_metadata": false
+    }
   }

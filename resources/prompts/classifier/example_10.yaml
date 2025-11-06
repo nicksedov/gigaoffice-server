@@ -2,5 +2,12 @@ task: Создай столбчатую диаграмму по данным о 
 response_table: |
   {
     "category": "data-chart",
-    "confidence": 0.974
+    "confidence": 0.974,
+    "required_table_info": {
+      "needs_column_headers": true,
+      "needs_header_styles": false,
+      "needs_cell_values": true,
+      "needs_cell_styles": false,
+      "needs_column_metadata": false
+    }
   }

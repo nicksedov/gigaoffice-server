@@ -2,5 +2,12 @@ task: Объедини поля "Имя" и "Фамилия" в одно пол�
 response_table: |
   {
     "category": "spreadsheet-transformation",
-    "confidence": 0.921
+    "confidence": 0.921,
+    "required_table_info": {
+      "needs_column_headers": true,
+      "needs_header_styles": false,
+      "needs_cell_values": true,
+      "needs_cell_styles": false,
+      "needs_column_metadata": true
+    }
   }

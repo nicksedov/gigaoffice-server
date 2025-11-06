@@ -166,12 +166,25 @@ async def classify_prompt(
     try:
         result = await gigachat_classify_service.classify_query(classification_request.prompt_text)
         
+        # Extract required_table_info from result
+        table_info_dict = result.get("required_table_info", {})
+        
+        # Create RequiredTableInfo model instance
+        required_table_info = RequiredTableInfo(
+            needs_column_headers=table_info_dict.get("needs_column_headers", False),
+            needs_header_styles=table_info_dict.get("needs_header_styles", False),
+            needs_cell_values=table_info_dict.get("needs_cell_values", False),
+            needs_cell_styles=table_info_dict.get("needs_cell_styles", False),
+            needs_column_metadata=table_info_dict.get("needs_column_metadata", False)
+        )
+        
         # Convert the result to the Pydantic model
         return PromptClassificationResponse(
             success=result["success"],
             query_text=result["query_text"],
             category=result["category"]["name"],
-            confidence=result["confidence"]
+            confidence=result["confidence"],
+            required_table_info=required_table_info
         )
     except HTTPException:
         raise

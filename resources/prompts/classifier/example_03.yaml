@@ -2,5 +2,12 @@ task: Найди 10 городов с самым большим населени
 response_table: |
   {
     "category": "spreadsheet-search",
-    "confidence": 0.965
+    "confidence": 0.965,
+    "required_table_info": {
+      "needs_column_headers": true,
+      "needs_header_styles": false,
+      "needs_cell_values": true,
+      "needs_cell_styles": false,
+      "needs_column_metadata": false
+    }
   }

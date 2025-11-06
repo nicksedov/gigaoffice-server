@@ -2,5 +2,12 @@ task: Сгенерируй набор данных с колонками "Имя
 response_table: |
   {
     "category": "spreadsheet-generation",
-    "confidence": 0.983
+    "confidence": 0.983,
+    "required_table_info": {
+      "needs_column_headers": false,
+      "needs_header_styles": false,
+      "needs_cell_values": false,
+      "needs_cell_styles": false,
+      "needs_column_metadata": false
+    }
   }

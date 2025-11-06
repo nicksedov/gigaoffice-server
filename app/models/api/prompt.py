@@ -48,12 +48,21 @@ class PresetPromptInfo(BaseModel):
     category_name: Optional[str]
     category_display_name: Optional[str]
 
+class RequiredTableInfo(BaseModel):
+    """Specification of required table metadata for task execution"""
+    needs_column_headers: bool = Field(False, description="Whether column header names are required")
+    needs_header_styles: bool = Field(False, description="Whether header formatting is required")
+    needs_cell_values: bool = Field(False, description="Whether actual cell data is required")
+    needs_cell_styles: bool = Field(False, description="Whether cell formatting is required")
+    needs_column_metadata: bool = Field(False, description="Whether column type information is required")
+
 class PromptClassificationResponse(BaseModel):
     """Response model for prompt classification endpoint"""
     success: bool
     query_text: str
     category: str
     confidence: float
+    required_table_info: RequiredTableInfo
 
 class PresetPromptsResponse(BaseModel):
     """Response model for preset prompts endpoint"""

@@ -196,7 +196,14 @@ class DryRunGigaChatService(BaseGigaChatService):
             "success": True,
             "query_text": query,
             "category": {"name": "spreadsheet-generation"},
-            "confidence": 0.9
+            "confidence": 0.9,
+            "required_table_info": {
+                "needs_column_headers": False,
+                "needs_header_styles": False,
+                "needs_cell_values": False,
+                "needs_cell_styles": False,
+                "needs_column_metadata": False
+            }
         }
         return fake_metadata
 

@@ -2,5 +2,12 @@ task: Примени чередующиеся цвета строк для ул�
 response_table: |
   {
     "category": "spreadsheet-formatting",
-    "confidence": 0.950
+    "confidence": 0.950,
+    "required_table_info": {
+      "needs_column_headers": true,
+      "needs_header_styles": true,
+      "needs_cell_values": false,
+      "needs_cell_styles": true,
+      "needs_column_metadata": false
+    }
   }
