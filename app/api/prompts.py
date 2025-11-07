@@ -12,7 +12,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from loguru import logger
 
-from app.models.api.prompt import PromptClassificationRequest, PresetPromptsResponse, PromptClassificationResponse, PresetPromptInfo
+from app.models.api.prompt import PromptClassificationRequest, PresetPromptsResponse, PromptClassificationResponse, PresetPromptInfo, RequiredTableInfo
 from app.models.api.category import PromptCategoriesResponse, CategoryDetailsResponse, CategoryInfo, PromptInfo
 from app.models.orm.category import Category
 from app.services.database.session import get_db
