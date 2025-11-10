@@ -105,7 +105,7 @@ response_table: |-
           "range": "A4:C4",
           "style": "even_row_style"
         }
-      ]
+      ],
       "columns": [
         {
           "index": 0,
@@ -120,3 +120,5 @@ response_table: |-
           "format": "#,##0"
         }
       ]
+    }
+  }
