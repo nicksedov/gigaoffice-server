@@ -11,7 +11,7 @@ request_table: |
       {
         "name": "Цена",
         "range": "B2:B16",
-        "format": "#,##0.00"
+        "format": "# ##0.00"
       }
     ]
   }

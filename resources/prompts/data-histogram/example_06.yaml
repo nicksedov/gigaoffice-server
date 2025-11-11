@@ -28,7 +28,7 @@ request_table: |
       },
       {
         "index": 2,
-        "format": "#,##0.00",
+        "format": "# ##0.00",
         "range": "C2:C150",
         "min": 35000.0,
         "max": 250000.0,

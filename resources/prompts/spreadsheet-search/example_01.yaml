@@ -79,7 +79,7 @@ request_table: |-
       },
       {
         "index": 2,
-        "format": "#,##0.00"
+        "format": "# ##0.00"
       }
     ]
   }
@@ -166,7 +166,7 @@ response_table: |-
       },
       {
         "index": 2,
-        "format": "#,##0.00"
+        "format": "# ##0.00"
       }
     ]
   }

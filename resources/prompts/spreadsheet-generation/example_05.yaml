@@ -128,19 +128,19 @@ response_table: |-
       },
       {
         "index": 1,
-        "format": "#,##0.00"
+        "format": "# ##0.00"
       },
       {
         "index": 2,
-        "format": "#,##0.00"
+        "format": "# ##0.00"
       },
       {
         "index": 3,
-        "format": "#,##0.00"
+        "format": "# ##0.00"
       },
       {
         "index": 4,
-        "format": "#,##0.00"
+        "format": "# ##0.00"
       }
     ]
   }
