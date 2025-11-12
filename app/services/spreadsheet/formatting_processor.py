@@ -44,9 +44,7 @@ class FormattingProcessor(BaseSpreadsheetProcessor):
         # Process data rows - replace values with empty strings
         if 'data' in data and 'rows' in data['data']:
             for row in data['data']['rows']:
-                if 'values' in row and isinstance(row['values'], list):
-                    # Replace each value with appropriate empty value based on type
-                    row['values'] = ["" for _ in row['values']]
+                row.pop('values', None)
         
         # Remove statistical metadata from columns (min, max, median, count)
         if 'columns' in data:
