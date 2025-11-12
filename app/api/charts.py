@@ -60,7 +60,7 @@ async def process_chart_request(
         "data_range": "A1:C18",
         "chart_data": [
             {"name": "Время", "range": "A2:A18", "format": "hh:mm"},
-            {"name": "Цена открытия", "range": "B2:B18", "format": "#,##0.00"}
+            {"name": "Цена открытия", "range": "B2:B18", "format": "# ##0.00"}
         ],
         "chart_type": "data-chart",
         "query_text": "Построй график изменения величины во времени."

@@ -75,7 +75,7 @@ async def process_histogram_request(
                 {"index": 0, "format": "General", "range": "A2:A100"},
                 {
                     "index": 1,
-                    "format": "#,##0.00",
+                    "format": "# ##0.00",
                     "range": "B2:B100",
                     "min": 50.0,
                     "max": 5000.0,

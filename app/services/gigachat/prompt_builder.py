@@ -181,7 +181,7 @@ class GigachatPromptBuilder:
                 For chart requests, this will be a list of series with:
                 - name: Series name
                 - range: Cell range reference (e.g., "A2:A18")
-                - format: Value format (e.g., "hh:mm", "#,##0.00")
+                - format: Value format (e.g., "hh:mm", "# ##0.00")
             
         Returns:
             str: Сформированный промпт для отправки в GigaChat
@@ -189,7 +189,7 @@ class GigachatPromptBuilder:
         Example for chart data:
             spreadsheet_data = [
                 {"name": "Время", "range": "A2:A18", "format": "hh:mm"},
-                {"name": "Цена", "range": "B2:B18", "format": "#,##0.00"}
+                {"name": "Цена", "range": "B2:B18", "format": "# ##0.00"}
             ]
         """
         prompt_parts: list[str] = []

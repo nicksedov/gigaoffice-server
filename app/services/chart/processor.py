@@ -54,7 +54,7 @@ class ChartProcessorService:
                 Example:
                 [
                     {"name": "Время", "range": "A2:A18", "format": "hh:mm"},
-                    {"name": "Цена", "range": "B2:B18", "format": "#,##0.00"}
+                    {"name": "Цена", "range": "B2:B18", "format": "# ##0.00"}
                 ]
             temperature: Temperature for generation (0.0 - 1.0)
             
