@@ -6,9 +6,8 @@ Router for histogram generation with AI assistance and statistical metadata proc
 import os
 import uuid
 import json
-from typing import Dict, Any, Optional, Union, List, cast
+from typing import Dict, Any, Optional, cast
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
-from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from slowapi import Limiter

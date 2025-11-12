@@ -1,8 +1,7 @@
 """User ORM Model"""
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 from app.models.orm.base import Base
 from app.models.types.enums import UserRole
 

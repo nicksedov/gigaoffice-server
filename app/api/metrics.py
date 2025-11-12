@@ -3,9 +3,8 @@ Metrics API Router
 Router for service metrics endpoints
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from loguru import logger
 

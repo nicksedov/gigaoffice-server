@@ -12,7 +12,6 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from app.services.gigachat.base import BaseGigaChatService
 from app.services.gigachat.response_parser import response_parser
 from app.services.chart import shared
-from app.models.api.chart import ChartConfig
 
 
 class ChartProcessorService:

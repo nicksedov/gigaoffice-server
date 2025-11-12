@@ -3,7 +3,6 @@ AI Processing API Router
 Router for AI processing endpoints
 """
 
-import uuid
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.models.api.ai_feedback import AIFeedbackRequest, AIFeedbackResponse

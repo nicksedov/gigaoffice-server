@@ -6,9 +6,6 @@ Validates chart configurations against ONLYOFFICE API specifications
 from typing import Dict, Any, Optional, List
 from loguru import logger
 
-from app.models.api.chart import ChartType
-
-
 class ChartValidationError(Exception):
     """Custom exception for chart validation errors"""
     

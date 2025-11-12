@@ -1,6 +1,6 @@
 """AI Request ORM Model"""
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, JSON, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, Float 
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.models.orm.base import Base

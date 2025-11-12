@@ -3,31 +3,29 @@ Chart Generation API Router
 Router for chart generation with AI assistance and R7-Office compatibility
 """
 
-import os
-import uuid
 import json
-from typing import Dict, Any, Optional, Union, List, cast
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request, Query
-from fastapi.responses import JSONResponse
+from typing import Any, Dict, Optional, cast
+import uuid
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
+from loguru import logger
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from loguru import logger
+from sqlalchemy.orm import Session
 
-from app.models.types.enums import RequestStatus
+from app.fastapi_config import security
 from app.models.api.chart import (
-    ChartGenerationRequest, ChartGenerationResponse, 
-    ChartStatusResponse, ChartResultResponse,
-    ChartConfig
+    ChartConfig,
+    ChartGenerationRequest,
+    ChartGenerationResponse,
+    ChartResultResponse,
+    ChartStatusResponse,
 )
 from app.models.orm.ai_request import AIRequest
+from app.models.types.enums import RequestStatus
 from app.services.database.session import get_db
 from app.services.kafka.service import kafka_service
-from app.fastapi_config import security
-
-# Import custom JSON encoder
-from app.utils.json_encoder import DateTimeEncoder
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
@@ -146,7 +144,6 @@ async def get_chart_status(request_id: str, db: Session = Depends(get_db)):
             success=status_value in [RequestStatus.COMPLETED.value, RequestStatus.PROCESSING.value],
             request_id=request_id,
             status=status_value,
-            message=message,
             error_message=error_msg if status_value == RequestStatus.FAILED.value else None
         )
         
@@ -181,7 +178,8 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
                 message=message,
                 chart_config=None,
                 tokens_used=None,
-                processing_time=None
+                processing_time=None,
+                error_details=None
             )
         
         # Parse chart configuration from result_data JSON field
@@ -204,7 +202,8 @@ async def get_chart_result(request_id: str, db: Session = Depends(get_db)):
             message="Chart generated successfully",
             chart_config=chart_config,
             tokens_used=tokens_used_value,
-            processing_time=processing_time_value
+            processing_time=processing_time_value,
+            error_details=None
         )
         
     except HTTPException:

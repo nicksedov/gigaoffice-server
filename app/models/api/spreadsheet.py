@@ -1,7 +1,7 @@
 """Enhanced Spreadsheet Data Models with Style Reference Architecture for R7-Office API"""
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Union
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 class SpreadsheetMetadata(BaseModel):

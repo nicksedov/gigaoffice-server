@@ -1,6 +1,6 @@
 """Service Metrics ORM Model"""
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, JSON, Float
+from sqlalchemy import Column, Integer, DateTime, Float
 from sqlalchemy.sql import func
 from app.models.orm.base import Base
 

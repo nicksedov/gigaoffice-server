@@ -6,9 +6,8 @@ Router for enhanced spreadsheet manipulation with style reference architecture
 import os
 import uuid
 import json
-from typing import Dict, Any, Optional, Union, List, cast
+from typing import Dict, Any, Optional, List, cast
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request, Query
-from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from slowapi import Limiter

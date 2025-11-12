@@ -3,8 +3,7 @@ Chart Generation API Data Models
 Enhanced Pydantic models for chart generation with R7-Office API compatibility
 """
 
-from datetime import datetime
-from typing import Optional, List, Dict, Any, Union, Literal
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
