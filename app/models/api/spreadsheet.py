@@ -76,7 +76,7 @@ class HeaderData(BaseModel):
 
 class DataRow(BaseModel):
     """Data row definition with style reference"""
-    values: List[Union[str, int, float, bool]] = Field(..., description="Row values")
+    values: Optional[List[Union[str, int, float, bool]]] = Field(None, description="Row values (optional for style-only rows)")
     style: Optional[str] = Field(None, description="Style reference ID for this row")
     range: Optional[str] = Field(None, description="Cell range reference for the this row")
 
