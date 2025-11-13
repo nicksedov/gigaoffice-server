@@ -62,7 +62,7 @@ class DatabaseManager:
         # Add schema configuration via connect_args if schema is specified
         if self.schema:
             engine_config["connect_args"] = {
-                "options": f"-csearch_path={self.schema},public"
+                "options": f"-c search_path={self.schema},public"
             }
         
         self.engine = create_engine(url, **engine_config)
