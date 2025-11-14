@@ -50,12 +50,21 @@ class DatabaseManager:
         # Read and validate DB_SCHEMA environment variable
         schema = os.getenv("DB_SCHEMA", "").strip()
         self.schema = self._validate_schema_name(schema) if schema else None
-
+                
+        # Read and validate DB_EXTENSIONS_SCHEMA environment variable
+        extensions_schema = os.getenv("DB_EXTENSIONS_SCHEMA", "").strip()
+        self.extensions_schema = self._validate_schema_name(extensions_schema) if extensions_schema else None
+                
         # Log schema configuration
         if self.schema:
             logger.info(f"Database schema configured: {self.schema}")
         else:
             logger.info("Database schema not configured, using default (public)")
+                
+        if self.extensions_schema:
+            logger.info(f"Database extensions schema configured: {self.extensions_schema}")
+        else:
+            logger.info("Database extensions schema not configured")
 
         url = f"postgresql://{user}:{password}@{host}:{port}/{name}"
 
@@ -76,11 +85,13 @@ class DatabaseManager:
             "echo": echo_flag
         }
         
-        # Add schema configuration via connect_args if schema is specified
-        if self.schema:
+        # Add schema configuration via connect_args if any schema is specified
+        search_path = self._build_search_path(self.schema, self.extensions_schema)
+        if search_path:
             engine_config["connect_args"] = {
-                "options": f"-c search_path={self.schema},public"
+                "options": f"-c search_path={search_path}"
             }
+            logger.info(f"Database search_path configured: {search_path}")
         
         self.engine = create_engine(url, **engine_config)
         self.SessionLocal = sessionmaker(
@@ -89,6 +100,31 @@ class DatabaseManager:
             bind=self.engine,
             expire_on_commit=False
         )
+            
+    def _build_search_path(self, schema: Optional[str], extensions_schema: Optional[str]) -> Optional[str]:
+        """
+        Build PostgreSQL search_path string from configured schemas.
+           
+        Constructs the search path in the following order:
+        1. Application schema (if configured)
+        2. Extensions schema (if configured)
+            
+        Args:
+            schema: Application schema name (optional)
+            extensions_schema: Extensions schema name (optional)
+                
+        Returns:
+            Comma-separated search path string, or None if no custom schemas configured
+        """
+        schemas = []
+            
+        if schema:
+            schemas.append(schema)
+        if extensions_schema:
+            schemas.append(extensions_schema)
+        if not schemas:
+            return None
+        return ','.join(schemas)
         
     def _validate_schema_name(self, schema_name: str) -> str:
         """
@@ -300,6 +336,7 @@ class DatabaseManager:
                     "current_schema": current_schema,
                     "search_path": search_path,
                     "configured_schema": self.schema,
+                    "configured_extensions_schema": self.extensions_schema,
                     "server_addr": server_addr,
                     "server_port": server_port,
                     **pool_info
