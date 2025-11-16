@@ -4,6 +4,7 @@ GigaOffice Service Database Configuration
 """
 import os
 import re
+from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
