@@ -3,31 +3,31 @@ GigaOffice FastAPI Application Setup
 Конфигурация и инициализация FastAPI приложения
 """
 
-import os
-import time
 import asyncio
-from typing import Dict, Any
-from datetime import datetime
+import time
 from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Dict, Any
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
 from loguru import logger
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from starlette.requests import Request
 from starlette.responses import Response
 
-from app.services.database.session import init_database, get_db_session
-from app.models.types.enums import RequestStatus
 from app.models.orm.ai_request import AIRequest
+from app.models.types.enums import RequestStatus
+from app.services.chart import create_chart_processor  # Added import for chart processor
+from app.services.database.session import init_database, get_db_session
+from app.services.gigachat.factory import create_gigachat_service
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
-from app.services.gigachat.factory import create_gigachat_service
-from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
-from app.services.chart import create_chart_processor  # Added import for chart processor
 from app.services.histogram import create_histogram_processor  # Added import for histogram processor
+from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
 
 # Create services in the module where needed
 gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat generation service")

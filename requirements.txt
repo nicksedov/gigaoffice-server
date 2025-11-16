@@ -1,3 +1,4 @@
+starlette
 # GigaOffice Service Requirements
 # Python dependencies for the GigaOffice intermediate service
 
