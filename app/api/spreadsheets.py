@@ -83,6 +83,14 @@ async def process_spreadsheet_request(
         # Convert spreadsheet data to JSON for storage using custom encoder
         spreadsheet_json = json.dumps(spreadsheet_data_dict, cls=DateTimeEncoder)
         
+        # Serialize required_table_info if provided
+        required_table_info_json = None
+        if spreadsheet_request.required_table_info:
+            required_table_info_json = json.dumps(
+                spreadsheet_request.required_table_info.dict(), 
+                cls=DateTimeEncoder
+            )
+        
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
@@ -97,13 +105,18 @@ async def process_spreadsheet_request(
           
         
         # Send to Kafka for processing
+        # Prepare input data with spreadsheet and optional required_table_info
+        kafka_input_data = [{"spreadsheet_data": spreadsheet_json}]
+        if required_table_info_json:
+            kafka_input_data[0]["required_table_info"] = required_table_info_json
+        
         success = await kafka_service.send_request(
             request_id=request_id,
             user_id=user_id,
             query=spreadsheet_request.query_text,
             input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
             category=spreadsheet_request.category if spreadsheet_request.category is not None else 'uncertain',
-            input_data=[{"spreadsheet_data": spreadsheet_json}],
+            input_data=kafka_input_data,
             priority=1 if current_user and current_user.get("role") == "premium" else 0
         )
         

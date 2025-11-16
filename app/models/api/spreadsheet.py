@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Optional, List, Union
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.models.api.prompt import RequiredTableInfo
+
 class SpreadsheetMetadata(BaseModel):
     """Metadata for the enhanced spreadsheet data format"""
     version: str = Field(default="1.0", description="Format version for compatibility")
@@ -132,6 +134,7 @@ class SpreadsheetRequest(BaseModel):
     spreadsheet_data: SpreadsheetData = Field(..., description="Enhanced spreadsheet data to process")
     query_text: str = Field(..., description="Processing instruction for the AI")
     category: Optional[str] = Field(None, description="Category of the request")
+    required_table_info: Optional[RequiredTableInfo] = Field(None, description="Specification of required table metadata for optimization")
 
 class SpreadsheetProcessResponse(BaseModel):
     """Response model for initiating spreadsheet processing (without result data)"""

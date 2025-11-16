@@ -90,9 +90,19 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
             import json
             if input_data and len(input_data) == 1 and "spreadsheet_data" in input_data[0]:
                 spreadsheet_data = json.loads(input_data[0]["spreadsheet_data"])
+                
+                # Extract required_table_info if provided
+                required_table_info = None
+                if "required_table_info" in input_data[0]:
+                    from app.models.api.prompt import RequiredTableInfo
+                    required_table_info_dict = json.loads(input_data[0]["required_table_info"])
+                    required_table_info = RequiredTableInfo(**required_table_info_dict)
+                
                 # Create category-specific processor for optimal data preprocessing
                 processor = create_spreadsheet_processor(category, gigachat_generate_service)
-                result, metadata = await processor.process_spreadsheet(query, category, spreadsheet_data)
+                result, metadata = await processor.process_spreadsheet(
+                    query, category, spreadsheet_data, required_table_info=required_table_info
+                )
             else:
                 raise Exception(f"Invalid input data for spreadsheet processing")
         else:
