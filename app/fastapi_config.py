@@ -16,6 +16,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from loguru import logger
+from starlette.requests import Request
+from starlette.responses import Response
 
 from app.services.database.session import init_database, get_db_session
 from app.models.types.enums import RequestStatus
@@ -62,6 +64,7 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
     For chart requests, the input_data contains series with 'range' fields
     instead of inline 'values'.
     """
+    request_id = None  # Initialize request_id to fix "possibly unbound" error
     try:
         request_id = message_data["id"]
         query = message_data["query"]
@@ -114,11 +117,12 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         with get_db_session() as db:
             db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
             if db_request:
-                db_request.status = RequestStatus.COMPLETED
-                db_request.result_data = result
-                db_request.tokens_used = metadata.get("total_tokens", 0)
-                db_request.processing_time = metadata.get("processing_time", 0)
-                db_request.completed_at = datetime.now()
+                # Use setattr to avoid type checker issues with direct attribute assignment
+                setattr(db_request, 'status', RequestStatus.COMPLETED.value)
+                setattr(db_request, 'result_data', result)
+                setattr(db_request, 'tokens_used', metadata.get("total_tokens", 0))
+                setattr(db_request, 'processing_time', metadata.get("processing_time", 0))
+                setattr(db_request, 'completed_at', datetime.now())
                 db.commit()
         
         logger.info(f"Request {request_id} processed successfully")
@@ -135,13 +139,23 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
         with get_db_session() as db:
             db_request = db.query(AIRequest).filter(AIRequest.id == request_id).first()
             if db_request:
-                db_request.status = RequestStatus.FAILED
-                db_request.error_message = str(e)
+                setattr(db_request, 'status', RequestStatus.FAILED.value)
+                setattr(db_request, 'error_message', str(e))
                 db.commit()
         return {
             "success": False,
             "error": str(e)
         }
+
+
+def rate_limit_exceeded_handler(request: Request, exc: Exception) -> Response:
+    """Wrapper for SlowAPI's rate limit exceeded handler to match FastAPI's exception handler signature"""
+    # Type check to ensure we're handling the right exception type
+    if isinstance(exc, RateLimitExceeded):
+        return _rate_limit_exceeded_handler(request, exc)
+    # Fallback response if somehow a different exception type gets here
+    return Response("Rate limit exceeded", status_code=429)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -194,6 +208,6 @@ def create_app() -> FastAPI:
     
     # Add rate limiting
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     
     return app

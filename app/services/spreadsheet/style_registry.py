@@ -80,7 +80,17 @@ class StyleRegistry:
         except Exception as e:
             logger.error(f"Failed to create style from dict: {e}")
             # Fallback to basic style
-            fallback_style = StyleDefinition(id=style_id)
+            fallback_style = StyleDefinition(
+                id=style_id,
+                background_color=None,
+                font_color=None,
+                font_weight=None,
+                font_size=None,
+                font_style=None,
+                horizontal_alignment=None,
+                vertical_alignment=None,
+                border=None
+            )
             self._styles[style_id] = fallback_style
             return style_id
     
