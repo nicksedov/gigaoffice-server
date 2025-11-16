@@ -1,33 +1,14 @@
 """
-
 GigaOffice Service Database Configuration
-
 Настройка подключения к PostgreSQL базе данных
-
 """
-
-
-
 import os
-
 import re
-
-import time
-
-from contextlib import contextmanager
-
-from typing import Generator, Optional
-
-from sqlalchemy import create_engine, MetaData, text
-
-from sqlalchemy.orm import sessionmaker, Session
-
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
-
 from sqlalchemy.exc import SQLAlchemyError
-
 from loguru import logger
-
 from app.models.orm.base import Base
 
 class DatabaseManager:
