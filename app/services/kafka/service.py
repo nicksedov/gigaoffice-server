@@ -6,12 +6,12 @@ GigaOffice Kafka Service
 import os
 import json
 import time
-from typing import Dict, Any, Optional, List, Callable
+from typing import Dict, Any, Optional, List, Callable, Union
 from datetime import datetime
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from aiokafka.admin import AIOKafkaAdminClient, NewTopic
 from loguru import logger
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # Import custom JSON encoder
 from app.utils.json_encoder import DateTimeEncoder
@@ -26,11 +26,7 @@ class QueueMessage:
     input_range: str
     category: str
     input_data: Optional[List[Dict]] = None
-    created_at: float = None
-    
-    def __post_init__(self):
-        if self.created_at is None:
-            self.created_at = time.time()
+    created_at: float = field(default_factory=time.time)
 
 class KafkaService:
     """Сервис для работы с Apache Kafka через aiokafka"""
@@ -49,10 +45,17 @@ class KafkaService:
         self.max_queue_size = int(os.getenv("KAFKA_MAX_QUEUE_SIZE", "1000"))
         self.max_processing_time = int(os.getenv("KAFKA_MAX_PROCESSING_TIME", "300"))
         
+        # SSL configuration
+        self.use_ssl = os.getenv("KAFKA_USE_SSL", "false").lower() == "true"
+        self.ssl_cafile = os.getenv("KAFKA_SSL_CAFILE")
+        self.ssl_certfile = os.getenv("KAFKA_SSL_CERTFILE")
+        self.ssl_keyfile = os.getenv("KAFKA_SSL_KEYFILE")
+        self.ssl_password = os.getenv("KAFKA_SSL_PASSWORD")
+        
         # Initialize components
-        self.producer = None
-        self.consumer = None
-        self.admin_client = None
+        self.producer: Optional[AIOKafkaProducer] = None
+        self.consumer: Optional[AIOKafkaConsumer] = None
+        self.admin_client: Optional[AIOKafkaAdminClient] = None
         self.is_running = False
         self.processing_callbacks = {}
         
@@ -81,6 +84,18 @@ class KafkaService:
                 'compression_type': os.getenv("KAFKA_PRODUCER_COMPRESSION_TYPE", "gzip")
             }
             
+            # Add SSL configuration if enabled
+            if self.use_ssl:
+                producer_config['security_protocol'] = 'SSL'
+                if self.ssl_cafile:
+                    producer_config['ssl_cafile'] = self.ssl_cafile
+                if self.ssl_certfile:
+                    producer_config['ssl_certfile'] = self.ssl_certfile
+                if self.ssl_keyfile:
+                    producer_config['ssl_keyfile'] = self.ssl_keyfile
+                if self.ssl_password:
+                    producer_config['ssl_password'] = self.ssl_password
+            
             # Consumer configuration from environment variables
             consumer_config = {
                 'bootstrap_servers': self.bootstrap_servers,
@@ -93,11 +108,39 @@ class KafkaService:
                 'heartbeat_interval_ms': int(os.getenv("KAFKA_CONSUMER_HEARTBEAT_INTERVAL_MS", "3000"))
             }
             
-            # Admin configuration
+            # Add SSL configuration if enabled
+            if self.use_ssl:
+                consumer_config['security_protocol'] = 'SSL'
+                if self.ssl_cafile:
+                    consumer_config['ssl_cafile'] = self.ssl_cafile
+                if self.ssl_certfile:
+                    consumer_config['ssl_certfile'] = self.ssl_certfile
+                if self.ssl_keyfile:
+                    consumer_config['ssl_keyfile'] = self.ssl_keyfile
+                if self.ssl_password:
+                    consumer_config['ssl_password'] = self.ssl_password
+            
+            # Admin configuration with explicit integer parameters
             admin_config = {
                 'bootstrap_servers': self.bootstrap_servers,
-                'client_id': 'gigaoffice-admin'
+                'client_id': 'gigaoffice-admin',
+                'request_timeout_ms': 30000,
+                'connections_max_idle_ms': 540000,
+                'retry_backoff_ms': 100,
+                'metadata_max_age_ms': 300000
             }
+            
+            # Add SSL configuration if enabled
+            if self.use_ssl:
+                admin_config['security_protocol'] = 'SSL'
+                if self.ssl_cafile:
+                    admin_config['ssl_cafile'] = self.ssl_cafile
+                if self.ssl_certfile:
+                    admin_config['ssl_certfile'] = self.ssl_certfile
+                if self.ssl_keyfile:
+                    admin_config['ssl_keyfile'] = self.ssl_keyfile
+                if self.ssl_password:
+                    admin_config['ssl_password'] = self.ssl_password
             
             # Initialize components
             self.producer = AIOKafkaProducer(**producer_config)
@@ -124,6 +167,11 @@ class KafkaService:
     
     async def _create_topics(self):
         """Создание топиков если они не существуют"""
+        # Check if admin client is initialized
+        if not self.admin_client:
+            logger.warning("Admin client not initialized, skipping topic creation")
+            return
+            
         try:
             topics = [
                 NewTopic(
@@ -168,6 +216,11 @@ class KafkaService:
         try:
             if not self._initialized:
                 await self.start()
+                
+            # Check if producer is initialized
+            if not self.producer:
+                logger.error("Producer not initialized")
+                return False
                 
             message = QueueMessage(
                 id=request_id,
@@ -215,6 +268,11 @@ class KafkaService:
         if not self._initialized:
             await self.start()
             
+        # Check if consumer is initialized
+        if not self.consumer:
+            logger.error("Consumer not initialized")
+            return
+            
         self.is_running = True
         self.processing_callbacks['default'] = message_processor
         
@@ -240,6 +298,11 @@ class KafkaService:
 
     async def _process_message(self, msg, processor: Callable):
         """Обработка одного сообщения"""
+        # Check if consumer is initialized
+        if not self.consumer:
+            logger.error("Consumer not initialized")
+            return
+            
         try:
             # Парсим сообщение
             message_data = json.loads(msg.value.decode('utf-8'))
@@ -273,6 +336,11 @@ class KafkaService:
 
     async def _send_response(self, request_id: str, result: Dict[str, Any], processing_time: float):
         """Отправка ответа в топик ответов"""
+        # Check if producer is initialized
+        if not self.producer:
+            logger.error("Producer not initialized")
+            return
+            
         try:
             response_data = {
                 "request_id": request_id,
@@ -293,6 +361,11 @@ class KafkaService:
 
     async def _send_to_dlq(self, msg, error_reason: str):
         """Отправка сообщения в Dead Letter Queue"""
+        # Check if producer is initialized
+        if not self.producer:
+            logger.error("Producer not initialized")
+            return
+            
         try:
             dlq_data = {
                 "original_topic": msg.topic,
