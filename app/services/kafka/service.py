@@ -6,6 +6,7 @@ GigaOffice Kafka Service
 import os
 import json
 import time
+import ssl
 from typing import Dict, Any, Optional, List, Callable, Union
 from datetime import datetime
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
@@ -68,12 +69,41 @@ class KafkaService:
         # Инициализация будет выполнена в start()
         self._initialized = False
     
+    def _create_ssl_context(self) -> Optional[ssl.SSLContext]:
+        """Создание SSL контекста для подключения к Kafka"""
+        if not self.use_ssl:
+            return None
+            
+        try:
+            # Создаем SSL контекст с проверкой сертификата
+            ssl_context = ssl.create_default_context(
+                ssl.Purpose.SERVER_AUTH,
+                cafile=self.ssl_cafile
+            )
+            
+            # Загружаем клиентский сертификат и ключ если они предоставлены
+            if self.ssl_certfile and self.ssl_keyfile:
+                ssl_context.load_cert_chain(
+                    certfile=self.ssl_certfile,
+                    keyfile=self.ssl_keyfile,
+                    password=self.ssl_password.encode() if self.ssl_password else None
+                )
+            
+            return ssl_context
+            
+        except Exception as e:
+            logger.error(f"Failed to create SSL context: {e}")
+            raise
+    
     async def start(self):
         """Инициализация Kafka компонентов"""
         if self._initialized:
             return
             
         try:
+            # Создаем SSL контекст если нужен
+            ssl_context = self._create_ssl_context()
+            
             # Producer configuration from environment variables
             producer_config = {
                 'bootstrap_servers': self.bootstrap_servers,
@@ -85,16 +115,9 @@ class KafkaService:
             }
             
             # Add SSL configuration if enabled
-            if self.use_ssl:
+            if self.use_ssl and ssl_context:
                 producer_config['security_protocol'] = 'SSL'
-                if self.ssl_cafile:
-                    producer_config['ssl_cafile'] = self.ssl_cafile
-                if self.ssl_certfile:
-                    producer_config['ssl_certfile'] = self.ssl_certfile
-                if self.ssl_keyfile:
-                    producer_config['ssl_keyfile'] = self.ssl_keyfile
-                if self.ssl_password:
-                    producer_config['ssl_password'] = self.ssl_password
+                producer_config['ssl_context'] = ssl_context
             
             # Consumer configuration from environment variables
             consumer_config = {
@@ -109,16 +132,9 @@ class KafkaService:
             }
             
             # Add SSL configuration if enabled
-            if self.use_ssl:
+            if self.use_ssl and ssl_context:
                 consumer_config['security_protocol'] = 'SSL'
-                if self.ssl_cafile:
-                    consumer_config['ssl_cafile'] = self.ssl_cafile
-                if self.ssl_certfile:
-                    consumer_config['ssl_certfile'] = self.ssl_certfile
-                if self.ssl_keyfile:
-                    consumer_config['ssl_keyfile'] = self.ssl_keyfile
-                if self.ssl_password:
-                    consumer_config['ssl_password'] = self.ssl_password
+                consumer_config['ssl_context'] = ssl_context
             
             # Admin configuration with explicit integer parameters
             admin_config = {
@@ -131,16 +147,9 @@ class KafkaService:
             }
             
             # Add SSL configuration if enabled
-            if self.use_ssl:
+            if self.use_ssl and ssl_context:
                 admin_config['security_protocol'] = 'SSL'
-                if self.ssl_cafile:
-                    admin_config['ssl_cafile'] = self.ssl_cafile
-                if self.ssl_certfile:
-                    admin_config['ssl_certfile'] = self.ssl_certfile
-                if self.ssl_keyfile:
-                    admin_config['ssl_keyfile'] = self.ssl_keyfile
-                if self.ssl_password:
-                    admin_config['ssl_password'] = self.ssl_password
+                admin_config['ssl_context'] = ssl_context
             
             # Initialize components
             self.producer = AIOKafkaProducer(**producer_config)
