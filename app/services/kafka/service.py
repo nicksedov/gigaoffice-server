@@ -76,7 +76,8 @@ class KafkaService:
             
         try:
             # Создаем SSL контекст с проверкой сертификата
-            logger.info(f"Creating SSL context for Kafka connection: CA file - {self.ssl_cafile}")
+            logger.info("Creating SSL context for Kafka connection")
+            logger.info(f"  Trusted CA file: {self.ssl_cafile}")
             ssl_context = ssl.create_default_context(
                 ssl.Purpose.SERVER_AUTH,
                 cafile=self.ssl_cafile
@@ -84,7 +85,9 @@ class KafkaService:
             
             # Загружаем клиентский сертификат и ключ если они предоставлены
             if self.ssl_certfile and self.ssl_keyfile:
-                logger.info(f"Loading client certificate and key for Kafka connection: certificate - {self.ssl_certfile}, private key - {self.ssl_keyfile}")
+                logger.info("Loading client certificate and key for Kafka connection") 
+                logger.info(f"  Client certificate: {self.ssl_certfile}")
+                logger.info(f"  Private key: {self.ssl_keyfile}")
                 ssl_context.load_cert_chain(
                     certfile=self.ssl_certfile,
                     keyfile=self.ssl_keyfile,
