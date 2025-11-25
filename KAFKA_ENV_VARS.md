@@ -22,6 +22,12 @@ KAFKA_CONSUMER_INIT_MAX_DELAY=30
 # Default: 60
 # Recommended: 60-120 seconds for SSL connections
 KAFKA_COORDINATOR_WAIT_TIMEOUT=60
+
+# Delay in seconds after topic creation before consumer initialization
+# Default: 3
+# Recommended: 2-5 seconds for production, 0 for pre-created topics
+# Range: 0-10 seconds
+KAFKA_POST_CREATION_DELAY=3
 ```
 
 ## SSL Certificate Settings
@@ -76,6 +82,7 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 KAFKA_USE_SSL=false
 KAFKA_CONSUMER_INIT_RETRIES=3
 KAFKA_COORDINATOR_WAIT_TIMEOUT=30
+KAFKA_POST_CREATION_DELAY=2
 ```
 
 ### Production (SSL Enabled, High Availability)
@@ -93,6 +100,7 @@ KAFKA_CONSUMER_INIT_RETRIES=10
 KAFKA_CONSUMER_INIT_DELAY=3
 KAFKA_CONSUMER_INIT_MAX_DELAY=60
 KAFKA_COORDINATOR_WAIT_TIMEOUT=120
+KAFKA_POST_CREATION_DELAY=5
 
 KAFKA_CONSUMER_SESSION_TIMEOUT_MS=45000
 KAFKA_CONSUMER_REQUEST_TIMEOUT_MS=60000
@@ -109,6 +117,7 @@ KAFKA_SSL_KEYFILE=/path/to/client-key.pem
 # Fail fast for debugging
 KAFKA_CONSUMER_INIT_RETRIES=1
 KAFKA_COORDINATOR_WAIT_TIMEOUT=30
+KAFKA_POST_CREATION_DELAY=0
 
 # Keep validation enabled to see SSL errors
 KAFKA_SSL_VERIFY_CERTIFICATES=true
@@ -125,6 +134,7 @@ KAFKA_CONSUMER_INIT_RETRIES=15
 KAFKA_CONSUMER_INIT_DELAY=5
 KAFKA_CONSUMER_INIT_MAX_DELAY=120
 KAFKA_COORDINATOR_WAIT_TIMEOUT=180
+KAFKA_POST_CREATION_DELAY=5
 
 # Extended timeouts
 KAFKA_CONSUMER_SESSION_TIMEOUT_MS=60000
@@ -150,6 +160,7 @@ KAFKA_CONSUMER_INIT_RETRIES=5
 KAFKA_CONSUMER_INIT_DELAY=2
 KAFKA_CONSUMER_INIT_MAX_DELAY=30
 KAFKA_COORDINATOR_WAIT_TIMEOUT=60
+KAFKA_POST_CREATION_DELAY=3
 
 # ============================================================================
 # SSL Configuration
@@ -209,10 +220,10 @@ KAFKA_PRODUCER_COMPRESSION_TYPE=gzip
 
 | Issue | Check These Variables | Recommended Action |
 |-------|----------------------|-------------------|
-| GroupCoordinatorNotAvailableError | `KAFKA_CONSUMER_INIT_RETRIES`<br>`KAFKA_COORDINATOR_WAIT_TIMEOUT` | Increase retries to 10<br>Increase timeout to 120s |
+| GroupCoordinatorNotAvailableError | `KAFKA_CONSUMER_INIT_RETRIES`<br>`KAFKA_COORDINATOR_WAIT_TIMEOUT`<br>`KAFKA_POST_CREATION_DELAY` | Increase retries to 10<br>Increase timeout to 120s<br>Increase delay to 5s |
 | SSL Connection Fails | `KAFKA_SSL_CAFILE`<br>`KAFKA_SSL_CERTFILE`<br>`KAFKA_SSL_KEYFILE`<br>`KAFKA_SSL_VERIFY_CERTIFICATES` | Verify certificate paths<br>Check file permissions<br>Validate certificates |
-| Slow Initialization | `KAFKA_CONSUMER_SESSION_TIMEOUT_MS`<br>`KAFKA_CONSUMER_REQUEST_TIMEOUT_MS` | Increase to 45000ms<br>Increase to 60000ms |
-| Fast Failure Needed | `KAFKA_CONSUMER_INIT_RETRIES`<br>`KAFKA_STARTUP_HEALTH_CHECK` | Set to 0 or 1<br>Set to false |
+| Slow Initialization | `KAFKA_CONSUMER_SESSION_TIMEOUT_MS`<br>`KAFKA_CONSUMER_REQUEST_TIMEOUT_MS`<br>`KAFKA_POST_CREATION_DELAY` | Increase to 45000ms<br>Increase to 60000ms<br>Increase to 5s |
+| Fast Failure Needed | `KAFKA_CONSUMER_INIT_RETRIES`<br>`KAFKA_STARTUP_HEALTH_CHECK`<br>`KAFKA_POST_CREATION_DELAY` | Set to 0 or 1<br>Set to false<br>Set to 0 |
 | Network Timeouts | `KAFKA_COORDINATOR_WAIT_TIMEOUT`<br>`KAFKA_CONSUMER_INIT_MAX_DELAY` | Increase to 180s<br>Increase to 60s |
 
 ## Monitoring These Settings
@@ -229,6 +240,7 @@ print(health['configuration'])
 Output includes:
 - `consumer_init_retries`: Current retry setting
 - `coordinator_wait_timeout`: Current timeout setting
+- `post_creation_delay`: Stabilization delay after topic creation
 - `ssl_enabled`: Whether SSL is active
 - `ssl_verify_certificates`: Whether validation is enabled
 - `startup_health_check`: Whether health checks are enabled

@@ -77,6 +77,11 @@ class KafkaService:
         self.startup_health_check = os.getenv("KAFKA_STARTUP_HEALTH_CHECK", "true").lower() == "true"
         self.coordinator_wait_timeout = int(os.getenv("KAFKA_COORDINATOR_WAIT_TIMEOUT", "60"))
         
+        # Post-creation delay configuration
+        self.post_creation_delay = int(os.getenv("KAFKA_POST_CREATION_DELAY", "3"))
+        # Enforce bounds: 0-10 seconds
+        self.post_creation_delay = max(0, min(self.post_creation_delay, 10))
+        
         # Topic configuration from environment variables
         self.topic_requests_partitions = int(os.getenv("KAFKA_TOPIC_REQUESTS_PARTITIONS", "3"))
         self.topic_requests_replication = int(os.getenv("KAFKA_TOPIC_REQUESTS_REPLICATION", "1"))
@@ -394,15 +399,26 @@ class KafkaService:
                 await self._verify_broker_health()
             
             # 3. Create topics if they don't exist
-            await self._create_topics()
+            topics_created = await self._create_topics()
             
-            # 4. Initialize producer
+            # 4. Apply stabilization delay if topics were created
+            if topics_created and self.post_creation_delay > 0:
+                logger.info(
+                    f"Topics were created, waiting {self.post_creation_delay}s for "
+                    f"Kafka cluster to stabilize (group coordinator election, metadata propagation)"
+                )
+                await asyncio.sleep(self.post_creation_delay)
+                logger.info("Stabilization period completed, continuing with initialization")
+            elif topics_created:
+                logger.info("Topics were created, but post-creation delay is disabled (0s)")
+            
+            # 5. Initialize producer
             logger.info("Initializing Kafka producer")
             self.producer = AIOKafkaProducer(**producer_config)
             await self.producer.start()
             logger.info("Producer started successfully")
             
-            # 5. Initialize consumer last with retry logic
+            # 6. Initialize consumer last with retry logic
             logger.info("Initializing Kafka consumer")
             self.consumer = AIOKafkaConsumer(
                 self.topic_requests,
@@ -459,28 +475,49 @@ class KafkaService:
             return False
         
         try:
-            metadata = await self.admin_client.list_topics()
-            
-            if topic_config.name not in metadata:
-                logger.warning(f"Topic {topic_config.name} not found after creation")
-                return False
-            
-            # Get topic details
-            topic_metadata = metadata[topic_config.name]
-            
-            # Verify partition count
-            actual_partitions = len(topic_metadata.partitions)
-            if actual_partitions != topic_config.num_partitions:
-                logger.warning(
-                    f"Topic {topic_config.name} partition count mismatch: "
-                    f"expected {topic_config.num_partitions}, got {actual_partitions}"
-                )
-            
-            logger.info(
-                f"Topic {topic_config.name} verified: "
-                f"{actual_partitions} partitions"
-            )
-            return True
+            # First, try to get detailed cluster metadata
+            try:
+                # Get cluster metadata using the admin client's internal client
+                cluster_metadata = await self.admin_client._client.fetch_all_metadata()
+                
+                # Check if topic exists in metadata
+                if topic_config.name in cluster_metadata.topics():
+                    topic_metadata = cluster_metadata.topics()[topic_config.name]
+                    
+                    # Verify partition count
+                    actual_partitions = len(topic_metadata.partitions)
+                    if actual_partitions != topic_config.num_partitions:
+                        logger.warning(
+                            f"Topic {topic_config.name} partition count mismatch: "
+                            f"expected {topic_config.num_partitions}, got {actual_partitions}"
+                        )
+                    
+                    logger.info(
+                        f"Topic {topic_config.name} verified: "
+                        f"{actual_partitions} partitions"
+                    )
+                    return True
+                else:
+                    logger.warning(f"Topic {topic_config.name} not found in cluster metadata")
+                    return False
+                    
+            except Exception as metadata_error:
+                # Fallback to simple existence check
+                logger.debug(f"Detailed metadata retrieval failed for {topic_config.name}: {metadata_error}")
+                logger.debug("Falling back to simple existence check")
+                
+                # Use list_topics() for simple existence verification
+                existing_topics = await self.admin_client.list_topics()
+                
+                if topic_config.name in existing_topics:
+                    logger.info(
+                        f"Topic {topic_config.name} verified (existence check only, "
+                        f"partition count not verified)"
+                    )
+                    return True
+                else:
+                    logger.warning(f"Topic {topic_config.name} not found after creation")
+                    return False
             
         except Exception as e:
             logger.error(f"Failed to verify topic {topic_config.name}: {e}")
@@ -592,17 +629,21 @@ class KafkaService:
             self.topic_creation_errors += 1
             return False
     
-    async def _create_topics(self):
-        """Создание топиков если они не существуют (улучшенная версия)"""
+    async def _create_topics(self) -> bool:
+        """Создание топиков если они не существуют (улучшенная версия)
+        
+        Returns:
+            bool: True if any topics were created, False if all topics already existed
+        """
         # Check if auto-creation is enabled
         if not self.topic_auto_create:
             logger.info("Topic auto-creation is disabled, skipping")
-            return
+            return False
         
         # Check if admin client is initialized
         if not self.admin_client:
             logger.warning("Admin client not initialized, skipping topic creation")
-            return
+            return False
         
         start_time = time.time()
         
@@ -645,7 +686,7 @@ class KafkaService:
             if not missing_topics:
                 logger.info("All required topics already exist")
                 self.last_topic_verification = datetime.now()
-                return
+                return False  # No topics were created
             
             logger.info(
                 f"Found {len(missing_topics)} missing topics: "
@@ -678,6 +719,7 @@ class KafkaService:
             
             self.last_topic_verification = datetime.now()
             logger.info(f"Topic creation completed in {duration:.2f}s")
+            return True  # Topics were created
             
         except Exception as e:
             logger.error(f"Error during topic creation: {e}")
@@ -977,6 +1019,7 @@ class KafkaService:
                     "consumer_init_retries": self.consumer_init_retries,
                     "consumer_init_delay": self.consumer_init_delay,
                     "consumer_init_max_delay": self.consumer_init_max_delay,
+                    "post_creation_delay": self.post_creation_delay,
                     "coordinator_wait_timeout": self.coordinator_wait_timeout,
                     "ssl_enabled": self.use_ssl,
                     "ssl_verify_certificates": self.ssl_verify_certificates,
