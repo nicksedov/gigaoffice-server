@@ -7,15 +7,31 @@ import os
 import json
 import time
 import ssl
-from typing import Dict, Any, Optional, List, Callable, Union
+import asyncio
+from typing import Dict, Any, Optional, List, Callable, Union, Set
 from datetime import datetime
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from aiokafka.admin import AIOKafkaAdminClient, NewTopic
+from aiokafka.errors import KafkaError, TopicAlreadyExistsError
 from loguru import logger
 from dataclasses import dataclass, field
+from enum import Enum
 
 # Import custom JSON encoder
 from app.utils.json_encoder import DateTimeEncoder
+
+class ErrorType(Enum):
+    """Классификация ошибок создания топиков"""
+    EXPECTED = "expected"  # Нормальное состояние, не требует внимания
+    RETRIABLE = "retriable"  # Временная ошибка, можно повторить
+    FATAL = "fatal"  # Критическая ошибка, требует вмешательства
+
+@dataclass
+class TopicConfig:
+    """Конфигурация топика"""
+    name: str
+    num_partitions: int
+    replication_factor: int
 
 @dataclass
 class QueueMessage:
@@ -46,6 +62,20 @@ class KafkaService:
         self.max_queue_size = int(os.getenv("KAFKA_MAX_QUEUE_SIZE", "1000"))
         self.max_processing_time = int(os.getenv("KAFKA_MAX_PROCESSING_TIME", "300"))
         
+        # Topic auto-creation configuration
+        self.topic_auto_create = os.getenv("KAFKA_TOPIC_AUTO_CREATE", "true").lower() == "true"
+        self.topic_creation_timeout = int(os.getenv("KAFKA_TOPIC_CREATION_TIMEOUT", "30"))
+        self.topic_creation_retries = int(os.getenv("KAFKA_TOPIC_CREATION_RETRIES", "3"))
+        self.topic_creation_retry_delay = int(os.getenv("KAFKA_TOPIC_CREATION_RETRY_DELAY", "2"))
+        
+        # Topic configuration from environment variables
+        self.topic_requests_partitions = int(os.getenv("KAFKA_TOPIC_REQUESTS_PARTITIONS", "3"))
+        self.topic_requests_replication = int(os.getenv("KAFKA_TOPIC_REQUESTS_REPLICATION", "1"))
+        self.topic_responses_partitions = int(os.getenv("KAFKA_TOPIC_RESPONSES_PARTITIONS", "3"))
+        self.topic_responses_replication = int(os.getenv("KAFKA_TOPIC_RESPONSES_REPLICATION", "1"))
+        self.topic_dlq_partitions = int(os.getenv("KAFKA_TOPIC_DLQ_PARTITIONS", "1"))
+        self.topic_dlq_replication = int(os.getenv("KAFKA_TOPIC_DLQ_REPLICATION", "1"))
+        
         # SSL configuration
         self.use_ssl = os.getenv("KAFKA_USE_SSL", "false").lower() == "true"
         self.ssl_cafile = os.getenv("KAFKA_SSL_CAFILE")
@@ -65,6 +95,9 @@ class KafkaService:
         self.messages_received = 0
         self.messages_failed = 0
         self.processing_times = []
+        self.topics_created = 0
+        self.topic_creation_errors = 0
+        self.last_topic_verification: Optional[datetime] = None
         
         # Инициализация будет выполнена в start()
         self._initialized = False
@@ -179,40 +212,270 @@ class KafkaService:
             logger.error(f"Failed to initialize Kafka service: {e}")
             raise
     
+    def _validate_topic_config(self, topic_config: TopicConfig) -> Optional[str]:
+        """Валидация конфигурации топика"""
+        # Validate partition count
+        if topic_config.num_partitions <= 0:
+            return f"Partition count must be greater than 0 for topic {topic_config.name}"
+        
+        # Validate replication factor
+        if topic_config.replication_factor <= 0:
+            return f"Replication factor must be greater than 0 for topic {topic_config.name}"
+        
+        # Validate topic name (basic Kafka naming rules)
+        if not topic_config.name or len(topic_config.name) > 249:
+            return f"Topic name must be between 1 and 249 characters"
+        
+        invalid_chars = set('<>:"/\\|?*')
+        if any(char in topic_config.name for char in invalid_chars):
+            return f"Topic name '{topic_config.name}' contains invalid characters"
+        
+        return None
+    
+    async def _get_existing_topics(self) -> Set[str]:
+        """Получение списка существующих топиков"""
+        if not self.admin_client:
+            logger.warning("Admin client not initialized")
+            return set()
+        
+        try:
+            metadata = await self.admin_client.list_topics()
+            existing_topics = set(metadata)
+            logger.debug(f"Found {len(existing_topics)} existing topics in cluster")
+            return existing_topics
+        except Exception as e:
+            logger.error(f"Failed to list existing topics: {e}")
+            return set()
+    
+    async def _verify_topic_created(self, topic_config: TopicConfig) -> bool:
+        """Проверка что топик был создан с правильной конфигурацией"""
+        if not self.admin_client:
+            return False
+        
+        try:
+            metadata = await self.admin_client.list_topics()
+            
+            if topic_config.name not in metadata:
+                logger.warning(f"Topic {topic_config.name} not found after creation")
+                return False
+            
+            # Get topic details
+            topic_metadata = metadata[topic_config.name]
+            
+            # Verify partition count
+            actual_partitions = len(topic_metadata.partitions)
+            if actual_partitions != topic_config.num_partitions:
+                logger.warning(
+                    f"Topic {topic_config.name} partition count mismatch: "
+                    f"expected {topic_config.num_partitions}, got {actual_partitions}"
+                )
+            
+            logger.info(
+                f"Topic {topic_config.name} verified: "
+                f"{actual_partitions} partitions"
+            )
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to verify topic {topic_config.name}: {e}")
+            return False
+    
+    def _classify_error(self, error: Exception) -> ErrorType:
+        """Классификация ошибки для определения стратегии обработки"""
+        error_str = str(error).lower()
+        
+        # Expected errors
+        if isinstance(error, TopicAlreadyExistsError) or "already exists" in error_str:
+            return ErrorType.EXPECTED
+        
+        # Retriable errors
+        retriable_keywords = [
+            "timeout", "connection", "unavailable", 
+            "leader not available", "network", "broker"
+        ]
+        if any(keyword in error_str for keyword in retriable_keywords):
+            return ErrorType.RETRIABLE
+        
+        # Fatal errors
+        fatal_keywords = [
+            "permission", "authorization", "invalid", 
+            "capacity", "quota", "denied"
+        ]
+        if any(keyword in error_str for keyword in fatal_keywords):
+            return ErrorType.FATAL
+        
+        # Default to retriable for unknown errors
+        return ErrorType.RETRIABLE
+    
+    async def _create_single_topic(
+        self, 
+        topic_config: TopicConfig, 
+        retry_attempt: int = 0
+    ) -> bool:
+        """Создание одного топика с повторными попытками"""
+        if not self.admin_client:
+            logger.error("Admin client not initialized")
+            return False
+        
+        try:
+            new_topic = NewTopic(
+                name=topic_config.name,
+                num_partitions=topic_config.num_partitions,
+                replication_factor=topic_config.replication_factor
+            )
+            
+            logger.info(
+                f"Creating topic {topic_config.name} "
+                f"(partitions={topic_config.num_partitions}, "
+                f"replication={topic_config.replication_factor})"
+            )
+            
+            await asyncio.wait_for(
+                self.admin_client.create_topics([new_topic]),
+                timeout=self.topic_creation_timeout
+            )
+            
+            self.topics_created += 1
+            logger.info(f"Topic {topic_config.name} created successfully")
+            
+            # Verify topic was created
+            if await self._verify_topic_created(topic_config):
+                return True
+            else:
+                logger.warning(f"Topic {topic_config.name} creation could not be verified")
+                return True  # Still consider it created
+            
+        except asyncio.TimeoutError:
+            logger.error(
+                f"Timeout creating topic {topic_config.name} "
+                f"(attempt {retry_attempt + 1}/{self.topic_creation_retries + 1})"
+            )
+            error_type = ErrorType.RETRIABLE
+            
+        except Exception as e:
+            error_type = self._classify_error(e)
+            
+            if error_type == ErrorType.EXPECTED:
+                logger.info(
+                    f"Topic {topic_config.name} already exists, skipping creation"
+                )
+                return True
+            
+            elif error_type == ErrorType.RETRIABLE:
+                logger.warning(
+                    f"Retriable error creating topic {topic_config.name} "
+                    f"(attempt {retry_attempt + 1}/{self.topic_creation_retries + 1}): {e}"
+                )
+            
+            else:  # FATAL
+                logger.error(
+                    f"Fatal error creating topic {topic_config.name}: {e}"
+                )
+                self.topic_creation_errors += 1
+                raise
+        
+        # Retry logic for retriable errors
+        if retry_attempt < self.topic_creation_retries:
+            await asyncio.sleep(self.topic_creation_retry_delay)
+            return await self._create_single_topic(topic_config, retry_attempt + 1)
+        else:
+            logger.error(
+                f"Failed to create topic {topic_config.name} "
+                f"after {self.topic_creation_retries + 1} attempts"
+            )
+            self.topic_creation_errors += 1
+            return False
+    
     async def _create_topics(self):
-        """Создание топиков если они не существуют"""
+        """Создание топиков если они не существуют (улучшенная версия)"""
+        # Check if auto-creation is enabled
+        if not self.topic_auto_create:
+            logger.info("Topic auto-creation is disabled, skipping")
+            return
+        
         # Check if admin client is initialized
         if not self.admin_client:
             logger.warning("Admin client not initialized, skipping topic creation")
             return
-            
+        
+        start_time = time.time()
+        
         try:
-            topics = [
-                NewTopic(
+            # Define topic configurations
+            topic_configs = [
+                TopicConfig(
                     name=self.topic_requests,
-                    num_partitions=3,
-                    replication_factor=1
+                    num_partitions=self.topic_requests_partitions,
+                    replication_factor=self.topic_requests_replication
                 ),
-                NewTopic(
+                TopicConfig(
                     name=self.topic_responses,
-                    num_partitions=3,
-                    replication_factor=1
+                    num_partitions=self.topic_responses_partitions,
+                    replication_factor=self.topic_responses_replication
                 ),
-                NewTopic(
+                TopicConfig(
                     name=self.topic_dlq,
-                    num_partitions=1,
-                    replication_factor=1
+                    num_partitions=self.topic_dlq_partitions,
+                    replication_factor=self.topic_dlq_replication
                 )
             ]
             
-            # Создаем топики
-            await self.admin_client.create_topics(topics)
-            logger.info("Topics created successfully")
+            # Validate all topic configurations
+            for topic_config in topic_configs:
+                validation_error = self._validate_topic_config(topic_config)
+                if validation_error:
+                    logger.error(f"Invalid topic configuration: {validation_error}")
+                    raise ValueError(validation_error)
+            
+            # Get existing topics
+            existing_topics = await self._get_existing_topics()
+            
+            # Identify missing topics
+            missing_topics = [
+                tc for tc in topic_configs 
+                if tc.name not in existing_topics
+            ]
+            
+            if not missing_topics:
+                logger.info("All required topics already exist")
+                self.last_topic_verification = datetime.now()
+                return
+            
+            logger.info(
+                f"Found {len(missing_topics)} missing topics: "
+                f"{[tc.name for tc in missing_topics]}"
+            )
+            
+            # Create missing topics
+            creation_results = []
+            for topic_config in missing_topics:
+                result = await self._create_single_topic(topic_config)
+                creation_results.append((topic_config.name, result))
+            
+            # Log results
+            successful = [name for name, result in creation_results if result]
+            failed = [name for name, result in creation_results if not result]
+            
+            duration = time.time() - start_time
+            
+            if successful:
+                logger.info(
+                    f"Successfully created {len(successful)} topic(s) in {duration:.2f}s: "
+                    f"{successful}"
+                )
+            
+            if failed:
+                logger.error(
+                    f"Failed to create {len(failed)} topic(s): {failed}"
+                )
+                raise Exception(f"Failed to create topics: {failed}")
+            
+            self.last_topic_verification = datetime.now()
+            logger.info(f"Topic creation completed in {duration:.2f}s")
             
         except Exception as e:
-            # Игнорируем ошибку если топики уже существуют
-            if "already exists" not in str(e).lower():
-                logger.error(f"Error creating topics: {e}")
+            logger.error(f"Error during topic creation: {e}")
+            raise
 
     async def send_request(
         self, 
@@ -452,6 +715,39 @@ class KafkaService:
                 "status": "error"
             }
 
+    async def get_topic_health(self) -> Dict[str, Any]:
+        """Получение информации о состоянии топиков"""
+        if not self.admin_client or not self._initialized:
+            return {
+                "status": "unavailable",
+                "reason": "Service not initialized"
+            }
+        
+        try:
+            existing_topics = await self._get_existing_topics()
+            required_topics = {
+                self.topic_requests,
+                self.topic_responses,
+                self.topic_dlq
+            }
+            
+            missing_topics = required_topics - existing_topics
+            
+            return {
+                "status": "healthy" if not missing_topics else "degraded",
+                "required_topics": list(required_topics),
+                "existing_topics": list(required_topics & existing_topics),
+                "missing_topics": list(missing_topics),
+                "last_verification": self.last_topic_verification.isoformat() if self.last_topic_verification else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get topic health: {e}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+    
     def get_health_status(self) -> Dict[str, Any]:
         """Проверка состояния Kafka сервиса"""
         try:
@@ -462,7 +758,14 @@ class KafkaService:
                 "statistics": {
                     "messages_sent": self.messages_sent,
                     "messages_received": self.messages_received,
-                    "messages_failed": self.messages_failed
+                    "messages_failed": self.messages_failed,
+                    "topics_created": self.topics_created,
+                    "topic_creation_errors": self.topic_creation_errors
+                },
+                "configuration": {
+                    "auto_create_topics": self.topic_auto_create,
+                    "creation_retries": self.topic_creation_retries,
+                    "creation_timeout": self.topic_creation_timeout
                 }
             }
             
