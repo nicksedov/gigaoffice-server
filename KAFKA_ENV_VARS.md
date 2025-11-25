@@ -141,6 +141,44 @@ KAFKA_CONSUMER_SESSION_TIMEOUT_MS=60000
 KAFKA_CONSUMER_REQUEST_TIMEOUT_MS=90000
 ```
 
+## Broker-Level Configuration (Required for Single-Broker Environments)
+
+```bash
+# ============================================================================
+# Kafka Broker Internal Topic Settings
+# ============================================================================
+# IMPORTANT: These settings must be configured on the Kafka BROKER side,
+# not in the application. Add these to your Kafka broker's environment or
+# server.properties file.
+
+# Consumer offsets topic replication factor
+# Default: 3 (production), 1 (single-broker development)
+# Set to 1 for single-broker setups to avoid INVALID_REPLICATION_FACTOR errors
+KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+
+# Transaction state log replication factor
+# Default: 3 (production), 1 (single-broker development)
+KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+
+# Transaction state log minimum in-sync replicas
+# Default: 2 (production), 1 (single-broker development)
+KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+
+# Default replication factor for auto-created topics
+# Default: 3 (production), 1 (single-broker development)
+KAFKA_DEFAULT_REPLICATION_FACTOR=1
+
+# Minimum in-sync replicas for producer writes
+# Default: 2 (production), 1 (single-broker development)
+KAFKA_MIN_INSYNC_REPLICAS=1
+```
+
+**⚠️ WARNING**: The above broker-level settings are CRITICAL for single-broker setups. 
+Without these, Kafka will fail to create internal topics like `__consumer_offsets` 
+with the error: `INVALID_REPLICATION_FACTOR`
+
+**Production Environments**: For production with 3+ brokers, use replication factor of 3.
+
 ## Complete .env Template
 
 ```bash
@@ -186,8 +224,10 @@ KAFKA_TOPIC_CREATION_RETRIES=3
 KAFKA_TOPIC_CREATION_RETRY_DELAY=2
 
 # ============================================================================
-# Topic Configuration
+# Topic Configuration (Application-Level)
 # ============================================================================
+# NOTE: These are for application-created topics only.
+# For single-broker setups, replication=1 is correct.
 KAFKA_TOPIC_REQUESTS_PARTITIONS=3
 KAFKA_TOPIC_REQUESTS_REPLICATION=1
 KAFKA_TOPIC_RESPONSES_PARTITIONS=3
@@ -220,11 +260,13 @@ KAFKA_PRODUCER_COMPRESSION_TYPE=gzip
 
 | Issue | Check These Variables | Recommended Action |
 |-------|----------------------|-------------------|
+| **INVALID_REPLICATION_FACTOR** | Broker: `KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR`<br>Broker: `KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR`<br>Broker: `KAFKA_DEFAULT_REPLICATION_FACTOR` | **Set all to 1 on Kafka broker**<br>Delete Kafka data directory<br>Restart Kafka broker<br>Check broker count matches replication |
 | GroupCoordinatorNotAvailableError | `KAFKA_CONSUMER_INIT_RETRIES`<br>`KAFKA_COORDINATOR_WAIT_TIMEOUT`<br>`KAFKA_POST_CREATION_DELAY` | Increase retries to 10<br>Increase timeout to 120s<br>Increase delay to 5s |
 | SSL Connection Fails | `KAFKA_SSL_CAFILE`<br>`KAFKA_SSL_CERTFILE`<br>`KAFKA_SSL_KEYFILE`<br>`KAFKA_SSL_VERIFY_CERTIFICATES` | Verify certificate paths<br>Check file permissions<br>Validate certificates |
 | Slow Initialization | `KAFKA_CONSUMER_SESSION_TIMEOUT_MS`<br>`KAFKA_CONSUMER_REQUEST_TIMEOUT_MS`<br>`KAFKA_POST_CREATION_DELAY` | Increase to 45000ms<br>Increase to 60000ms<br>Increase to 5s |
 | Fast Failure Needed | `KAFKA_CONSUMER_INIT_RETRIES`<br>`KAFKA_STARTUP_HEALTH_CHECK`<br>`KAFKA_POST_CREATION_DELAY` | Set to 0 or 1<br>Set to false<br>Set to 0 |
 | Network Timeouts | `KAFKA_COORDINATOR_WAIT_TIMEOUT`<br>`KAFKA_CONSUMER_INIT_MAX_DELAY` | Increase to 180s<br>Increase to 60s |
+| Replication Factor Warnings | Health endpoint shows warnings | Check broker count vs replication config<br>Adjust application or broker settings |
 
 ## Monitoring These Settings
 
@@ -235,6 +277,8 @@ from app.services.kafka.service import kafka_service
 
 health = kafka_service.get_health_status()
 print(health['configuration'])
+print(health.get('broker_count'))  # Number of available brokers
+print(health.get('configuration_warnings'))  # Configuration issues
 ```
 
 Output includes:
@@ -244,3 +288,37 @@ Output includes:
 - `ssl_enabled`: Whether SSL is active
 - `ssl_verify_certificates`: Whether validation is enabled
 - `startup_health_check`: Whether health checks are enabled
+- `broker_count`: Number of active Kafka brokers (new)
+- `configuration_warnings`: List of potential configuration issues (new)
+
+## Docker Compose Example for Single-Broker Setup
+
+```yaml
+version: '3.8'
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      # Single-broker replication settings (CRITICAL)
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_INSYNC_REPLICAS: 1
+      
+      # Standard Kafka configuration
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+```

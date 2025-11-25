@@ -114,6 +114,8 @@ class KafkaService:
         self.last_topic_verification: Optional[datetime] = None
         self.consumer_init_attempts = 0
         self.connection_errors_total = 0
+        self.broker_count: Optional[int] = None
+        self.configuration_warnings: List[str] = []
         
         # Инициализация будет выполнена в start()
         self._initialized = False
@@ -191,6 +193,30 @@ class KafkaService:
             logger.error(f"Failed to create SSL context: {e}")
             raise
     
+    async def _detect_broker_count(self) -> int:
+        """Определение количества доступных брокеров в кластере
+        
+        Returns:
+            int: Количество активных брокеров
+        """
+        if not self.admin_client:
+            logger.warning("Admin client not initialized for broker count detection")
+            return 0
+        
+        try:
+            # Get cluster metadata
+            cluster_metadata = await self.admin_client._client.fetch_all_metadata()
+            
+            # Count brokers
+            broker_count = len(cluster_metadata.brokers())
+            logger.info(f"Detected {broker_count} Kafka broker(s) in cluster")
+            
+            return broker_count
+            
+        except Exception as e:
+            logger.warning(f"Failed to detect broker count: {e}")
+            return 0
+    
     async def _verify_broker_health(self) -> None:
         """Проверка доступности брокера Kafka"""
         if not self.admin_client:
@@ -206,9 +232,12 @@ class KafkaService:
                 timeout=self.coordinator_wait_timeout
             )
             
-            broker_count = len(metadata)
-            logger.info(f"✓ Kafka cluster is healthy: {broker_count} topics found")
+            topic_count = len(metadata)
+            logger.info(f"✓ Kafka cluster is healthy: {topic_count} topics found")
             logger.info(f"  Bootstrap servers: {self.bootstrap_servers}")
+            
+            # Detect broker count
+            self.broker_count = await self._detect_broker_count()
             
         except asyncio.TimeoutError:
             error_msg = f"Timeout connecting to Kafka broker after {self.coordinator_wait_timeout}s"
@@ -397,11 +426,17 @@ class KafkaService:
             # 2. Verify broker connectivity if health check enabled
             if self.startup_health_check:
                 await self._verify_broker_health()
+            else:
+                # Still detect broker count even if health check is disabled
+                self.broker_count = await self._detect_broker_count()
             
-            # 3. Create topics if they don't exist
+            # 3. Validate replication settings against broker count
+            await self._validate_replication_settings()
+            
+            # 4. Create topics if they don't exist
             topics_created = await self._create_topics()
             
-            # 4. Apply stabilization delay if topics were created
+            # 5. Apply stabilization delay if topics were created
             if topics_created and self.post_creation_delay > 0:
                 logger.info(
                     f"Topics were created, waiting {self.post_creation_delay}s for "
@@ -412,13 +447,13 @@ class KafkaService:
             elif topics_created:
                 logger.info("Topics were created, but post-creation delay is disabled (0s)")
             
-            # 5. Initialize producer
+            # 6. Initialize producer
             logger.info("Initializing Kafka producer")
             self.producer = AIOKafkaProducer(**producer_config)
             await self.producer.start()
             logger.info("Producer started successfully")
             
-            # 6. Initialize consumer last with retry logic
+            # 7. Initialize consumer last with retry logic
             logger.info("Initializing Kafka consumer")
             self.consumer = AIOKafkaConsumer(
                 self.topic_requests,
@@ -628,6 +663,75 @@ class KafkaService:
             )
             self.topic_creation_errors += 1
             return False
+    
+    async def _validate_replication_settings(self) -> None:
+        """Валидация настроек репликации относительно количества брокеров
+        
+        Raises:
+            Exception: Если конфигурация репликации несовместима с количеством брокеров
+        """
+        # Skip validation if broker count is unknown
+        if self.broker_count is None or self.broker_count == 0:
+            logger.warning("Broker count unknown, skipping replication validation")
+            return
+        
+        # Define topic replication configurations to validate
+        replication_configs = [
+            ("requests", self.topic_requests, self.topic_requests_replication),
+            ("responses", self.topic_responses, self.topic_responses_replication),
+            ("dlq", self.topic_dlq, self.topic_dlq_replication)
+        ]
+        
+        validation_issues = []
+        
+        for topic_type, topic_name, replication_factor in replication_configs:
+            if replication_factor > self.broker_count:
+                issue = (
+                    f"Topic '{topic_name}' has replication factor {replication_factor} "
+                    f"but only {self.broker_count} broker(s) available"
+                )
+                validation_issues.append(issue)
+        
+        if validation_issues:
+            error_msg = (
+                f"Invalid replication configuration detected:\n"
+                f"  - Available brokers: {self.broker_count}\n"
+            )
+            for issue in validation_issues:
+                error_msg += f"  - {issue}\n"
+            
+            error_msg += (
+                f"\nRemediation:\n"
+                f"  For single-broker development:\n"
+                f"    - Set KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 on broker\n"
+                f"    - Set KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1 on broker\n"
+                f"    - Set KAFKA_DEFAULT_REPLICATION_FACTOR=1 on broker\n"
+                f"    - Set KAFKA_MIN_INSYNC_REPLICAS=1 on broker\n"
+                f"    - Delete Kafka data directory and restart broker\n"
+                f"  \n"
+                f"  For production environments:\n"
+                f"    - Deploy at least {max(self.topic_requests_replication, self.topic_responses_replication, self.topic_dlq_replication)} Kafka brokers\n"
+                f"    - Configure broker-level replication settings appropriately\n"
+                f"\n"
+                f"  See KAFKA_ENV_VARS.md for detailed configuration instructions."
+            )
+            
+            logger.error(error_msg)
+            raise Exception(error_msg)
+        
+        # Add warning for single-broker setup
+        if self.broker_count == 1:
+            warning = (
+                "Single-broker Kafka cluster detected. This is suitable for development only. "
+                "Production environments should use at least 3 brokers with replication factor 3."
+            )
+            logger.warning(warning)
+            self.configuration_warnings.append(warning)
+        
+        logger.info(
+            f"✓ Replication settings validated: {self.broker_count} broker(s), "
+            f"max replication factor {max(self.topic_requests_replication, self.topic_responses_replication, self.topic_dlq_replication)}"
+        )
     
     async def _create_topics(self) -> bool:
         """Создание топиков если они не существуют (улучшенная версия)
@@ -999,10 +1103,11 @@ class KafkaService:
     def get_health_status(self) -> Dict[str, Any]:
         """Проверка состояния Kafka сервиса"""
         try:
-            return {
+            health_data = {
                 "status": "healthy" if self._initialized else "initializing",
                 "bootstrap_servers": self.bootstrap_servers,
                 "consumer_running": self.is_running,
+                "broker_count": self.broker_count,
                 "statistics": {
                     "messages_sent": self.messages_sent,
                     "messages_received": self.messages_received,
@@ -1023,9 +1128,37 @@ class KafkaService:
                     "coordinator_wait_timeout": self.coordinator_wait_timeout,
                     "ssl_enabled": self.use_ssl,
                     "ssl_verify_certificates": self.ssl_verify_certificates,
-                    "startup_health_check": self.startup_health_check
+                    "startup_health_check": self.startup_health_check,
+                    "replication_factors": {
+                        "requests_topic": self.topic_requests_replication,
+                        "responses_topic": self.topic_responses_replication,
+                        "dlq_topic": self.topic_dlq_replication
+                    }
                 }
             }
+            
+            # Add configuration warnings if any
+            if self.configuration_warnings:
+                health_data["configuration_warnings"] = self.configuration_warnings
+            
+            # Add replication validation status
+            if self.broker_count is not None and self.broker_count > 0:
+                max_replication = max(
+                    self.topic_requests_replication,
+                    self.topic_responses_replication,
+                    self.topic_dlq_replication
+                )
+                
+                if max_replication > self.broker_count:
+                    health_data["replication_validation"] = "error: replication factor exceeds broker count"
+                elif self.broker_count == 1:
+                    health_data["replication_validation"] = "warning: single-broker detected (development only)"
+                else:
+                    health_data["replication_validation"] = "ok"
+            else:
+                health_data["replication_validation"] = "unknown: broker count not detected"
+            
+            return health_data
             
         except Exception as e:
             logger.error(f"Kafka health check failed: {e}")
