@@ -90,6 +90,8 @@ async def test_kafka_service():
     print("-" * 60)
     print(f"Topics Created: {kafka_service.topics_created}")
     print(f"Topic Creation Errors: {kafka_service.topic_creation_errors}")
+    print(f"Consumer Init Attempts: {kafka_service.consumer_init_attempts}")
+    print(f"Connection Errors Total: {kafka_service.connection_errors_total}")
     print(f"Messages Sent: {kafka_service.messages_sent}")
     print(f"Messages Received: {kafka_service.messages_received}")
     print(f"Messages Failed: {kafka_service.messages_failed}")
@@ -232,11 +234,20 @@ def display_environment_variables():
         "KAFKA_TOPIC_REQUESTS",
         "KAFKA_TOPIC_RESPONSES",
         "KAFKA_TOPIC_DLQ",
+        "KAFKA_CONSUMER_GROUP",
         # Auto-creation settings
         "KAFKA_TOPIC_AUTO_CREATE",
         "KAFKA_TOPIC_CREATION_TIMEOUT",
         "KAFKA_TOPIC_CREATION_RETRIES",
         "KAFKA_TOPIC_CREATION_RETRY_DELAY",
+        # Consumer retry settings
+        "KAFKA_CONSUMER_INIT_RETRIES",
+        "KAFKA_CONSUMER_INIT_DELAY",
+        "KAFKA_CONSUMER_INIT_MAX_DELAY",
+        "KAFKA_COORDINATOR_WAIT_TIMEOUT",
+        # Health check settings
+        "KAFKA_SSL_VERIFY_CERTIFICATES",
+        "KAFKA_STARTUP_HEALTH_CHECK",
         # Topic configuration
         "KAFKA_TOPIC_REQUESTS_PARTITIONS",
         "KAFKA_TOPIC_REQUESTS_REPLICATION",
@@ -246,6 +257,9 @@ def display_environment_variables():
         "KAFKA_TOPIC_DLQ_REPLICATION",
         # SSL settings
         "KAFKA_USE_SSL",
+        "KAFKA_SSL_CAFILE",
+        "KAFKA_SSL_CERTFILE",
+        "KAFKA_SSL_KEYFILE",
     ]
     
     print("\nConfigured Variables:")

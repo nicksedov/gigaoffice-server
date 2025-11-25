@@ -10,9 +10,10 @@ import ssl
 import asyncio
 from typing import Dict, Any, Optional, List, Callable, Union, Set
 from datetime import datetime
+from pathlib import Path
 from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 from aiokafka.admin import AIOKafkaAdminClient, NewTopic
-from aiokafka.errors import KafkaError, TopicAlreadyExistsError
+from aiokafka.errors import KafkaError, TopicAlreadyExistsError, GroupCoordinatorNotAvailableError
 from loguru import logger
 from dataclasses import dataclass, field
 from enum import Enum
@@ -68,6 +69,14 @@ class KafkaService:
         self.topic_creation_retries = int(os.getenv("KAFKA_TOPIC_CREATION_RETRIES", "3"))
         self.topic_creation_retry_delay = int(os.getenv("KAFKA_TOPIC_CREATION_RETRY_DELAY", "2"))
         
+        # Consumer initialization retry configuration
+        self.consumer_init_retries = int(os.getenv("KAFKA_CONSUMER_INIT_RETRIES", "5"))
+        self.consumer_init_delay = int(os.getenv("KAFKA_CONSUMER_INIT_DELAY", "2"))
+        self.consumer_init_max_delay = int(os.getenv("KAFKA_CONSUMER_INIT_MAX_DELAY", "30"))
+        self.ssl_verify_certificates = os.getenv("KAFKA_SSL_VERIFY_CERTIFICATES", "true").lower() == "true"
+        self.startup_health_check = os.getenv("KAFKA_STARTUP_HEALTH_CHECK", "true").lower() == "true"
+        self.coordinator_wait_timeout = int(os.getenv("KAFKA_COORDINATOR_WAIT_TIMEOUT", "60"))
+        
         # Topic configuration from environment variables
         self.topic_requests_partitions = int(os.getenv("KAFKA_TOPIC_REQUESTS_PARTITIONS", "3"))
         self.topic_requests_replication = int(os.getenv("KAFKA_TOPIC_REQUESTS_REPLICATION", "1"))
@@ -98,9 +107,49 @@ class KafkaService:
         self.topics_created = 0
         self.topic_creation_errors = 0
         self.last_topic_verification: Optional[datetime] = None
+        self.consumer_init_attempts = 0
+        self.connection_errors_total = 0
         
         # Инициализация будет выполнена в start()
         self._initialized = False
+    
+    def _validate_ssl_certificates(self) -> None:
+        """Валидация SSL сертификатов перед использованием"""
+        if not self.use_ssl or not self.ssl_verify_certificates:
+            return
+        
+        logger.info("Validating SSL certificates")
+        
+        # Check CA certificate file
+        if self.ssl_cafile:
+            ca_path = Path(self.ssl_cafile)
+            if not ca_path.exists():
+                raise FileNotFoundError(f"CA certificate file not found: {self.ssl_cafile}")
+            if not ca_path.is_file():
+                raise ValueError(f"CA certificate path is not a file: {self.ssl_cafile}")
+            logger.info(f"✓ CA certificate file exists: {self.ssl_cafile}")
+        else:
+            raise ValueError("SSL is enabled but KAFKA_SSL_CAFILE is not set")
+        
+        # Check client certificate file if provided
+        if self.ssl_certfile:
+            cert_path = Path(self.ssl_certfile)
+            if not cert_path.exists():
+                raise FileNotFoundError(f"Client certificate file not found: {self.ssl_certfile}")
+            if not cert_path.is_file():
+                raise ValueError(f"Client certificate path is not a file: {self.ssl_certfile}")
+            logger.info(f"✓ Client certificate file exists: {self.ssl_certfile}")
+        
+        # Check private key file if provided
+        if self.ssl_keyfile:
+            key_path = Path(self.ssl_keyfile)
+            if not key_path.exists():
+                raise FileNotFoundError(f"Private key file not found: {self.ssl_keyfile}")
+            if not key_path.is_file():
+                raise ValueError(f"Private key path is not a file: {self.ssl_keyfile}")
+            logger.info(f"✓ Private key file exists: {self.ssl_keyfile}")
+        
+        logger.info("SSL certificate validation completed successfully")
     
     def _create_ssl_context(self) -> Optional[ssl.SSLContext]:
         """Создание SSL контекста для подключения к Kafka"""
@@ -108,6 +157,9 @@ class KafkaService:
             return None
             
         try:
+            # Validate certificates first
+            self._validate_ssl_certificates()
+            
             # Создаем SSL контекст с проверкой сертификата
             logger.info("Creating SSL context for Kafka connection")
             logger.info(f"  Trusted CA file: {self.ssl_cafile}")
@@ -127,11 +179,149 @@ class KafkaService:
                     password=self.ssl_password.encode() if self.ssl_password else None
                 )
             
+            logger.info(f"SSL context created successfully (protocol: {ssl_context.protocol})")
             return ssl_context
             
         except Exception as e:
             logger.error(f"Failed to create SSL context: {e}")
             raise
+    
+    async def _verify_broker_health(self) -> None:
+        """Проверка доступности брокера Kafka"""
+        if not self.admin_client:
+            logger.warning("Admin client not initialized for health check")
+            return
+        
+        logger.info("Verifying Kafka broker health")
+        
+        try:
+            # Get cluster metadata
+            metadata = await asyncio.wait_for(
+                self.admin_client.list_topics(),
+                timeout=self.coordinator_wait_timeout
+            )
+            
+            broker_count = len(metadata)
+            logger.info(f"✓ Kafka cluster is healthy: {broker_count} topics found")
+            logger.info(f"  Bootstrap servers: {self.bootstrap_servers}")
+            
+        except asyncio.TimeoutError:
+            error_msg = f"Timeout connecting to Kafka broker after {self.coordinator_wait_timeout}s"
+            logger.error(error_msg)
+            raise Exception(error_msg)
+        except Exception as e:
+            error_msg = f"Failed to verify Kafka broker health: {e}"
+            logger.error(error_msg)
+            raise Exception(error_msg) from e
+    
+    async def _start_consumer_with_retry(self) -> None:
+        """Запуск consumer с логикой повторных попыток"""
+        if not self.consumer:
+            raise ValueError("Consumer not initialized")
+        
+        retry_count = 0
+        current_delay = self.consumer_init_delay
+        
+        while retry_count <= self.consumer_init_retries:
+            try:
+                self.consumer_init_attempts += 1
+                
+                if retry_count > 0:
+                    logger.info(
+                        f"Attempting to start consumer (attempt {retry_count + 1}/{self.consumer_init_retries + 1})"
+                    )
+                
+                # Try to start consumer
+                await asyncio.wait_for(
+                    self.consumer.start(),
+                    timeout=self.coordinator_wait_timeout
+                )
+                
+                logger.info("✓ Consumer connected successfully")
+                return
+                
+            except GroupCoordinatorNotAvailableError as e:
+                self.connection_errors_total += 1
+                logger.warning(
+                    f"Group coordinator not available (attempt {retry_count + 1}/{self.consumer_init_retries + 1}): {e}"
+                )
+                
+                if retry_count < self.consumer_init_retries:
+                    logger.info(f"Waiting {current_delay}s before retry...")
+                    await asyncio.sleep(current_delay)
+                    # Exponential backoff with max delay cap
+                    current_delay = min(current_delay * 2, self.consumer_init_max_delay)
+                    retry_count += 1
+                else:
+                    error_msg = (
+                        f"Failed to start consumer after {self.consumer_init_retries + 1} attempts. "
+                        f"Group coordinator not available. "
+                        f"Please verify: \n"
+                        f"  1. Kafka broker is running at {self.bootstrap_servers}\n"
+                        f"  2. SSL certificates are valid and trusted\n"
+                        f"  3. Network connectivity to Kafka cluster\n"
+                        f"  4. Consumer group '{self.consumer_group}' is not locked"
+                    )
+                    logger.error(error_msg)
+                    raise Exception(error_msg) from e
+            
+            except asyncio.TimeoutError:
+                self.connection_errors_total += 1
+                logger.error(
+                    f"Timeout starting consumer (attempt {retry_count + 1}/{self.consumer_init_retries + 1})"
+                )
+                
+                if retry_count < self.consumer_init_retries:
+                    logger.info(f"Waiting {current_delay}s before retry...")
+                    await asyncio.sleep(current_delay)
+                    current_delay = min(current_delay * 2, self.consumer_init_max_delay)
+                    retry_count += 1
+                else:
+                    error_msg = (
+                        f"Timeout starting consumer after {self.coordinator_wait_timeout}s. "
+                        f"Check network connectivity and broker availability."
+                    )
+                    logger.error(error_msg)
+                    raise Exception(error_msg)
+            
+            except KafkaError as e:
+                self.connection_errors_total += 1
+                error_str = str(e).lower()
+                
+                # Classify error type
+                is_ssl_error = any(keyword in error_str for keyword in ['ssl', 'certificate', 'handshake'])
+                is_network_error = any(keyword in error_str for keyword in ['connection', 'timeout', 'network'])
+                
+                if is_ssl_error:
+                    error_msg = (
+                        f"SSL connection error: {e}\n"
+                        f"Please verify:\n"
+                        f"  1. CA certificate is valid: {self.ssl_cafile}\n"
+                        f"  2. Client certificate is valid: {self.ssl_certfile}\n"
+                        f"  3. Private key is valid: {self.ssl_keyfile}\n"
+                        f"  4. Certificate hostname matches broker address\n"
+                        f"  5. Certificates are not expired"
+                    )
+                    logger.error(error_msg)
+                    raise Exception(error_msg) from e
+                
+                if is_network_error and retry_count < self.consumer_init_retries:
+                    logger.warning(
+                        f"Network error starting consumer (attempt {retry_count + 1}/{self.consumer_init_retries + 1}): {e}"
+                    )
+                    logger.info(f"Waiting {current_delay}s before retry...")
+                    await asyncio.sleep(current_delay)
+                    current_delay = min(current_delay * 2, self.consumer_init_max_delay)
+                    retry_count += 1
+                else:
+                    error_msg = f"Failed to start consumer: {e}"
+                    logger.error(error_msg)
+                    raise Exception(error_msg) from e
+            
+            except Exception as e:
+                self.connection_errors_total += 1
+                logger.error(f"Unexpected error starting consumer: {e}")
+                raise
     
     async def start(self):
         """Инициализация Kafka компонентов"""
@@ -157,7 +347,7 @@ class KafkaService:
                 producer_config['security_protocol'] = 'SSL'
                 producer_config['ssl_context'] = ssl_context
             
-            # Consumer configuration from environment variables
+            # Consumer configuration from environment variables with optimized timeouts for SSL
             consumer_config = {
                 'bootstrap_servers': self.bootstrap_servers,
                 'group_id': self.consumer_group,
@@ -165,8 +355,11 @@ class KafkaService:
                 'auto_offset_reset': os.getenv("KAFKA_CONSUMER_AUTO_OFFSET_RESET", "earliest"),
                 'enable_auto_commit': os.getenv("KAFKA_CONSUMER_ENABLE_AUTO_COMMIT", "false").lower() == "true",
                 'max_poll_records': int(os.getenv("KAFKA_CONSUMER_MAX_POLL_RECORDS", "500")),
-                'session_timeout_ms': int(os.getenv("KAFKA_CONSUMER_SESSION_TIMEOUT_MS", "10000")),
-                'heartbeat_interval_ms': int(os.getenv("KAFKA_CONSUMER_HEARTBEAT_INTERVAL_MS", "3000"))
+                'session_timeout_ms': int(os.getenv("KAFKA_CONSUMER_SESSION_TIMEOUT_MS", "30000")),
+                'heartbeat_interval_ms': int(os.getenv("KAFKA_CONSUMER_HEARTBEAT_INTERVAL_MS", "10000")),
+                'request_timeout_ms': int(os.getenv("KAFKA_CONSUMER_REQUEST_TIMEOUT_MS", "40000")),
+                'connections_max_idle_ms': int(os.getenv("KAFKA_CONSUMER_CONNECTIONS_MAX_IDLE_MS", "600000")),
+                'metadata_max_age_ms': int(os.getenv("KAFKA_CONSUMER_METADATA_MAX_AGE_MS", "60000"))
             }
             
             # Add SSL configuration if enabled
@@ -189,21 +382,34 @@ class KafkaService:
                 admin_config['security_protocol'] = 'SSL'
                 admin_config['ssl_context'] = ssl_context
             
-            # Initialize components
+            # Initialize components with staged approach
+            # 1. Admin client first for health checks
+            logger.info("Initializing Kafka admin client")
+            self.admin_client = AIOKafkaAdminClient(**admin_config)
+            await self.admin_client.start()
+            logger.info("Admin client started successfully")
+            
+            # 2. Verify broker connectivity if health check enabled
+            if self.startup_health_check:
+                await self._verify_broker_health()
+            
+            # 3. Create topics if they don't exist
+            await self._create_topics()
+            
+            # 4. Initialize producer
+            logger.info("Initializing Kafka producer")
             self.producer = AIOKafkaProducer(**producer_config)
+            await self.producer.start()
+            logger.info("Producer started successfully")
+            
+            # 5. Initialize consumer last with retry logic
+            logger.info("Initializing Kafka consumer")
             self.consumer = AIOKafkaConsumer(
                 self.topic_requests,
                 **consumer_config
             )
-            self.admin_client = AIOKafkaAdminClient(**admin_config)
-            
-            # Start components
-            await self.producer.start()
-            await self.consumer.start()
-            await self.admin_client.start()
-            
-            # Create topics if they don't exist
-            await self._create_topics()
+            await self._start_consumer_with_retry()
+            logger.info("Consumer started successfully")
             
             self._initialized = True
             logger.info("Kafka service initialized successfully")
@@ -760,12 +966,21 @@ class KafkaService:
                     "messages_received": self.messages_received,
                     "messages_failed": self.messages_failed,
                     "topics_created": self.topics_created,
-                    "topic_creation_errors": self.topic_creation_errors
+                    "topic_creation_errors": self.topic_creation_errors,
+                    "consumer_init_attempts": self.consumer_init_attempts,
+                    "connection_errors_total": self.connection_errors_total
                 },
                 "configuration": {
                     "auto_create_topics": self.topic_auto_create,
                     "creation_retries": self.topic_creation_retries,
-                    "creation_timeout": self.topic_creation_timeout
+                    "creation_timeout": self.topic_creation_timeout,
+                    "consumer_init_retries": self.consumer_init_retries,
+                    "consumer_init_delay": self.consumer_init_delay,
+                    "consumer_init_max_delay": self.consumer_init_max_delay,
+                    "coordinator_wait_timeout": self.coordinator_wait_timeout,
+                    "ssl_enabled": self.use_ssl,
+                    "ssl_verify_certificates": self.ssl_verify_certificates,
+                    "startup_health_check": self.startup_health_check
                 }
             }
             
