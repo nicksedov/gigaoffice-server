@@ -223,6 +223,7 @@ async def get_spreadsheet_result(
         
         # Try to parse result data if available
         result_data = None
+        text_content = None
         raw_result_data = cast(Any, db_request.result_data)
         
         if raw_result_data is not None:
@@ -233,6 +234,11 @@ async def get_spreadsheet_result(
                 # If it's already a dict, use it directly
                 elif isinstance(raw_result_data, dict):
                     result_data = raw_result_data
+                
+                # Check if this is a text-only response (assistance category)
+                if result_data and 'text_content' in result_data:
+                    text_content = result_data.get('text_content')
+                    result_data = None  # Don't return spreadsheet structure for text responses
                         
             except Exception as e:
                 logger.warning(f"Could not parse result data: {e}")
@@ -241,10 +247,16 @@ async def get_spreadsheet_result(
         tokens_used_value = cast(Optional[int], db_request.tokens_used)
         processing_time_value = cast(Optional[float], db_request.processing_time)
         
+        # Determine message based on response type
+        if text_content:
+            message = text_content
+        else:
+            message = "Request completed successfully"
+        
         return SpreadsheetResultResponse(
             success=True,
             status=status_value,
-            message="Request completed successfully",
+            message=message,
             result=cast(Optional[SpreadsheetData], result_data),
             tokens_used=tokens_used_value,
             processing_time=processing_time_value

@@ -47,7 +47,7 @@ class GigachatResponseParser:
         """
         try:
             # Try to extract JSON object from response
-            result_object = self.parse_object(response_content, ['metadata', 'worksheet', 'data'])
+            result_object = self.parse_object(response_content, ['metadata', 'worksheet', 'data', 'text_content'])
             
             if result_object is None:
                 logger.warning("Could not extract valid JSON from spreadsheet response")
