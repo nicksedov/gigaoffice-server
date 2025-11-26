@@ -64,7 +64,7 @@ async def process_spreadsheet_request(
         user_id = current_user.get("id", 0) if current_user else 0
         
         # Validate the spreadsheet data format
-        spreadsheet_data_dict = spreadsheet_request.spreadsheet_data.dict()
+        spreadsheet_data_dict = spreadsheet_request.spreadsheet_data.model_dump()
         
         # Validate using extracted validation logic
         is_valid, validation_errors = validate_spreadsheet_structure(spreadsheet_data_dict)
@@ -82,7 +82,7 @@ async def process_spreadsheet_request(
         required_table_info_json = None
         if spreadsheet_request.required_table_info:
             required_table_info_json = json.dumps(
-                spreadsheet_request.required_table_info.dict(), 
+                spreadsheet_request.required_table_info.model_dump(), 
                 cls=DateTimeEncoder
             )
         
@@ -238,7 +238,8 @@ async def get_spreadsheet_result(
                 # Check if this is a text-only response (assistance category)
                 if result_data and 'text_content' in result_data:
                     text_content = result_data.get('text_content')
-                    result_data = None  # Don't return spreadsheet structure for text responses
+                    # Create minimal valid SpreadsheetData structure for text responses
+                    result_data = SpreadsheetData().model_dump()
                         
             except Exception as e:
                 logger.warning(f"Could not parse result data: {e}")
@@ -288,7 +289,7 @@ async def validate_spreadsheet_data(
         HTTPException: 500 for server errors
     """
     try:
-        data_dict = data.dict()
+        data_dict = data.model_dump()
         
         # Use extracted validation logic
         return validate_with_consistency_check(data_dict)
