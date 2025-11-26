@@ -128,7 +128,7 @@ def discover_yaml_files(prompts_dir: str) -> List[Tuple[str, Path]]:
             'classifier', 'data-chart', 'data-histogram',
             'spreadsheet-analysis', 'spreadsheet-formatting',
             'spreadsheet-generation', 'spreadsheet-search',
-            'spreadsheet-transformation'
+            'spreadsheet-transformation', 'spreadsheet-assistance'
         ]
         
         if category_name not in valid_categories:

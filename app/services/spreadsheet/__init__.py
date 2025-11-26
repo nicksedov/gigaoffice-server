@@ -10,6 +10,7 @@ from .analysis_processor import AnalysisProcessor
 from .search_processor import SearchProcessor
 from .generation_processor import GenerationProcessor
 from .transformation_processor import TransformationProcessor
+from .assistance_processor import AssistanceProcessor
 
 __all__ = [
     "create_spreadsheet_processor",
@@ -19,4 +20,5 @@ __all__ = [
     "SearchProcessor",
     "GenerationProcessor",
     "TransformationProcessor",
+    "AssistanceProcessor",
 ]

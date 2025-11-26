@@ -138,5 +138,33 @@
     "template": "Построй гистограмму распределения величины",
     "category": "data-histogram",
     "language": "ru"
+  },
+  {
+    "name": "Помощь по функциям",
+    "description": "Получение справки о встроенных функциях",
+    "template": "Как использовать функцию СУММЕСЛИ для подсчета с условием?",
+    "category": "spreadsheet-assistance",
+    "language": "ru"
+  },
+  {
+    "name": "Консультация по анализу",
+    "description": "Консультация по методам анализа данных",
+    "template": "Какие методы анализа временных рядов доступны в таблицах?",
+    "category": "spreadsheet-assistance",
+    "language": "ru"
+  },
+  {
+    "name": "Объяснение возможностей",
+    "description": "Объяснение возможностей пакета",
+    "template": "Расскажи о возможностях условного форматирования в Р7-Офис",
+    "category": "spreadsheet-assistance",
+    "language": "ru"
+  },
+  {
+    "name": "Рекомендации по обработке",
+    "description": "Рекомендации по обработке данных",
+    "template": "Как лучше всего очистить данные от дубликатов и пропусков?",
+    "category": "spreadsheet-assistance",
+    "language": "ru"
   }
 ]
