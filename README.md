@@ -73,10 +73,12 @@ GigaOffice AI Service — это промежуточный сервис для 
 
 - Python 3.8+
 - PostgreSQL 12+
-- Apache Kafka 2.8+
+- Apache Kafka 2.8+ (с правильной конфигурацией для development/production)
 - Docker и Docker Compose (рекомендуется)
 
 ### Установка через Docker
+
+**⚠️ ВАЖНО для Kafka**: При использовании одного брокера Kafka (development) необходимо настроить правильные параметры репликации. См. раздел "Конфигурация Kafka" ниже.
 
 1. **Клонирование репозитория:**
 ```bash
@@ -121,6 +123,14 @@ KAFKA_TOPIC_REQUESTS=gigaoffice-requests
 KAFKA_TOPIC_RESPONSES=gigaoffice-responses
 KAFKA_CONSUMER_GROUP=gigaoffice-group
 
+# Kafka Topic Configuration (Application-Level)
+KAFKA_TOPIC_REQUESTS_PARTITIONS=3
+KAFKA_TOPIC_REQUESTS_REPLICATION=1
+KAFKA_TOPIC_RESPONSES_PARTITIONS=3
+KAFKA_TOPIC_RESPONSES_REPLICATION=1
+KAFKA_TOPIC_DLQ_PARTITIONS=1
+KAFKA_TOPIC_DLQ_REPLICATION=1
+
 # Rate limiting
 GIGACHAT_MAX_REQUESTS_PER_MINUTE=20
 GIGACHAT_MAX_TOKENS_PER_REQUEST=8192
@@ -155,6 +165,56 @@ python -c "from app.services.database.session import init_database; init_databas
 cd service
 python main.py
 ```
+
+## Конфигурация Kafka
+
+### Важное замечание о репликации
+
+Kafka по умолчанию использует фактор репликации 3 для внутренних топиков, что вызывает ошибку `INVALID_REPLICATION_FACTOR` в окружениях с одним брокером.
+
+### Конфигурация для single-broker (Development)
+
+Для локальной разработки с одним брокером Kafka необходимо настроить следующие параметры **на стороне брокера**:
+
+```yaml
+# docker-compose.yml или переменные окружения брокера
+environment:
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+  KAFKA_MIN_INSYNC_REPLICAS: 1
+```
+
+### Конфигурация для Production (3+ brokers)
+
+Для production окружений с 3+ брокерами используйте:
+
+```yaml
+environment:
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+  KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+  KAFKA_MIN_INSYNC_REPLICAS: 2
+```
+
+### Диагностика проблем с репликацией
+
+Если вы видите ошибку:
+```
+INVALID_REPLICATION_FACTOR (Unable to replicate the partition 3 time(s): 
+The target replication factor of 3 cannot be reached because only 1 broker(s) are registered.)
+```
+
+**Решение:**
+1. Остановите Kafka брокер
+2. Добавьте переменные окружения для single-broker (см. выше)
+3. Удалите директорию с данными Kafka (только для development!)
+4. Перезапустите Kafka брокер
+5. Проверьте статус через `/api/health/kafka`
+
+Подробная информация о всех переменных окружения Kafka доступна в [KAFKA_ENV_VARS.md](KAFKA_ENV_VARS.md).
 
 ## Конфигурация
 
