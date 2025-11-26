@@ -19,6 +19,8 @@ from slowapi.util import get_remote_address
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.middleware import SecurityHeadersMiddleware
+
 from app.models.orm.ai_request import AIRequest
 from app.models.types.enums import RequestStatus
 from app.services.chart import create_chart_processor  # Added import for chart processor
@@ -196,6 +198,9 @@ def create_app() -> FastAPI:
         version=APP_VERSION,
         lifespan=lifespan
     )
+    
+    # Add security headers middleware (first to apply to all responses)
+    app.add_middleware(SecurityHeadersMiddleware)
     
     # Add CORS middleware
     app.add_middleware(
