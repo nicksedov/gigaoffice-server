@@ -1,17 +1,13 @@
 """
-Histogram Analysis API Router
+Histogram API Router
 Router for histogram generation with AI assistance and statistical metadata processing
 """
 
-import os
 import uuid
 import json
 from typing import Dict, Any, Optional, cast
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
-from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from loguru import logger
 
 from app.models.types.enums import RequestStatus
@@ -25,20 +21,11 @@ from app.models.api.histogram import (
 from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
 from app.services.kafka.service import kafka_service
-from app.fastapi_config import security
-
-# Import custom JSON encoder
 from app.utils.json_encoder import DateTimeEncoder
 
-# Rate limiting
-limiter = Limiter(key_func=get_remote_address)
+from .dependencies import get_current_user, limiter
+from .validation import validate_histogram_metadata
 
-# Authentication dependency
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Get current user from token (simplified implementation)"""
-    if not credentials:
-        return None
-    return {"id": 1, "username": "demo_user", "role": "user"}
 
 histogram_router = APIRouter(prefix="/api/v1/histograms", tags=["Histogram Analysis"])
 
@@ -98,62 +85,8 @@ async def process_histogram_request(
         # Validate that spreadsheet_data contains columns with statistical metadata
         spreadsheet_data = histogram_request.spreadsheet_data
         
-        # Check if columns exist and have statistical metadata
-        if not isinstance(spreadsheet_data, dict):
-            raise HTTPException(
-                status_code=400,
-                detail="spreadsheet_data must be a valid dictionary"
-            )
-        
-        columns = spreadsheet_data.get("columns", [])
-        if not columns:
-            raise HTTPException(
-                status_code=400,
-                detail="spreadsheet_data must contain at least one column definition"
-            )
-        
-        # Validate statistical metadata consistency for numerical columns
-        for col in columns:
-            if not isinstance(col, dict):
-                continue
-            
-            # Validate range field is present
-            if "range" not in col:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Column {col.get('index', 'unknown')} must have a 'range' field"
-                )
-            
-            # Validate statistical field consistency if present
-            min_val = col.get("min")
-            max_val = col.get("max")
-            median_val = col.get("median")
-            count_val = col.get("count")
-            
-            if min_val is not None and max_val is not None:
-                if min_val > max_val:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Column {col.get('index')}: min must be <= max"
-                    )
-            
-            if median_val is not None:
-                if min_val is not None and median_val < min_val:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Column {col.get('index')}: median must be >= min"
-                    )
-                if max_val is not None and median_val > max_val:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Column {col.get('index')}: median must be <= max"
-                    )
-            
-            if count_val is not None and count_val <= 0:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Column {col.get('index')}: count must be > 0"
-                )
+        # Use extracted validation logic
+        validate_histogram_metadata(spreadsheet_data)
         
         # Serialize spreadsheet data including statistical metadata
         spreadsheet_json = json.dumps(spreadsheet_data, cls=DateTimeEncoder, ensure_ascii=False)
