@@ -15,7 +15,7 @@ class SpreadsheetMetadata(BaseModel):
     def handle_none_datetime(cls, v):
         """Convert None to current datetime if needed"""
         if v is None:
-            return datetime.now
+            return datetime.now()
         return v
 
 class WorksheetInfo(BaseModel):

@@ -261,8 +261,15 @@ class BaseSpreadsheetProcessor(ABC):
             self.gigachat_service.total_tokens_used += total_tokens
             
             # Try to parse the response as JSON
+            # Use category-specific parser
             try:
-                result_data = response_parser.parse_spreadsheet_data(response_content)
+                if category == "spreadsheet-assistance":
+                    # For assistance category, parse text content response
+                    result_data = response_parser.parse_text_content(response_content)
+                else:
+                    # For all other categories, parse spreadsheet data
+                    result_data = response_parser.parse_spreadsheet_data(response_content)
+                
                 if result_data is None:
                     # If parsing returns None, create empty dict
                     result_data = {}

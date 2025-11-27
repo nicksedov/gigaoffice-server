@@ -25,6 +25,7 @@ class GigachatPromptBuilder:
         'spreadsheet-search':         'spreadsheet-search', 
         'spreadsheet-generation':     'spreadsheet-generation',
         'spreadsheet-formatting':     'spreadsheet-formatting',
+        'spreadsheet-assistance':     'spreadsheet-assistance',
         'data-chart':                 'data-chart',
         'data-histogram':             'data-histogram'
     }

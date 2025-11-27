@@ -66,6 +66,55 @@ class GigachatResponseParser:
             logger.warning(f"Error processing spreadsheet response: {e}")
             return None
     
+    def parse_text_content(self, response_content: str) -> Optional[dict]:
+        """
+        Extract and validate text content from GigaChat response
+        
+        Args:
+            response_content: Raw AI response string
+            
+        Returns:
+            Parsed text content dictionary or None if parsing failed
+        """
+        try:
+            # Required field for text content response
+            required_fields = ['text_content']
+            
+            # Try to extract JSON object from response
+            result_object = self.parse_object(response_content, required_fields)
+            
+            if result_object is None:
+                logger.warning("Could not extract valid JSON from text content response")
+                return None
+            
+            # Validate text content structure
+            if isinstance(result_object, dict):
+                # Verify text_content field is present
+                if 'text_content' not in result_object:
+                    logger.warning("Text content response missing required field: text_content")
+                    raise Exception("Could not extract valid JSON from text content response")
+                
+                # Validate field type
+                text_content = result_object.get('text_content')
+                
+                if not isinstance(text_content, str):
+                    logger.warning("Text content response field 'text_content' must be a string")
+                    return None
+                
+                if not text_content.strip():
+                    logger.warning("Text content response field 'text_content' must be a non-empty string")
+                    return None
+                
+                logger.info("Successfully extracted text content response")
+                return result_object
+            else:
+                logger.warning("Text content response is not a dictionary")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Error processing text content response: {e}")
+            return None
+    
     def parse_histogram_data(self, response_content: str) -> Optional[dict]:
         """
         Extract and validate histogram configuration from GigaChat response

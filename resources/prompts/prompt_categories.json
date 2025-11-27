@@ -47,11 +47,19 @@
     "description": "Создание гистограмм распределения величины",
     "is_active": true,
     "sort_order": 7
-  },  {
+  },
+  {
+    "name": "spreadsheet-assistance",
+    "display_name": "Консультация",
+    "description": "Помощь по функциям и возможностям электронных таблиц Р7-Офис",
+    "is_active": true,
+    "sort_order": 8
+  },
+  {
     "name": "uncertain",
     "display_name": "Не относится к задачам, решаемым в электронных таблицах",
     "description": "Не относится ни к одной категории анализа, синтеза, поиска или обработки данных с помощью электронных таблиц",
     "is_active": false,
-    "sort_order": 8
+    "sort_order": 9
   }
 ]

@@ -47,6 +47,7 @@ class KafkaConfig:
     # SSL configuration
     use_ssl: bool
     ssl_verify_certificates: bool
+    ssl_check_hostname: bool
     ssl_cafile: Optional[str]
     ssl_certfile: Optional[str]
     ssl_keyfile: Optional[str]
@@ -115,6 +116,7 @@ class KafkaConfig:
             # SSL configuration
             use_ssl=os.getenv("KAFKA_USE_SSL", "false").lower() == "true",
             ssl_verify_certificates=os.getenv("KAFKA_SSL_VERIFY_CERTIFICATES", "true").lower() == "true",
+            ssl_check_hostname=os.getenv("KAFKA_SSL_CHECK_HOSTNAME", "true").lower() == "true",
             ssl_cafile=os.getenv("KAFKA_SSL_CAFILE"),
             ssl_certfile=os.getenv("KAFKA_SSL_CERTFILE"),
             ssl_keyfile=os.getenv("KAFKA_SSL_KEYFILE"),

@@ -1,0 +1,13 @@
+task: Как использовать функцию ВПР для поиска данных в таблице?
+response_table: |
+  {
+    "category": "spreadsheet-assistance",
+    "confidence": 0.95,
+    "required_table_info": {
+      "needs_column_headers": false,
+      "needs_header_styles": false,
+      "needs_cell_values": false,
+      "needs_cell_styles": false,
+      "needs_column_metadata": false
+    }
+  }

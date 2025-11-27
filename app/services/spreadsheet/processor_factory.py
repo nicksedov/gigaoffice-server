@@ -13,6 +13,7 @@ from app.services.spreadsheet.analysis_processor import AnalysisProcessor
 from app.services.spreadsheet.search_processor import SearchProcessor
 from app.services.spreadsheet.generation_processor import GenerationProcessor
 from app.services.spreadsheet.transformation_processor import TransformationProcessor
+from app.services.spreadsheet.assistance_processor import AssistanceProcessor
 
 
 # Category to processor class mapping
@@ -21,7 +22,8 @@ PROCESSOR_MAPPING: Dict[str, Type[BaseSpreadsheetProcessor]] = {
     'spreadsheet-analysis': AnalysisProcessor,
     'spreadsheet-search': SearchProcessor,
     'spreadsheet-generation': GenerationProcessor,
-    'spreadsheet-transformation': TransformationProcessor
+    'spreadsheet-transformation': TransformationProcessor,
+    'spreadsheet-assistance': AssistanceProcessor
 }
 
 # Default processor for unknown categories (most complete data)
