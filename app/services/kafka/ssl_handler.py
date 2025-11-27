@@ -91,6 +91,7 @@ class SSLHandler:
                 ssl.Purpose.SERVER_AUTH,
                 cafile=self.config.ssl_cafile
             )
+            ssl_context.check_hostname = self.config.ssl_check_hostname
             
             # Load client certificate and key if provided
             if self.config.ssl_certfile and self.config.ssl_keyfile:
