@@ -1,6 +1,6 @@
 """LLM Input Optimization ORM Model"""
 
-from sqlalchemy import Column, String, Integer, Float, DateTime, JSON
+from sqlalchemy import Column, String, Integer, Float, DateTime, JSON, Computed
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.models.orm.base import Base
@@ -16,7 +16,14 @@ class LLMInputOptimization(Base):
     optimized_data = Column(JSON, nullable=False)
     original_size_bytes = Column(Integer, nullable=False)
     optimized_size_bytes = Column(Integer, nullable=False)
-    reduction_percentage = Column(Float)  # Computed in database, but can be set
+    reduction_percentage = Column(
+        Float,
+        Computed(
+            "CASE WHEN original_size_bytes > 0 "
+            "THEN ((original_size_bytes - optimized_size_bytes)::FLOAT / original_size_bytes * 100) "
+            "ELSE 0 END"
+        )
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationship - one optimization can be referenced by multiple AI requests

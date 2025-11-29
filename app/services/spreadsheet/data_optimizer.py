@@ -91,12 +91,6 @@ class SpreadsheetDataOptimizer:
                 spreadsheet_data, optimized_data, required_table_info
             )
             
-            # Calculate reduction percentage
-            if original_size > 0:
-                reduction_percentage = ((original_size - optimized_size) / original_size) * 100
-            else:
-                reduction_percentage = 0.0
-            
             # Sanitize data dictionaries to ensure JSON compatibility
             # Convert any datetime objects to ISO format strings
             sanitized_original_data = self._serialize_for_json(spreadsheet_data)
@@ -111,17 +105,19 @@ class SpreadsheetDataOptimizer:
                 optimizations_applied=sanitized_optimizations,
                 optimized_data=sanitized_optimized_data,
                 original_size_bytes=original_size,
-                optimized_size_bytes=optimized_size,
-                reduction_percentage=reduction_percentage
+                optimized_size_bytes=optimized_size
             )
             
             # Store in database
             self.db_session.add(optimization_record)
             self.db_session.commit()
             
+            # Refresh to get database-generated reduction_percentage value
+            self.db_session.refresh(optimization_record)
+            
             logger.info(
                 f"Data optimization completed: {optimization_id}, "
-                f"size reduction: {reduction_percentage:.2f}% "
+                f"size reduction: {optimization_record.reduction_percentage:.2f}% "
                 f"({original_size} -> {optimized_size} bytes)"
             )
             
