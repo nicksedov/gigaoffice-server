@@ -31,6 +31,25 @@ class SpreadsheetDataOptimizer:
         """
         self.db_session = db_session
     
+    def _serialize_for_json(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Convert datetime objects in data to JSON-safe ISO format strings.
+        
+        This method performs a serialization round-trip using DateTimeEncoder
+        to ensure all datetime objects are converted to ISO format strings,
+        making the data safe for SQLAlchemy JSON column serialization.
+        
+        Args:
+            data: Dictionary that may contain datetime objects
+            
+        Returns:
+            Dictionary with all datetime objects converted to ISO format strings
+        """
+        # Serialize with custom encoder that handles datetime
+        json_str = json.dumps(data, ensure_ascii=False, cls=DateTimeEncoder)
+        # Deserialize back to dictionary - datetime objects are now strings
+        return json.loads(json_str)
+    
     def optimize_data(
         self,
         spreadsheet_data: Dict[str, Any],
@@ -78,13 +97,19 @@ class SpreadsheetDataOptimizer:
             else:
                 reduction_percentage = 0.0
             
+            # Sanitize data dictionaries to ensure JSON compatibility
+            # Convert any datetime objects to ISO format strings
+            sanitized_original_data = self._serialize_for_json(spreadsheet_data)
+            sanitized_optimizations = self._serialize_for_json(optimizations_applied)
+            sanitized_optimized_data = self._serialize_for_json(optimized_data)
+            
             # Create optimization record
             optimization_id = str(uuid.uuid4())
             optimization_record = LLMInputOptimization(
                 id=optimization_id,
-                original_data=spreadsheet_data,
-                optimizations_applied=optimizations_applied,
-                optimized_data=optimized_data,
+                original_data=sanitized_original_data,
+                optimizations_applied=sanitized_optimizations,
+                optimized_data=sanitized_optimized_data,
                 original_size_bytes=original_size,
                 optimized_size_bytes=optimized_size,
                 reduction_percentage=reduction_percentage
