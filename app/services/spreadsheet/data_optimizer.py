@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models.api.prompt import RequiredTableInfo
 from app.models.orm.llm_input_optimization import LLMInputOptimization
+from app.utils.json_encoder import DateTimeEncoder
 
 
 class SpreadsheetDataOptimizer:
@@ -54,7 +55,7 @@ class SpreadsheetDataOptimizer:
         """
         try:
             # Calculate original data size
-            original_json = json.dumps(spreadsheet_data, ensure_ascii=False)
+            original_json = json.dumps(spreadsheet_data, ensure_ascii=False, cls=DateTimeEncoder)
             original_size = len(original_json.encode('utf-8'))
             
             # Apply filtering
@@ -63,7 +64,7 @@ class SpreadsheetDataOptimizer:
             )
             
             # Calculate optimized data size
-            optimized_json = json.dumps(optimized_data, ensure_ascii=False)
+            optimized_json = json.dumps(optimized_data, ensure_ascii=False, cls=DateTimeEncoder)
             optimized_size = len(optimized_json.encode('utf-8'))
             
             # Generate optimization metadata
