@@ -29,7 +29,7 @@ from app.services.gigachat.factory import create_gigachat_service
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.histogram import create_histogram_processor  # Added import for histogram processor
-from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
+from app.services.spreadsheet import SpreadsheetProcessor  # Import for spreadsheet processor
 
 # Create services in the module where needed
 gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat generation service")
@@ -105,8 +105,8 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
                 
                 # Create a temporary database session for the processor
                 with get_db_session() as db:
-                    # Create category-specific processor for optimal data preprocessing
-                    processor = create_spreadsheet_processor(category, gigachat_generate_service, db)
+                    # Create universal processor for spreadsheet processing
+                    processor = SpreadsheetProcessor(gigachat_generate_service, db)
                     result, metadata, optimization_id = await processor.process_spreadsheet(
                         query, category, spreadsheet_data, required_table_info=required_table_info
                     )

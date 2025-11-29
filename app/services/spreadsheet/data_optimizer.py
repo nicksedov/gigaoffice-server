@@ -18,8 +18,8 @@ class SpreadsheetDataOptimizer:
     """
     Optimizes spreadsheet data for LLM consumption by filtering unnecessary components.
     
-    This class extracts and encapsulates the filtering logic previously in BaseSpreadsheetProcessor,
-    providing a clean separation of concerns and enabling tracking of optimization operations.
+    This class provides data filtering and optimization logic, enabling tracking
+    of optimization operations.
     """
     
     def __init__(self, db_session: Session):

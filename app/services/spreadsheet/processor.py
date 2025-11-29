@@ -1,12 +1,11 @@
 """
-Base Spreadsheet Processor
-Abstract base class for category-specific spreadsheet processors
+Spreadsheet Processor
+Universal processor for all spreadsheet categories
 """
 
 import json
 import time
 import asyncio
-from abc import ABC, abstractmethod
 from typing import Dict, Any, Tuple, Optional
 from datetime import datetime
 from loguru import logger
@@ -21,17 +20,17 @@ from app.models.api.prompt import RequiredTableInfo
 from app.services.spreadsheet.data_optimizer import SpreadsheetDataOptimizer
    
 
-class BaseSpreadsheetProcessor(ABC):
+class SpreadsheetProcessor:
     """
-    Abstract base class for spreadsheet processors.
+    Universal spreadsheet processor for all categories.
     
-    Defines the common processing workflow and requires subclasses
-    to implement category-specific data preprocessing logic.
+    Handles the complete processing workflow with data optimization
+    managed by SpreadsheetDataOptimizer.
     """
     
     def __init__(self, gigachat_service: BaseGigaChatService, db_session: Session):
         """
-        Initialize the base spreadsheet processor.
+        Initialize the spreadsheet processor.
         
         Args:
             gigachat_service: An instance of a GigaChat service (cloud, mtls, or dryrun)
@@ -41,22 +40,22 @@ class BaseSpreadsheetProcessor(ABC):
         self.db_session = db_session
         self.data_optimizer = SpreadsheetDataOptimizer(db_session)
     
-    @abstractmethod
     def preprocess_data(self, spreadsheet_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Preprocess spreadsheet data according to category-specific requirements.
+        Preprocess spreadsheet data.
         
-        This method must be implemented by subclasses to filter and transform
-        the input data, retaining only the fields relevant for the specific
-        category type.
+        Since data optimization is already handled by SpreadsheetDataOptimizer,
+        this method simply returns the data unchanged while maintaining the
+        processing workflow structure.
         
         Args:
-            spreadsheet_data: Full spreadsheet data dictionary
+            spreadsheet_data: Optimized spreadsheet data dictionary
             
         Returns:
-            Preprocessed spreadsheet data with only relevant fields
+            The same spreadsheet data unchanged
         """
-        pass
+        logger.debug("Preprocessing spreadsheet data (pass-through)")
+        return spreadsheet_data
     
     async def process_spreadsheet(
         self,
@@ -71,7 +70,7 @@ class BaseSpreadsheetProcessor(ABC):
         
         This is the main entry point that orchestrates the complete processing workflow:
         1. Optimize data using SpreadsheetDataOptimizer (filter + store in DB)
-        2. Preprocess data (category-specific)
+        2. Preprocess data (pass-through)
         3. Check rate limits
         4. Prepare prompts
         5. Validate token limits
@@ -96,7 +95,7 @@ class BaseSpreadsheetProcessor(ABC):
                 spreadsheet_data, required_table_info
             )
             
-            # Preprocess data according to category-specific rules
+            # Preprocess data (pass-through for universal processor)
             preprocessed_data = self.preprocess_data(optimized_data)
             
             # Check rate limits using shared logic
