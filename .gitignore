@@ -21,3 +21,6 @@ docker
 # Local scripts
 .local
 *.sh
+
+# Serema MCP
+.serena
