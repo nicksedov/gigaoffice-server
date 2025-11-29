@@ -5,6 +5,7 @@ Creates appropriate spreadsheet processor based on category
 
 from typing import Dict, Type
 from loguru import logger
+from sqlalchemy.orm import Session
 
 from app.services.gigachat.base import BaseGigaChatService
 from app.services.spreadsheet.base_processor import BaseSpreadsheetProcessor
@@ -32,7 +33,8 @@ DEFAULT_PROCESSOR = TransformationProcessor
 
 def create_spreadsheet_processor(
     category: str,
-    gigachat_service: BaseGigaChatService
+    gigachat_service: BaseGigaChatService,
+    db_session: Session
 ) -> BaseSpreadsheetProcessor:
     """
     Create appropriate spreadsheet processor based on category.
@@ -44,12 +46,13 @@ def create_spreadsheet_processor(
     Args:
         category: Category name (e.g., 'spreadsheet-formatting')
         gigachat_service: Initialized GigaChat service instance
+        db_session: SQLAlchemy database session for optimization tracking
         
     Returns:
         Initialized processor instance for the specified category
         
     Examples:
-        >>> processor = create_processor('spreadsheet-formatting', gigachat_service)
+        >>> processor = create_processor('spreadsheet-formatting', gigachat_service, db_session)
         >>> isinstance(processor, FormattingProcessor)
         True
     """
@@ -63,4 +66,4 @@ def create_spreadsheet_processor(
     else:
         logger.debug(f"Creating {processor_class.__name__} for category '{category}'")
     
-    return processor_class(gigachat_service)
+    return processor_class(gigachat_service, db_session)

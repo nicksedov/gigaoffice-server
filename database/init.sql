@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS ai_requests (
     input_range VARCHAR(50),
     query_text TEXT NOT NULL,
     category VARCHAR(50) NOT NULL,
-    input_data JSONB,
+    optimization_id UUID,
     result_data JSONB,
     error_message TEXT,
     tokens_used INTEGER DEFAULT 0,
@@ -88,6 +88,24 @@ CREATE TABLE IF NOT EXISTS ai_requests (
     priority INTEGER DEFAULT 0
 );
 
+-- LLM Input Optimizations table
+CREATE TABLE IF NOT EXISTS llm_input_optimizations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    original_data JSONB NOT NULL,
+    optimizations_applied JSONB NOT NULL,
+    optimized_data JSONB NOT NULL,
+    original_size_bytes INTEGER NOT NULL,
+    optimized_size_bytes INTEGER NOT NULL,
+    reduction_percentage FLOAT GENERATED ALWAYS AS 
+        (CASE 
+            WHEN original_size_bytes > 0 
+            THEN ((original_size_bytes - optimized_size_bytes)::FLOAT / original_size_bytes * 100)
+            ELSE 0 
+        END) STORED,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- AI Feedback table
 CREATE TABLE IF NOT EXISTS ai_feedback (
     id SERIAL PRIMARY KEY,
     ai_request_id UUID NOT NULL REFERENCES ai_requests(id) ON DELETE CASCADE,
@@ -96,6 +114,10 @@ CREATE TABLE IF NOT EXISTS ai_feedback (
     comment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Add foreign key constraint for ai_requests -> llm_input_optimizations
+ALTER TABLE ai_requests ADD CONSTRAINT fk_ai_requests_optimization 
+    FOREIGN KEY (optimization_id) REFERENCES llm_input_optimizations(id) ON DELETE SET NULL;
 
 -- Service Metrics table
 CREATE TABLE IF NOT EXISTS service_metrics (
@@ -137,6 +159,10 @@ CREATE INDEX IF NOT EXISTS idx_ai_requests_user_id ON ai_requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_status ON ai_requests(status);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_created_at ON ai_requests(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_requests_priority ON ai_requests(priority DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_requests_optimization_id ON ai_requests(optimization_id);
+
+CREATE INDEX IF NOT EXISTS idx_llm_optimizations_created_at ON llm_input_optimizations(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_llm_optimizations_sizes ON llm_input_optimizations(original_size_bytes, optimized_size_bytes);
 
 CREATE INDEX idx_ai_responses_request_id ON ai_feedback(ai_request_id);
 
