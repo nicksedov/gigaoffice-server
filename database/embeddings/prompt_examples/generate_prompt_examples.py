@@ -21,7 +21,7 @@ MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ai-forever/ru-en-RoSBERTa")
 PROMPTS_DIRECTORY = os.getenv("PROMPTS_DIRECTORY", "resources/prompts")
 
-TARGET_TABLE_TABLE = "prompt_examples"
+TARGET_TABLE = "prompt_examples"
 
 try:
     from pymystem3 import Mystem
@@ -281,15 +281,15 @@ def main():
             logger.info(f"Set search_path to {DB_SCHEMA}")
         
         # Drop existing table
-        logger.info(f"Dropping table {EXAMPLES_TABLE} if exists...")
-        cur.execute(f"DROP TABLE IF EXISTS {EXAMPLES_TABLE};")
+        logger.info(f"Dropping table {TARGET_TABLE} if exists...")
+        cur.execute(f"DROP TABLE IF EXISTS {TARGET_TABLE};")
         
         # Create vector extension if needed
         logger.info("Creating vector extension...")
         cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         
         # Create table
-        logger.info(f"Creating table {EXAMPLES_TABLE}...")
+        logger.info(f"Creating table {TARGET_TABLE}...")
         vector_prefix = ""
         if DB_EXTENSIONS_SCHEMA:
             vector_prefix = f"{DB_EXTENSIONS_SCHEMA}."
@@ -297,7 +297,7 @@ def main():
         embedding_type = f"{vector_prefix}VECTOR({MODEL_DIMENSION})"
         
         cur.execute(f"""
-            CREATE TABLE {EXAMPLES_TABLE} (
+            CREATE TABLE {TARGET_TABLE} (
                 id SERIAL PRIMARY KEY,
                 category VARCHAR(100) NOT NULL,
                 prompt_text TEXT NOT NULL,
@@ -310,17 +310,17 @@ def main():
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        logger.info(f"Table {EXAMPLES_TABLE} created successfully")
+        logger.info(f"Table {TARGET_TABLE} created successfully")
         
         # Insert data
-        logger.info(f"Inserting {len(examples)} examples into {EXAMPLES_TABLE}...")
+        logger.info(f"Inserting {len(examples)} examples into {TARGET_TABLE}...")
         inserted_count = 0
         
         for example, emb in zip(examples, embeddings):
             try:
                 cur.execute(
                     f"""
-                    INSERT INTO {EXAMPLES_TABLE} 
+                    INSERT INTO {TARGET_TABLE} 
                     (category, prompt_text, lemmatized_prompt, embedding, request_json, response_json, language, source_file)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """,
@@ -342,18 +342,18 @@ def main():
         logger.info(f"Inserted {inserted_count} examples")
         
         # Create indexes
-        logger.info(f"Creating indexes for {EXAMPLES_TABLE}...")
-        cur.execute(f"CREATE INDEX {EXAMPLES_TABLE}_idx_category ON {EXAMPLES_TABLE} (category);")
-        cur.execute(f"CREATE INDEX {EXAMPLES_TABLE}_idx_lemmatized ON {EXAMPLES_TABLE} (lemmatized_prompt);")
+        logger.info(f"Creating indexes for {TARGET_TABLE}...")
+        cur.execute(f"CREATE INDEX {TARGET_TABLE}_idx_category ON {TARGET_TABLE} (category);")
+        cur.execute(f"CREATE INDEX {TARGET_TABLE}_idx_lemmatized ON {TARGET_TABLE} (lemmatized_prompt);")
         
         logger.info("Creating vector indexes...")
         cur.execute(f"""
-            CREATE INDEX {EXAMPLES_TABLE}_idx_embedding_l2 
-            ON {EXAMPLES_TABLE} USING ivfflat (embedding {vector_prefix}vector_l2_ops);
+            CREATE INDEX {TARGET_TABLE}_idx_embedding_l2 
+            ON {TARGET_TABLE} USING ivfflat (embedding {vector_prefix}vector_l2_ops);
         """)
         cur.execute(f"""
-            CREATE INDEX {EXAMPLES_TABLE}_idx_embedding_cos 
-            ON {EXAMPLES_TABLE} USING ivfflat (embedding {vector_prefix}vector_cosine_ops);
+            CREATE INDEX {TARGET_TABLE}_idx_embedding_cos 
+            ON {TARGET_TABLE} USING ivfflat (embedding {vector_prefix}vector_cosine_ops);
         """)
         
         logger.info("Indexes created successfully")
