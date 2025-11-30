@@ -16,7 +16,7 @@ from loguru import logger
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from database.providers import (
+from database.embeddings.providers import (
     TableHeadersProvider,
     ClassificationPromptsProvider,
     CategorizedPromptsProvider
