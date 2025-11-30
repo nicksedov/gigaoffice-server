@@ -9,6 +9,7 @@ from string import Template
 from loguru import logger
 from app.resource_loader import resource_loader
 from app.services.database.vector_search import prompt_example_search
+from app.utils.json_encoder import DateTimeEncoder
 
 """
 GigaChat Prompt Builder
@@ -201,7 +202,7 @@ class GigachatPromptBuilder:
         # 2. Расширенные данные таблицы (если есть)
         if spreadsheet_data:
             prompt_parts.append("РАСШИРЕННЫЕ ДАННЫЕ ТАБЛИЦЫ:")
-            prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False))
+            prompt_parts.append(json.dumps(spreadsheet_data, ensure_ascii=False, cls=DateTimeEncoder))
             prompt_parts.append("")
         
         return "\n".join(prompt_parts)

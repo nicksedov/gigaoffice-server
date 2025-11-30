@@ -1,6 +1,6 @@
 """AI Request ORM Model"""
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, Float 
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, Float, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.models.orm.base import Base
@@ -18,7 +18,7 @@ class AIRequest(Base):
     input_range = Column(String(50))
     query_text = Column(Text, nullable=False)
     category = Column(String(50))
-    input_data = Column(JSON)
+    optimization_id = Column(String(36), ForeignKey('llm_input_optimizations.id', ondelete='SET NULL'), nullable=True)
     
     # Response data
     result_data = Column(JSON)
@@ -38,4 +38,6 @@ class AIRequest(Base):
     queue_position = Column(Integer)
     priority = Column(Integer, default=0)
 
+    # Relationships
+    optimization = relationship("LLMInputOptimization", back_populates="ai_requests")
     responses = relationship("AIFeedback", back_populates="ai_request", cascade="all, delete-orphan")

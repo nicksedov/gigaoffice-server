@@ -15,12 +15,11 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 DB_SCHEMA = os.getenv("DB_SCHEMA", "")
 DB_EXTENSIONS_SCHEMA = os.getenv("DB_EXTENSIONS_SCHEMA", "")
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
-DB_VECTOR_SUPPORT = os.getenv("DB_VECTOR_SUPPORT", "false").lower() == "true"
 MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ai-forever/ru-en-RoSBERTa")
 
-HEADERS_CSV_FILE = "common_headers.csv"
-EMBEDDING_TABLE = "header_embeddings"
+HEADERS_CSV_FILE = "table_headers.csv"
+TARGET_TABLE = "header_embeddings"
 
 try:
     from pymystem3 import Mystem
@@ -114,35 +113,31 @@ def main():
             lemmatized_headers.append(header)
     print(f"Сгенерировано {len(headers)} лемматизированных терминов")
 
-    MODEL_DIMENSION = 0
-    embeddings = np.zeros(len(headers))
-    if DB_VECTOR_SUPPORT: 
-        print(f"Инициализируем модель эмбеддингов {model_path}")
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer(model_path)
-        MODEL_DIMENSION = model.get_sentence_embedding_dimension()
-        print(f"Размерность модели: {MODEL_DIMENSION}")
-        embeddings = model.encode(lemmatized_headers, normalize_embeddings=True)
-        print(f"Сгенерировано {len(embeddings)} эмбеддингов")
+    print(f"Инициализируем модель эмбеддингов {model_path}")
+    from sentence_transformers import SentenceTransformer
+    model = SentenceTransformer(model_path)
+    MODEL_DIMENSION = model.get_sentence_embedding_dimension()
+    print(f"Размерность модели: {MODEL_DIMENSION}")
+    embeddings = model.encode(lemmatized_headers, normalize_embeddings=True)
+    print(f"Сгенерировано {len(embeddings)} эмбеддингов")
 
     with conn, conn.cursor() as cur:
         
         if DB_SCHEMA:
             cur.execute(f"SET search_path TO {DB_SCHEMA};")
         
-        print(f"Удаляем таблицу {EMBEDDING_TABLE}, если есть...")
-        cur.execute(f"DROP TABLE IF EXISTS {EMBEDDING_TABLE};")
+        print(f"Удаляем таблицу {TARGET_TABLE}, если есть...")
+        cur.execute(f"DROP TABLE IF EXISTS {TARGET_TABLE};")
         
-        print(f"Создаем таблицу {EMBEDDING_TABLE}...")
+        print(f"Создаем таблицу {TARGET_TABLE}...")
         vector_prefix=""
         if DB_EXTENSIONS_SCHEMA:
             vector_prefix = f"{DB_EXTENSIONS_SCHEMA}."
-        embedding_type = f"{vector_prefix}VECTOR({MODEL_DIMENSION})" if DB_VECTOR_SUPPORT else "INTEGER"
-        if DB_VECTOR_SUPPORT:
-            cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        embedding_type = f"{vector_prefix}VECTOR({MODEL_DIMENSION})"
+        cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         cur.execute(f"""
-            DROP TABLE IF EXISTS {EMBEDDING_TABLE};
-            CREATE TABLE {EMBEDDING_TABLE} (
+            DROP TABLE IF EXISTS {TARGET_TABLE};
+            CREATE TABLE {TARGET_TABLE} (
                 id SERIAL PRIMARY KEY,
                 header TEXT UNIQUE NOT NULL,
                 lemmatized_header TEXT,
@@ -151,26 +146,25 @@ def main():
             );
             """
         )
-        print(f"Заполняем таблицу {EMBEDDING_TABLE} значениями...")
+        print(f"Заполняем таблицу {TARGET_TABLE} значениями...")
         inserted_count = 0
         for header, lemmatized_header, emb, language in zip(headers, lemmatized_headers, embeddings, languages):
             cur.execute(
-                f"""INSERT INTO {EMBEDDING_TABLE} (header, lemmatized_header, embedding, language) 
+                f"""INSERT INTO {TARGET_TABLE} (header, lemmatized_header, embedding, language) 
                    VALUES (%s, %s, %s, %s) ON CONFLICT (header) DO NOTHING""",
                 (header, lemmatized_header, emb.tolist(), language)
             )
             if cur.rowcount > 0:
                 inserted_count += 1
 
-        print(f"Создаем индексы таблицы {EMBEDDING_TABLE}...")
-        cur.execute(f"CREATE INDEX {EMBEDDING_TABLE}_idx_lemmatized_header ON {EMBEDDING_TABLE} (lemmatized_header);")
+        print(f"Создаем индексы таблицы {TARGET_TABLE}...")
+        cur.execute(f"CREATE INDEX {TARGET_TABLE}_idx_lemmatized_header ON {TARGET_TABLE} (lemmatized_header);")
 
-        if DB_VECTOR_SUPPORT:
-            cur.execute(f"""
-                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_l2 ON {EMBEDDING_TABLE} USING ivfflat (embedding {vector_prefix}vector_l2_ops);
-                CREATE INDEX {EMBEDDING_TABLE}_idx_embedding_cos ON {EMBEDDING_TABLE} USING ivfflat (embedding {vector_prefix}vector_cosine_ops);
-                """)
-    print(f"Загружено {inserted_count} новых эмбеддингов в таблицу {EMBEDDING_TABLE}")
+        cur.execute(f"""
+            CREATE INDEX {TARGET_TABLE}_idx_embedding_l2 ON {TARGET_TABLE} USING ivfflat (embedding {vector_prefix}vector_l2_ops);
+            CREATE INDEX {TARGET_TABLE}_idx_embedding_cos ON {TARGET_TABLE} USING ivfflat (embedding {vector_prefix}vector_cosine_ops);
+            """)
+    print(f"Загружено {inserted_count} новых эмбеддингов в таблицу {TARGET_TABLE}")
     print(f"Всего в таблице: {len(headers)} терминов")
 
 

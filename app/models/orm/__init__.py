@@ -6,6 +6,7 @@ from .category import Category
 from .ai_request import AIRequest
 from .ai_feedback import AIFeedback
 from .service_metrics import ServiceMetrics
+from .llm_input_optimization import LLMInputOptimization
 
 __all__ = [
     'Base',
@@ -14,5 +15,6 @@ __all__ = [
     'Category',
     'AIRequest',
     'AIFeedback',
-    'ServiceMetrics'
+    'ServiceMetrics',
+    'LLMInputOptimization'
 ]

@@ -3,9 +3,9 @@
 .vscode
 .idea
 
-# AI
+# AI assistants
 .qoder
-*.prompt
+.serena
 *_REPORT.md
 
 # Python

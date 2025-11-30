@@ -21,6 +21,7 @@ from app.models.orm.ai_request import AIRequest
 from app.services.database.session import get_db
 from app.utils.json_encoder import DateTimeEncoder
 from app.services.kafka.service import kafka_service
+from app.services.spreadsheet.data_optimizer import SpreadsheetDataOptimizer
 
 from .dependencies import get_current_user, limiter
 from .validation import validate_spreadsheet_structure, validate_with_consistency_check
@@ -75,8 +76,17 @@ async def process_spreadsheet_request(
                 detail=f"Invalid spreadsheet data: {', '.join(validation_errors)}"
             )
         
-        # Convert spreadsheet data to JSON for storage using custom encoder
-        spreadsheet_json = json.dumps(spreadsheet_data_dict, cls=DateTimeEncoder)
+        # Initialize data optimizer
+        optimizer = SpreadsheetDataOptimizer(db)
+        
+        # Optimize spreadsheet data based on requirements
+        optimized_data, optimization_id = optimizer.optimize_data(
+            spreadsheet_data=spreadsheet_data_dict,
+            required_table_info=spreadsheet_request.required_table_info
+        )
+        
+        # Convert optimized data to JSON for Kafka
+        optimized_json = json.dumps(optimized_data, cls=DateTimeEncoder)
         
         # Serialize required_table_info if provided
         required_table_info_json = None
@@ -86,6 +96,7 @@ async def process_spreadsheet_request(
                 cls=DateTimeEncoder
             )
         
+        # Create AI request with optimization reference
         db_request = AIRequest(
             id=request_id,
             user_id=user_id,
@@ -93,15 +104,19 @@ async def process_spreadsheet_request(
             input_range=spreadsheet_request.spreadsheet_data.worksheet.range,
             query_text=spreadsheet_request.query_text,
             category=spreadsheet_request.category if spreadsheet_request.category is not None else 'uncertain',
-            input_data=spreadsheet_json
+            optimization_id=optimization_id
         )
         db.add(db_request)
         db.commit()
-          
         
-        # Send to Kafka for processing
-        # Prepare input data with spreadsheet and optional required_table_info
-        kafka_input_data = [{"spreadsheet_data": spreadsheet_json}]
+        logger.info(
+            f"Request {request_id} created with optimization {optimization_id} "
+            f"for category {spreadsheet_request.category}"
+        )
+        
+        # Send to Kafka for processing with optimized data
+        # Prepare input data with optimized spreadsheet and optional required_table_info
+        kafka_input_data = [{"spreadsheet_data": optimized_json}]
         if required_table_info_json:
             kafka_input_data[0]["required_table_info"] = required_table_info_json
         

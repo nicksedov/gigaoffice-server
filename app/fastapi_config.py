@@ -29,7 +29,7 @@ from app.services.gigachat.factory import create_gigachat_service
 # Direct imports for GigaChat services
 from app.services.gigachat.prompt_builder import prompt_builder
 from app.services.histogram import create_histogram_processor  # Added import for histogram processor
-from app.services.spreadsheet import create_spreadsheet_processor  # Added import for spreadsheet processor
+from app.services.spreadsheet import SpreadsheetProcessor  # Import for spreadsheet processor
 
 # Create services in the module where needed
 gigachat_generate_service = create_gigachat_service(prompt_builder, "GIGACHAT_GENERATE_MODEL", "GigaChat generation service")
@@ -103,11 +103,13 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
                     required_table_info_dict = json.loads(input_data[0]["required_table_info"])
                     required_table_info = RequiredTableInfo(**required_table_info_dict)
                 
-                # Create category-specific processor for optimal data preprocessing
-                processor = create_spreadsheet_processor(category, gigachat_generate_service)
-                result, metadata = await processor.process_spreadsheet(
-                    query, category, spreadsheet_data, required_table_info=required_table_info
-                )
+                # Create a temporary database session for the processor
+                with get_db_session() as db:
+                    # Create universal processor for spreadsheet processing
+                    processor = SpreadsheetProcessor(gigachat_generate_service, db)
+                    result, metadata, optimization_id = await processor.process_spreadsheet(
+                        query, category, spreadsheet_data, required_table_info=required_table_info
+                    )
             else:
                 raise Exception(f"Invalid input data for spreadsheet processing")
         else:
@@ -125,6 +127,9 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
                 setattr(db_request, 'tokens_used', metadata.get("total_tokens", 0))
                 setattr(db_request, 'processing_time', metadata.get("processing_time", 0))
                 setattr(db_request, 'completed_at', datetime.now())
+                # Store optimization_id if it exists (for spreadsheet processors)
+                if 'optimization_id' in locals():
+                    setattr(db_request, 'optimization_id', optimization_id)
                 db.commit()
         
         logger.info(f"Request {request_id} processed successfully")
