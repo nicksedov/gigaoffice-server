@@ -31,10 +31,10 @@ class ClassificationPromptsProvider(DataProvider):
             prompts_directory: Base path to prompts directory. If None, uses default.
         """
         if prompts_directory is None:
-            prompts_directory = os.getenv("PROMPTS_DIRECTORY", "resources/prompts")
+            prompts_directory = os.getenv("CLASSIFICATION_PROMPTS_DIRECTORY", "resources/prompts/classifier")
         
         self.prompts_directory = Path(prompts_directory)
-        self.classifier_directory = self.prompts_directory / "classifier"
+        self.classifier_directory = self.prompts_directory
         self.delimiter = os.getenv("CSV_DELIMITER", ";")
         self.encoding = os.getenv("CSV_ENCODING", "utf-8")
         self.skip_errors = os.getenv("SKIP_INVALID_RECORDS", "true").lower() == "true"

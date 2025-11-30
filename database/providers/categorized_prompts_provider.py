@@ -26,7 +26,6 @@ class CategorizedPromptsProvider(DataProvider):
     
     # Valid category directories
     VALID_CATEGORIES = [
-        'classifier',
         'data-chart',
         'data-histogram',
         'spreadsheet-analysis',
@@ -45,7 +44,7 @@ class CategorizedPromptsProvider(DataProvider):
             prompts_directory: Base path to prompts directory. If None, uses default.
         """
         if prompts_directory is None:
-            prompts_directory = os.getenv("PROMPTS_DIRECTORY", "resources/prompts/category")
+            prompts_directory = os.getenv("CATEGORIZED_PROMPTS_DIRECTORY", "resources/prompts/category")
         
         self.prompts_directory = Path(prompts_directory)
         self.delimiter = os.getenv("CSV_DELIMITER", ";")
