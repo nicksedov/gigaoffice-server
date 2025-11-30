@@ -1,0 +1,7 @@
+# Embedding Processor required libraries
+psycopg2
+sentence-transformers
+pymystem3
+numpy
+loguru
+pyyaml
