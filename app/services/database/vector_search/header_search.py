@@ -16,7 +16,7 @@ class HeaderVectorSearch(BaseVectorSearchService):
         conn: psycopg2.extensions.connection,
         limit: int,
         **kwargs
-    ) -> List[Tuple[str, str, float]]:
+    ) -> List[Tuple[str, float]]:
         """
         Execute fulltext vector search on header_embeddings table.
         
@@ -27,7 +27,7 @@ class HeaderVectorSearch(BaseVectorSearchService):
             **kwargs: Additional parameters (unused)
             
         Returns:
-            List of tuples (header, language, score)
+            List of tuples (text, score)
         """
         # Preprocess query
         preprocessed_query, _ = self._preprocess_text(query)
@@ -37,7 +37,7 @@ class HeaderVectorSearch(BaseVectorSearchService):
         
         with conn.cursor() as cur:
             sql = """
-                SELECT header, language, 1 - (embedding <=> %s::vector) AS score
+                SELECT text, 1 - (embedding <=> %s::vector) AS score
                 FROM header_embeddings
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s
@@ -51,7 +51,7 @@ class HeaderVectorSearch(BaseVectorSearchService):
         conn: psycopg2.extensions.connection,
         limit: int,
         **kwargs
-    ) -> List[Tuple[str, str, float]]:
+    ) -> List[Tuple[str, float]]:
         """
         Execute fast search on header_embeddings table using lemmatization.
         
@@ -62,17 +62,17 @@ class HeaderVectorSearch(BaseVectorSearchService):
             **kwargs: Additional parameters (unused)
             
         Returns:
-            List of tuples (header, language, score)
+            List of tuples (text, score)
         """
         # Preprocess query
         preprocessed_query, _ = self._preprocess_text(query)
         
         with conn.cursor() as cur:
             sql = """
-                SELECT header, language, 
-                       CASE WHEN lemmatized_header = %s THEN 1.0 ELSE 0.0 END AS score
+                SELECT text, 
+                       CASE WHEN lemmatized_text = %s THEN 1.0 ELSE 0.0 END AS score
                 FROM header_embeddings
-                WHERE lemmatized_header = %s
+                WHERE lemmatized_text = %s
                 ORDER BY score DESC
                 LIMIT %s
             """
