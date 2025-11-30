@@ -21,7 +21,7 @@ MODEL_CACHE_PATH = os.getenv("MODEL_CACHE_PATH", "")
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ai-forever/ru-en-RoSBERTa")
 PROMPTS_DIRECTORY = os.getenv("PROMPTS_DIRECTORY", "resources/prompts")
 
-EXAMPLES_TABLE = "prompt_examples"
+TARGET_TABLE_TABLE = "prompt_examples"
 
 try:
     from pymystem3 import Mystem
