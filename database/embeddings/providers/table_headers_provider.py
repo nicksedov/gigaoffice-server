@@ -32,7 +32,7 @@ class TableHeadersProvider(DataProvider):
         if csv_file_path is None:
             csv_file_path = os.getenv(
                 "HEADERS_CSV_FILE",
-                "database/embeddings/table_headers/table_headers.csv"
+                "database/embeddings/data/table_headers.csv"
             )
         
         self.csv_file_path = Path(csv_file_path)

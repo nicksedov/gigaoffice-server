@@ -14,7 +14,7 @@ import psycopg2
 import numpy as np
 from loguru import logger
 
-from database.providers.base import DataProvider
+from database.embeddings.providers.base import DataProvider
 from .lemmatization_service import lemmatization_service
 from .schema_validator import SchemaValidator
 

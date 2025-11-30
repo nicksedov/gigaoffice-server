@@ -48,7 +48,7 @@ EMBEDDING_MODEL_NAME=ai-forever/ru-en-RoSBERTa
 ### Option A: Process All Tables (Recommended)
 
 ```bash
-python database/embeddings/run_all_processors.py
+python database/embeddings/run.py
 ```
 
 This will:
