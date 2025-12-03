@@ -21,14 +21,14 @@ class GigachatPromptBuilder:
     
     PROMPT_CATEGORY_DIRS = {
         'classifier':                 'classifier',
-        'spreadsheet-analysis':       'spreadsheet-analysis',
-        'spreadsheet-transformation': 'spreadsheet-transformation',
-        'spreadsheet-search':         'spreadsheet-search', 
-        'spreadsheet-generation':     'spreadsheet-generation',
-        'spreadsheet-formatting':     'spreadsheet-formatting',
-        'spreadsheet-assistance':     'spreadsheet-assistance',
-        'data-chart':                 'data-chart',
-        'data-histogram':             'data-histogram'
+        'spreadsheet-analysis':       'category/spreadsheet-analysis',
+        'spreadsheet-transformation': 'category/spreadsheet-transformation',
+        'spreadsheet-search':         'category/spreadsheet-search', 
+        'spreadsheet-generation':     'category/spreadsheet-generation',
+        'spreadsheet-formatting':     'category/spreadsheet-formatting',
+        'spreadsheet-assistance':     'category/spreadsheet-assistance',
+        'data-chart':                 'category/data-chart',
+        'data-histogram':             'category/data-histogram'
     }
 
     def __init__(self, resources_dir: str = 'resources/prompts/'):
