@@ -158,9 +158,8 @@ class SpreadsheetSearchRequest(BaseModel):
     data: Union[str, List[str]] = Field(..., description="Search string or list of search strings")
 
 class SearchResultItem(BaseModel):
-    """Search result item with text, language and similarity score"""
+    """Search result item with text and similarity score"""
     text: str = Field(..., description="Matched text from the database")
-    language: str = Field(..., description="Language of the matched text")
     score: float = Field(..., description="Similarity score (0-1, where 1 is most similar)")
 
 class SearchResult(BaseModel):

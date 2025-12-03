@@ -11,7 +11,7 @@ from loguru import logger
 from app.models.api.spreadsheet import SpreadsheetSearchRequest, SearchResult, SearchResultItem
 from app.services.database.session import get_db
 from app.services.database.vector_search import header_vector_search
-from .dependencies import get_current_user, limiter, db_vector_support
+from .dependencies import get_current_user, limiter
 
 
 # Create router for search endpoints
@@ -63,9 +63,6 @@ async def search_spreadsheet_data(
         # Prepare search strings
         search_strings = search_request.data if isinstance(search_request.data, list) else [search_request.data]
         
-        # Determine search mode based on vector support
-        search_mode = "fulltext" if db_vector_support else "fast"
-
         # Collect all results
         all_results = []
         
@@ -74,16 +71,14 @@ async def search_spreadsheet_data(
             # Perform search using the unified search method
             results = header_vector_search.search(
                 search_string, 
-                search_mode, 
                 limit
             )
             
             item_search_results = []
             # Convert to SearchResultItem objects
-            for header, language, score in results:
+            for header, score in results:
                 item_search_results.append(SearchResultItem(
                     text=header,
-                    language=language,
                     score=score
                 ))
             
@@ -97,10 +92,6 @@ async def search_spreadsheet_data(
             
     except HTTPException:
         raise
-    except ValueError as e:
-        # Handle search_mode validation errors from header_vector_search
-        logger.error(f"Invalid search mode: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Error searching spreadsheet data: {e}")
         raise HTTPException(status_code=500, detail="Error searching spreadsheet data")

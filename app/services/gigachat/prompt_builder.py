@@ -65,7 +65,6 @@ class GigachatPromptBuilder:
                 logger.info(f"Loading classification examples from database with query: {query[:50]}...")
                 examples = classification_prompt_search.search_examples(
                     query=query,
-                    search_mode="fulltext",
                     limit=3
                 )
             else:
@@ -73,7 +72,6 @@ class GigachatPromptBuilder:
                 examples = categorized_prompt_search.search_examples(
                     query=query,
                     category=prompt_type,
-                    search_mode="fulltext",
                     limit=3
                 )
             

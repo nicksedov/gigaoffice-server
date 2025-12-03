@@ -15,9 +15,6 @@ from app.fastapi_config import security
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
 
-# Support for full-text search
-db_vector_support = os.getenv("DB_VECTOR_SUPPORT", "false").lower() == "true"
-
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Optional[Dict]:
     """

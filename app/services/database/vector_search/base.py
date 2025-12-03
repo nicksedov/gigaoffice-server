@@ -48,7 +48,7 @@ class BaseVectorSearchService(ABC):
         return preprocessed, language
 
     @abstractmethod
-    def _execute_fulltext_search(
+    def _execute_search(
         self,
         query: str,
         conn: psycopg2.extensions.connection,
@@ -56,29 +56,7 @@ class BaseVectorSearchService(ABC):
         **kwargs
     ) -> List[Any]:
         """
-        Execute fulltext vector search. Must be implemented by subclasses.
-        
-        Args:
-            query: Search query string
-            conn: Database connection
-            limit: Maximum number of results
-            **kwargs: Additional search parameters
-            
-        Returns:
-            List of search results (format depends on subclass)
-        """
-        pass
-
-    @abstractmethod
-    def _execute_fast_search(
-        self,
-        query: str,
-        conn: psycopg2.extensions.connection,
-        limit: int,
-        **kwargs
-    ) -> List[Any]:
-        """
-        Execute fast lemmatization-based search. Must be implemented by subclasses.
+        Execute vector search. Must be implemented by subclasses.
         
         Args:
             query: Search query string
@@ -94,25 +72,20 @@ class BaseVectorSearchService(ABC):
     def search(
         self,
         query: Union[str, List[str]],
-        search_mode: str = "fulltext",
         limit: int = 3,
         **kwargs
     ) -> List[Any]:
         """
-        Unified search method that supports both fulltext and fast modes.
+        Unified search method using vector-based search.
         
         Args:
             query: Search string or list of search strings
-            search_mode: 'fulltext' for vector-based search, 'fast' for lemmatization-based search
             limit: Maximum number of results to return per search string
             **kwargs: Additional search parameters passed to subclass methods
             
         Returns:
             List of search results (format depends on subclass)
         """
-        if search_mode not in ["fulltext", "fast"]:
-            raise ValueError(f"Invalid search_mode: {search_mode}. Must be 'fulltext' or 'fast'")
-        
         try:
             # Get database connection
             engine = db_manager.engine
@@ -127,10 +100,7 @@ class BaseVectorSearchService(ABC):
                 
                 # Search for each string
                 for search_string in search_strings:
-                    if search_mode == "fast":
-                        results = self._execute_fast_search(search_string, conn, limit, **kwargs)
-                    else:  # fulltext
-                        results = self._execute_fulltext_search(search_string, conn, limit, **kwargs)
+                    results = self._execute_search(search_string, conn, limit, **kwargs)
                     all_results.extend(results)
                 
                 return all_results
@@ -138,5 +108,5 @@ class BaseVectorSearchService(ABC):
                 conn.close()
                 
         except Exception as e:
-            logger.error(f"Error performing {search_mode} search: {e}")
+            logger.error(f"Error performing vector search: {e}")
             raise
