@@ -96,7 +96,7 @@ class StyleDefinition(BaseModel):
 
 class HeaderData(BaseModel):
     """Header row definition with style reference"""
-    values: List[str] = Field(..., description="Header values")
+    values: Optional[List[str]] = Field(default_factory=list, description="Header values")
     style: Optional[str] = Field(None, description="Style reference ID for the header row")
     range: Optional[str] = Field(None, description="Cell range reference for the header row")
 
