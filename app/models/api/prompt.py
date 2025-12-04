@@ -62,6 +62,7 @@ class PromptClassificationResponse(BaseModel):
     query_text: str
     category: str
     confidence: float
+    text_content: str = Field(..., description="Additional textual content from LLM response")
     required_table_info: RequiredTableInfo
 
 class PresetPromptsResponse(BaseModel):

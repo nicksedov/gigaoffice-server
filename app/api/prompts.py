@@ -183,7 +183,8 @@ async def classify_prompt(
             query_text=result["query_text"],
             category=result["category"]["name"],
             confidence=result["confidence"],
-            required_table_info=required_table_info
+            required_table_info=required_table_info,
+            text_content=result.get("text_content", "")
         )
     except HTTPException:
         raise

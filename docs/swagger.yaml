@@ -224,6 +224,27 @@ components:
         confidence:
           type: number
           format: float
+        text_content:
+          type: string
+        required_table_info:
+          type: object
+          properties:
+            needs_column_headers:
+              type: boolean
+              description: Whether column header names are required
+            needs_header_styles:
+              type: boolean
+              description: Whether header formatting is required
+            needs_cell_values:
+              type: boolean
+              description: Whether actual cell data is required
+            needs_cell_styles:
+              type: boolean
+              description: Whether cell formatting is required
+            needs_column_metadata:
+              type: boolean
+              description: Whether column type information is required
+          description: Additional textual content from LLM response
       description: Response for prompt classification
 
     # Metrics schemas
