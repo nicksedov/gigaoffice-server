@@ -19,34 +19,11 @@ class SpreadsheetMetadata(BaseModel):
             return datetime.now()
         return v
     
-    @model_validator(mode='before')
-    @classmethod
-    def set_defaults(cls, data):
-        """Ensure defaults for missing fields"""
-        if isinstance(data, dict):
-            if 'version' not in data or data['version'] is None:
-                logger.debug("SpreadsheetMetadata: version missing, applying default '1.0'")
-                data['version'] = "1.0"
-        return data
-
 class WorksheetInfo(BaseModel):
     """Worksheet information"""
     name: Optional[str] = Field(default="Sheet1", description="Name of the worksheet where source data is located")
     range: Optional[str] = Field(default="A1", description="Cell range reference for source data")
     
-    @model_validator(mode='before')
-    @classmethod
-    def set_defaults(cls, data):
-        """Ensure defaults for missing fields"""
-        if isinstance(data, dict):
-            if 'name' not in data or data['name'] is None:
-                logger.debug("WorksheetInfo: name missing, applying default 'Sheet1'")
-                data['name'] = "Sheet1"
-            if 'range' not in data or data['range'] is None:
-                logger.debug("WorksheetInfo: range missing, applying default 'A1'")
-                data['range'] = "A1"
-        return data
-
 class StyleDefinition(BaseModel):
     """Centralized style definition with unique identifier"""
     id: str = Field(..., description="Unique identifier for style reference")
@@ -111,16 +88,6 @@ class WorksheetData(BaseModel):
     header: Optional[HeaderData] = Field(None, description="Header row data")
     rows: Optional[List[DataRow]] = Field(default_factory=list, description="Data rows")
     
-    @model_validator(mode='before')
-    @classmethod
-    def set_defaults(cls, data):
-        """Ensure defaults for missing fields"""
-        if isinstance(data, dict):
-            if 'rows' not in data or data['rows'] is None:
-                logger.debug("WorksheetData: rows missing, applying default empty list")
-                data['rows'] = []
-        return data
-
 class ColumnDefinition(BaseModel):
     """Column definition with type and formatting"""
     index: int = Field(..., description="Zero-based column index")
@@ -137,24 +104,6 @@ class ColumnDefinition(BaseModel):
         """Validate statistical field consistency"""
         return v
     
-    @model_validator(mode='after')
-    def validate_stats(self):
-        """Validate that statistical metadata is consistent"""
-        if self.min is not None and self.max is not None:
-            if self.min > self.max:
-                raise ValueError('min must be less than or equal to max')
-        
-        if self.median is not None:
-            if self.min is not None and self.median < self.min:
-                raise ValueError('median must be greater than or equal to min')
-            if self.max is not None and self.median > self.max:
-                raise ValueError('median must be less than or equal to max')
-        
-        if self.count is not None and self.count <= 0:
-            raise ValueError('count must be greater than 0')
-        
-        return self
-
 class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation with style references"""
     metadata: Optional[SpreadsheetMetadata] = Field(default_factory=lambda: SpreadsheetMetadata(created_at=None), description="Metadata section")
@@ -163,26 +112,6 @@ class SpreadsheetData(BaseModel):
     columns: Optional[List[ColumnDefinition]] = Field(default_factory=list, description="Column definitions")
     styles: Optional[List[StyleDefinition]] = Field(default_factory=list, description="Centralized style definitions")
     
-    @model_validator(mode='before')
-    @classmethod
-    def set_defaults(cls, data):
-        """Ensure defaults for missing top-level fields and log warnings"""
-        if isinstance(data, dict):
-            if 'metadata' not in data or data['metadata'] is None:
-                logger.warning("SpreadsheetData: metadata missing, applying default SpreadsheetMetadata")
-                data['metadata'] = {}
-            if 'worksheet' not in data or data['worksheet'] is None:
-                logger.warning("SpreadsheetData: worksheet missing, applying default WorksheetInfo")
-                data['worksheet'] = {}
-            if 'data' not in data or data['data'] is None:
-                logger.warning("SpreadsheetData: data missing, applying default WorksheetData")
-                data['data'] = {}
-            if 'columns' not in data:
-                data['columns'] = []
-            if 'styles' not in data:
-                data['styles'] = []
-        return data
-
 class SpreadsheetRequest(BaseModel):
     """Request model for enhanced spreadsheet processing with style references"""
     spreadsheet_data: SpreadsheetData = Field(..., description="Enhanced spreadsheet data to process")
