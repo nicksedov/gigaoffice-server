@@ -1,6 +1,34 @@
 """
 Spreadsheet Data Optimizer
 Handles JSON optimization operations for LLM input data
+
+FIELD REQUIREMENTS FOR VALID SpreadsheetData:
+==============================================
+
+The optimizer must ensure the following minimal structure to maintain compatibility
+with the SpreadsheetData Pydantic model:
+
+Required Top-Level Fields (always included):
+- metadata: dict with optional 'version' (defaults to "1.0") and 'created_at'
+- worksheet: dict with optional 'name' (defaults to "Sheet1") and 'range' (defaults to "A1")
+- data: dict containing 'rows' (can be empty list [])
+
+Optional Top-Level Fields (can be omitted during optimization):
+- columns: list of column metadata (non-essential, can be empty or omitted)
+- styles: list of style definitions (presentation layer, can be empty or omitted)
+
+Nested Field Requirements:
+- data.header: Optional, can be omitted if not needed
+- data.rows: Should be included (can be empty list) to maintain structure
+- metadata.version: Should always have default "1.0" if omitted
+- worksheet.name: Should always have default "Sheet1" if omitted
+- worksheet.range: Should always have default "A1" if omitted
+
+When optimizing:
+1. Always preserve metadata and worksheet sections (even if empty)
+2. Always include data section with at least 'rows' field
+3. Can omit columns, styles, and data.header based on requirements
+4. Empty lists are preferred over null/undefined for array fields
 """
 
 import json
@@ -151,10 +179,12 @@ class SpreadsheetDataOptimizer:
         if required_table_info is None:
             return spreadsheet_data
         
-        # Start with base structure (always included)
+        # Start with base structure (always included to ensure minimal valid SpreadsheetData)
+        # Note: Pydantic model validators will apply defaults for missing nested fields
         filtered_data = {
             "metadata": spreadsheet_data.get("metadata", {}),
-            "worksheet": spreadsheet_data.get("worksheet", {})
+            "worksheet": spreadsheet_data.get("worksheet", {}),
+            "data": {}  # Initialize data section, will be populated below
         }
         
         # Get original data section
@@ -208,9 +238,13 @@ class SpreadsheetDataOptimizer:
             if filtered_rows:
                 filtered_data_section["rows"] = filtered_rows
         
-        # Add data section if it has content
+        # Add data section - always include to maintain minimal structure
+        # If no data was filtered, ensure at least an empty rows list
         if filtered_data_section:
             filtered_data["data"] = filtered_data_section
+        else:
+            # Ensure minimal data structure with empty rows
+            filtered_data["data"] = {"rows": []}
         
         # Include column metadata if requested
         if required_table_info.needs_column_metadata:
