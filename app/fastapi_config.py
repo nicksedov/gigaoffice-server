@@ -107,7 +107,7 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
                 with get_db_session() as db:
                     # Create universal processor for spreadsheet processing
                     processor = SpreadsheetProcessor(gigachat_generate_service, db)
-                    result, metadata, optimization_id = await processor.process_spreadsheet(
+                    result, metadata = await processor.process_spreadsheet(
                         query, category, spreadsheet_data, required_table_info=required_table_info
                     )
             else:
@@ -127,9 +127,6 @@ async def message_handler(message_data: Dict[str, Any]) -> Dict[str, Any]:
                 setattr(db_request, 'tokens_used', metadata.get("total_tokens", 0))
                 setattr(db_request, 'processing_time', metadata.get("processing_time", 0))
                 setattr(db_request, 'completed_at', datetime.now())
-                # Store optimization_id if it exists (for spreadsheet processors)
-                if 'optimization_id' in locals():
-                    setattr(db_request, 'optimization_id', optimization_id)
                 db.commit()
         
         logger.info(f"Request {request_id} processed successfully")
