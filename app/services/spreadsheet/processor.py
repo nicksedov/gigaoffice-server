@@ -17,15 +17,14 @@ from app.services.gigachat.response_parser import response_parser
 from app.services.chart import shared
 from app.models.api.spreadsheet import SpreadsheetData
 from app.models.api.prompt import RequiredTableInfo
-from app.services.spreadsheet.data_optimizer import SpreadsheetDataOptimizer
    
 
 class SpreadsheetProcessor:
     """
     Universal spreadsheet processor for all categories.
     
-    Handles the complete processing workflow with data optimization
-    managed by SpreadsheetDataOptimizer.
+    Handles the complete processing workflow. Data optimization is
+    performed by the API layer before processing.
     """
     
     def __init__(self, gigachat_service: BaseGigaChatService, db_session: Session):
@@ -34,22 +33,21 @@ class SpreadsheetProcessor:
         
         Args:
             gigachat_service: An instance of a GigaChat service (cloud, mtls, or dryrun)
-            db_session: SQLAlchemy database session for storing optimization records
+            db_session: SQLAlchemy database session
         """
         self.gigachat_service = gigachat_service
         self.db_session = db_session
-        self.data_optimizer = SpreadsheetDataOptimizer(db_session)
     
     def preprocess_data(self, spreadsheet_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Preprocess spreadsheet data.
         
-        Since data optimization is already handled by SpreadsheetDataOptimizer,
-        this method simply returns the data unchanged while maintaining the
+        Data optimization is handled by the API layer before Kafka messaging.
+        This method simply returns the data unchanged while maintaining the
         processing workflow structure.
         
         Args:
-            spreadsheet_data: Optimized spreadsheet data dictionary
+            spreadsheet_data: Already optimized spreadsheet data dictionary
             
         Returns:
             The same spreadsheet data unchanged
@@ -64,39 +62,35 @@ class SpreadsheetProcessor:
         spreadsheet_data: Dict[str, Any],
         temperature: float = 0.1,
         required_table_info: Optional[RequiredTableInfo] = None
-    ) -> Tuple[Dict[str, Any], Dict[str, Any], Optional[str]]:
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """
         Process spreadsheet data with GigaChat.
         
         This is the main entry point that orchestrates the complete processing workflow:
-        1. Optimize data using SpreadsheetDataOptimizer (filter + store in DB)
-        2. Preprocess data (pass-through)
-        3. Check rate limits
-        4. Prepare prompts
-        5. Validate token limits
-        6. Invoke GigaChat
-        7. Parse response
-        8. Return result, metadata, and optimization_id
+        1. Preprocess data (pass-through)
+        2. Check rate limits
+        3. Prepare prompts
+        4. Validate token limits
+        5. Invoke GigaChat
+        6. Parse response
+        7. Return result and metadata
+        
+        Note: Data optimization is performed by the API layer before this method is called.
         
         Args:
             query: Processing instruction for the AI
             category: Processing instruction category
-            spreadsheet_data: Enhanced spreadsheet data in JSON format
+            spreadsheet_data: Already optimized spreadsheet data in JSON format
             temperature: Temperature for generation (0.0 - 1.0)
-            required_table_info: Optional specification of required table components for optimization
+            required_table_info: Optional specification (informational only, optimization already applied)
             
         Returns:
-            Tuple[processed_result, metadata, optimization_id]
+            Tuple[processed_result, metadata]
         """
         try:
-            # Optimize data using the data optimizer
-            # This will filter data and store the optimization record in DB
-            optimized_data, optimization_id = self.data_optimizer.optimize_data(
-                spreadsheet_data, required_table_info
-            )
-            
             # Preprocess data (pass-through for universal processor)
-            preprocessed_data = self.preprocess_data(optimized_data)
+            # Data is already optimized by the API layer
+            preprocessed_data = self.preprocess_data(spreadsheet_data)
             
             # Check rate limits using shared logic
             if not shared.check_rate_limit(self.gigachat_service):
@@ -173,10 +167,10 @@ class SpreadsheetProcessor:
             
             logger.info(
                 f"Spreadsheet processing completed successfully in {processing_time:.2f}s, "
-                f"tokens: {total_tokens}, optimization_id: {optimization_id}"
+                f"tokens: {total_tokens}"
             )
             
-            return result_data, metadata, optimization_id
+            return result_data, metadata
             
         except Exception as e:
             logger.error(f"Error processing spreadsheet data: {e}")

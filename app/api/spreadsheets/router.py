@@ -244,20 +244,38 @@ async def get_spreadsheet_result(
         if raw_result_data is not None:
             try:
                 # If result_data is a string, parse it
+                parsed_data = None
                 if isinstance(raw_result_data, str):
-                    result_data = json.loads(raw_result_data)
+                    parsed_data = json.loads(raw_result_data)
                 # If it's already a dict, use it directly
                 elif isinstance(raw_result_data, dict):
-                    result_data = raw_result_data
+                    parsed_data = raw_result_data
                 
                 # Check if this is a text-only response (assistance category)
-                if result_data and 'text_content' in result_data:
-                    text_content = result_data.get('text_content')
+                if parsed_data and 'text_content' in parsed_data:
+                    text_content = parsed_data.get('text_content')
                     # Create minimal valid SpreadsheetData structure for text responses
                     result_data = SpreadsheetData().model_dump()
+                elif parsed_data:
+                    # Validate and parse the data using Pydantic model_validate
+                    try:
+                        validated_data = SpreadsheetData.model_validate(parsed_data)
+                        result_data = validated_data.model_dump()
+                        logger.debug(f"Successfully validated SpreadsheetData for request {request_id}")
+                    except Exception as validation_error:
+                        logger.warning(
+                            f"SpreadsheetData validation failed for request {request_id}: {validation_error}. "
+                            f"Falling back to minimal structure with defaults."
+                        )
+                        # Fallback to minimal structure with defaults
+                        result_data = SpreadsheetData().model_dump()
                         
+            except json.JSONDecodeError as e:
+                logger.warning(f"Could not parse result data as JSON for request {request_id}: {e}")
+                result_data = SpreadsheetData().model_dump()
             except Exception as e:
-                logger.warning(f"Could not parse result data: {e}")
+                logger.warning(f"Could not parse result data for request {request_id}: {e}")
+                result_data = SpreadsheetData().model_dump()
         
         # Type-safe access to ORM attributes using cast
         tokens_used_value = cast(Optional[int], db_request.tokens_used)

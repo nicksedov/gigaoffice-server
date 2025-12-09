@@ -3,12 +3,13 @@
 from datetime import datetime
 from typing import Optional, List, Union
 from pydantic import BaseModel, Field, field_validator, model_validator
+from loguru import logger
 
 from app.models.api.prompt import RequiredTableInfo
 
 class SpreadsheetMetadata(BaseModel):
     """Metadata for the enhanced spreadsheet data format"""
-    version: str = Field(default="1.0", description="Format version for compatibility")
+    version: Optional[str] = Field(default="1.0", description="Format version for compatibility")
     created_at: Optional[datetime] = Field(None, description="Timestamp of creation")
     
     @field_validator('created_at', mode='before')
@@ -17,12 +18,12 @@ class SpreadsheetMetadata(BaseModel):
         if v is None:
             return datetime.now()
         return v
-
+    
 class WorksheetInfo(BaseModel):
     """Worksheet information"""
-    name: str = Field(default="Sheet1", description="Name of the worksheet where source data is located")
-    range: str = Field(default="A1", description="Cell range reference for source data")
-
+    name: Optional[str] = Field(default="Sheet1", description="Name of the worksheet where source data is located")
+    range: Optional[str] = Field(default="A1", description="Cell range reference for source data")
+    
 class StyleDefinition(BaseModel):
     """Centralized style definition with unique identifier"""
     id: str = Field(..., description="Unique identifier for style reference")
@@ -72,7 +73,7 @@ class StyleDefinition(BaseModel):
 
 class HeaderData(BaseModel):
     """Header row definition with style reference"""
-    values: List[str] = Field(..., description="Header values")
+    values: Optional[List[str]] = Field(default_factory=list, description="Header values")
     style: Optional[str] = Field(None, description="Style reference ID for the header row")
     range: Optional[str] = Field(None, description="Cell range reference for the header row")
 
@@ -85,8 +86,8 @@ class DataRow(BaseModel):
 class WorksheetData(BaseModel):
     """Worksheet data structure"""
     header: Optional[HeaderData] = Field(None, description="Header row data")
-    rows: List[DataRow] = Field(..., description="Data rows")
-
+    rows: Optional[List[DataRow]] = Field(default_factory=list, description="Data rows")
+    
 class ColumnDefinition(BaseModel):
     """Column definition with type and formatting"""
     index: int = Field(..., description="Zero-based column index")
@@ -103,32 +104,14 @@ class ColumnDefinition(BaseModel):
         """Validate statistical field consistency"""
         return v
     
-    @model_validator(mode='after')
-    def validate_stats(self):
-        """Validate that statistical metadata is consistent"""
-        if self.min is not None and self.max is not None:
-            if self.min > self.max:
-                raise ValueError('min must be less than or equal to max')
-        
-        if self.median is not None:
-            if self.min is not None and self.median < self.min:
-                raise ValueError('median must be greater than or equal to min')
-            if self.max is not None and self.median > self.max:
-                raise ValueError('median must be less than or equal to max')
-        
-        if self.count is not None and self.count <= 0:
-            raise ValueError('count must be greater than 0')
-        
-        return self
-
 class SpreadsheetData(BaseModel):
     """Main data structure for enhanced spreadsheet manipulation with style references"""
-    metadata: SpreadsheetMetadata = Field(default_factory=lambda: SpreadsheetMetadata(created_at=None), description="Metadata section")
-    worksheet: WorksheetInfo = Field(default_factory=lambda: WorksheetInfo(), description="Worksheet section")
-    data: WorksheetData = Field(default_factory=lambda: WorksheetData(header=None, rows=[]), description="Data section containing header and rows")
+    metadata: Optional[SpreadsheetMetadata] = Field(default_factory=lambda: SpreadsheetMetadata(created_at=None), description="Metadata section")
+    worksheet: Optional[WorksheetInfo] = Field(default_factory=lambda: WorksheetInfo(), description="Worksheet section")
+    data: Optional[WorksheetData] = Field(default_factory=lambda: WorksheetData(header=None, rows=[]), description="Data section containing header and rows")
     columns: Optional[List[ColumnDefinition]] = Field(default_factory=list, description="Column definitions")
-    styles: List[StyleDefinition] = Field(default_factory=list, description="Centralized style definitions")
-
+    styles: Optional[List[StyleDefinition]] = Field(default_factory=list, description="Centralized style definitions")
+    
 class SpreadsheetRequest(BaseModel):
     """Request model for enhanced spreadsheet processing with style references"""
     spreadsheet_data: SpreadsheetData = Field(..., description="Enhanced spreadsheet data to process")

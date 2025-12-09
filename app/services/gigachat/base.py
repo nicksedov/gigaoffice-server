@@ -110,7 +110,7 @@ class BaseGigaChatService(ABC):
                 missing_fields = [field for field in required_table_info.keys() if field not in table_info]
                 if missing_fields:
                     logger.warning(f"Missing table info fields in LLM response: {missing_fields}, using defaults")
-                    
+                
                 for category in categories:
                     if result['category'] == category['name']:
                         logger.info((f"Prompt '{query[:50]}' classified as '{category['name']}' with confidence rate {result['confidence']:3f}"))
@@ -119,6 +119,7 @@ class BaseGigaChatService(ABC):
                             "query_text": query,
                             "category": category,
                             "confidence": result['confidence'],
+                            "text_content": result['text_content'],
                             "required_table_info": required_table_info
                         }
                 return {
@@ -126,6 +127,7 @@ class BaseGigaChatService(ABC):
                     "query_text": query,
                     "category": { "name": "uncertain" },
                     "confidence": 0,
+                    "text_content": result.get('text_content', ''),
                     "required_table_info": required_table_info
                 }
                 

@@ -1,6 +1,34 @@
 """
 Spreadsheet Data Optimizer
 Handles JSON optimization operations for LLM input data
+
+FIELD REQUIREMENTS FOR VALID SpreadsheetData:
+==============================================
+
+The optimizer must ensure the following minimal structure to maintain compatibility
+with the SpreadsheetData Pydantic model:
+
+Required Top-Level Fields (always included):
+- metadata: dict with optional 'version' (defaults to "1.0") and 'created_at'
+- worksheet: dict with optional 'name' (defaults to "Sheet1") and 'range' (defaults to "A1")
+- data: dict containing 'rows' (can be empty list [])
+
+Optional Top-Level Fields (can be omitted during optimization):
+- columns: list of column metadata (non-essential, can be empty or omitted)
+- styles: list of style definitions (presentation layer, can be empty or omitted)
+
+Nested Field Requirements:
+- data.header: Optional, can be omitted if not needed
+- data.rows: Should be included (can be empty list) to maintain structure
+- metadata.version: Should always have default "1.0" if omitted
+- worksheet.name: Should always have default "Sheet1" if omitted
+- worksheet.range: Should always have default "A1" if omitted
+
+When optimizing:
+1. Always preserve metadata and worksheet sections (even if empty)
+2. Always include data section with at least 'rows' field
+3. Can omit columns, styles, and data.header based on requirements
+4. Empty lists are preferred over null/undefined for array fields
 """
 
 import json
@@ -151,66 +179,71 @@ class SpreadsheetDataOptimizer:
         if required_table_info is None:
             return spreadsheet_data
         
-        # Start with base structure (always included)
+        # Start with base structure (always included to ensure minimal valid SpreadsheetData)
+        # Note: Pydantic model validators will apply defaults for missing nested fields
         filtered_data = {
             "metadata": spreadsheet_data.get("metadata", {}),
-            "worksheet": spreadsheet_data.get("worksheet", {})
+            "worksheet": spreadsheet_data.get("worksheet", {}),
+            "data": {}  # Initialize data section, will be populated below
         }
         
         # Get original data section
         original_data = spreadsheet_data.get("data", {})
         filtered_data_section: Dict[str, Any] = {}
         
-        # Process header if requested
-        if required_table_info.needs_column_headers or required_table_info.needs_header_styles:
-            original_header = original_data.get("header")
-            if original_header:
-                filtered_header: Dict[str, Any] = {}
-                
-                # Include header values if requested
-                if required_table_info.needs_column_headers:
-                    filtered_header["values"] = original_header.get("values", [])
-                    if "range" in original_header:
-                        filtered_header["range"] = original_header["range"]
-                
-                # Include header style if requested
-                if required_table_info.needs_header_styles:
-                    if "style" in original_header:
-                        filtered_header["style"] = original_header["style"]
-                
-                if filtered_header:
-                    filtered_data_section["header"] = filtered_header
-        
-        # Process rows if requested
-        if required_table_info.needs_cell_values or required_table_info.needs_cell_styles:
-            original_rows = original_data.get("rows", [])
-            filtered_rows = []
+        # Process header - always process if header exists to preserve range metadata
+        original_header = original_data.get("header")
+        if original_header:
+            filtered_header: Dict[str, Any] = {}
             
-            for row in original_rows:
-                filtered_row: Dict[str, Any] = {}
-                
-                # Include row values if requested
-                if required_table_info.needs_cell_values and "values" in row:
-                    filtered_row["values"] = row["values"]
-                
-                # Include row style if requested
-                if required_table_info.needs_cell_styles and "style" in row:
-                    filtered_row["style"] = row["style"]
-                
-                # Include range if present
-                if "range" in row:
-                    filtered_row["range"] = row["range"]
-                
-                # Only add row if it has content
-                if filtered_row and ("values" in filtered_row or "style" in filtered_row):
-                    filtered_rows.append(filtered_row)
+            # Include header values if requested
+            if required_table_info.needs_column_headers:
+                filtered_header["values"] = original_header.get("values", [])
             
-            if filtered_rows:
-                filtered_data_section["rows"] = filtered_rows
+            # Include header style if requested
+            if required_table_info.needs_header_styles:
+                if "style" in original_header:
+                    filtered_header["style"] = original_header["style"]
+            
+            # Always include range if present (structural metadata)
+            if "range" in original_header:
+                filtered_header["range"] = original_header["range"]
+            
+            # Include header if it has any content (including range-only)
+            if filtered_header:
+                filtered_data_section["header"] = filtered_header
         
-        # Add data section if it has content
-        if filtered_data_section:
-            filtered_data["data"] = filtered_data_section
+        # Process rows - always process if rows exist to preserve range metadata
+        original_rows = original_data.get("rows", [])
+        filtered_rows = []
+        
+        for row in original_rows:
+            # Only process rows that have a range field
+            if "range" not in row:
+                continue
+            
+            filtered_row: Dict[str, Any] = {}
+            
+            # Include row values if requested
+            if required_table_info.needs_cell_values and "values" in row:
+                filtered_row["values"] = row["values"]
+            
+            # Include row style if requested
+            if required_table_info.needs_cell_styles and "style" in row:
+                filtered_row["style"] = row["style"]
+            
+            # Always include range (structural metadata)
+            filtered_row["range"] = row["range"]
+            
+            # Add row (it will always have at least range)
+            filtered_rows.append(filtered_row)
+        
+        # Always include rows array (even if empty)
+        filtered_data_section["rows"] = filtered_rows
+        
+        # Add data section - always include to maintain minimal structure
+        # Rows are now always included (either filtered or empty)
+        filtered_data["data"] = filtered_data_section
         
         # Include column metadata if requested
         if required_table_info.needs_column_metadata:
