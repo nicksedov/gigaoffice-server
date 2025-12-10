@@ -1,4 +1,4 @@
-﻿# IDEs
+# IDEs
 .vs
 .vscode
 .idea
@@ -17,6 +17,9 @@ __pycache__
 log
 .log
 docker
+
+# Uploads
+uploads/
 
 # Local scripts
 .local
