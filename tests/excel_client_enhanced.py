@@ -15,7 +15,7 @@ from langchain_openai import ChatOpenAI
 
 # Configuration
 LLM_API_URL = "https://ollama.ai-gateway.ru/v1"
-MCP_SERVER_URL = "http://omv-nas:5020/mcp"
+MCP_SERVER_URL = "https://excel.ai-gateway.ru/mcp"
 MODEL_NAME = "gpt-oss"
 TEMPERATURE = 0.7
 DEBUG = True  # Enable debug logging

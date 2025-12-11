@@ -14,7 +14,7 @@ async def create_worksheet_http():
     
     # Создаем транспорт HTTP
     transport = StreamableHttpTransport(
-        url="http://omv-nas:5020/mcp"
+        url="https://excel.ai-gateway.ru/mcp"
     )
     
     file_uuid = str(uuid.uuid4())
