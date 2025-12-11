@@ -176,9 +176,39 @@ def create_llm_client() -> ChatOpenAI:
     )
 
 
-def generate_data_rows(num_rows: int) -> list:
-    """Generate test data rows with pattern: [i, i*10, i*100]."""
-    return [[i, i * 10, i * 100] for i in range(1, num_rows + 1)]
+def generate_data_with_llm(num_rows: int) -> list:
+    """Generate realistic data rows using LLM based on headers."""
+    llm = create_llm_client()
+    
+    headers = ["Имя", "Фамилия", "Пол", "Возраст"]
+    
+    prompt = f"""Generate {num_rows} rows of realistic Russian person data with the following headers: {headers}
+    
+Requirements:
+- Имя (Name): Russian first names
+- Фамилия (Last name): Russian last names
+- Пол (Gender): М (male) or Ж (female)
+- Возраст (Age): Age between 18 and 80
+
+Return the data as a Python list of lists in this exact format (no markdown, just raw Python):
+[[name1, lastname1, gender1, age1], [name2, lastname2, gender2, age2], ...]
+
+Do not include headers in the output, only data rows. Generate exactly {num_rows} rows."""
+
+    response = llm.invoke(prompt)
+    response_text = response.content.strip()
+    
+    # Parse the response as Python list
+    try:
+        data_rows = eval(response_text)
+        if isinstance(data_rows, list) and len(data_rows) == num_rows:
+            return data_rows
+    except Exception as e:
+        print(f"Warning: Failed to parse LLM response, using fallback data: {e}")
+    
+    # Fallback: generate default data if LLM parsing fails
+    return [[f"Имя{i}", f"Фамилия{i}", "М" if i % 2 == 0 else "Ж", 20 + (i % 60)] 
+            for i in range(1, num_rows + 1)]
 
 
 def create_agent():
@@ -217,8 +247,12 @@ Use the available tools to accomplish each step. Always verify each step complet
     return agent_executor
 
 
-def main():
-    """Main function to execute the Excel creation task."""
+def main(num_rows: int = 10):
+    """Main function to execute the Excel creation task.
+    
+    Args:
+        num_rows: Number of data rows to generate (default: 10)
+    """
     print("=" * 70)
     print("Excel File Creation and Formatting Client with LangChain")
     print("=" * 70)
@@ -228,13 +262,17 @@ def main():
     filepath = f"{file_uuid}.xlsx"
     
     print(f"\nGenerating Excel file: {filepath}")
+    print(f"Generating {num_rows} data rows using LLM...")
     
-    # Generate data
-    headers = ["Колонка 1", "Колонка 2", "Колонка 3"]
-    data_rows = generate_data_rows(100)
+    # Define headers
+    headers = ["Имя", "Фамилия", "Пол", "Возраст"]
+    
+    # Generate data using LLM
+    data_rows = generate_data_with_llm(num_rows)
     
     print(f"Headers: {headers}")
-    print(f"Data rows: {len(data_rows)}")
+    print(f"Data rows generated: {len(data_rows)}")
+    print(f"Sample data: {data_rows[0] if data_rows else 'No data'}")
     
     # Create agent
     agent_executor = create_agent()
@@ -244,14 +282,16 @@ def main():
 
 1. Create workbook: {filepath}
 2. Create worksheet: "Data"
-3. Write data (headers + 100 rows):
+3. Write data with headers and {num_rows} rows:
    Headers: {headers}
    Data: {data_rows}
-4. Format header row (A1:C1):
+4. Format header row (A1:D1):
    - Background color: 0070C0 (blue)
    - Font color: FFFFFF (white)
    - Bold text
-5. Format data rows (A2:C101) with alternating colors FFFFFF (white) for odd rows and D3D3D3 (light gray) for even rows
+5. Format data rows (A2:D{num_rows + 1}) with alternating colors:
+   - Odd rows: background FFFFFF (white)
+   - Even rows: background D3D3D3 (light gray)
 
 Execute each step in order. Use the filepath "{filepath}" for all operations."""
     
@@ -275,4 +315,5 @@ Execute each step in order. Use the filepath "{filepath}" for all operations."""
 
 
 if __name__ == "__main__":
-    main()
+    # You can specify the number of rows here (default: 10)
+    main(num_rows=20)
