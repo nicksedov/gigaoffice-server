@@ -20,6 +20,8 @@ langchain-gigachat
 gigachat
 langchain
 langchain-community
+langchain-openai
+fastmcp
 sentence-transformers
 
 # HTTP client

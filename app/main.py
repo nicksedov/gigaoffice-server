@@ -20,6 +20,7 @@ from app.api.charts import chart_router
 from app.api.histograms import histogram_router
 from app.api.robots import robots_router
 from app.api.files import files_router
+from app.api.mcp_tasks import mcp_router
 
 # Create app and register routers
 app = create_app()
@@ -33,6 +34,7 @@ app.include_router(spreadsheet_router)
 app.include_router(chart_router)
 app.include_router(histogram_router)
 app.include_router(files_router)
+app.include_router(mcp_router)
 app.include_router(robots_router)
 
 # Error handlers
