@@ -593,9 +593,12 @@ components:
           type: string
           format: uuid
           description: Generated UUID identifier
-        filename:
+        original_filename:
           type: string
           description: Original uploaded filename
+        assigned_filename:
+          type: string
+          description: The filename assigned by the backend
         size:
           type: integer
           description: File size in bytes
