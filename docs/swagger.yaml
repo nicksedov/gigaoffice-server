@@ -587,23 +587,30 @@ components:
       properties:
         success:
           type: boolean
-          description: Whether the upload was successful
+          default: true
+          description: Always true for successful upload
         file_id:
           type: string
           format: uuid
-          description: Unique identifier for the uploaded file
+          description: Generated UUID identifier
         filename:
           type: string
-          description: Original filename of the uploaded file
+          description: Original uploaded filename
         size:
           type: integer
           description: File size in bytes
+          minimum: 0
         upload_time:
           type: string
           format: date-time
-          description: Timestamp when the file was uploaded
-      description: Response model for file upload operation
-
+          description: ISO 8601 timestamp of upload
+      required:
+        - success
+        - file_id
+        - filename
+        - size
+        - upload_time
+      description: Response model for successful file upload
     ErrorResponse:
       type: object
       properties:
@@ -1124,7 +1131,7 @@ paths:
       description: |
         Upload an Excel file (.xlsx, .xls) to the server.
         
-        Maximum file size: 50 MB.
+        Accepts Excel files (.xlsx, .xls) up to 50 MB.
         Returns a unique UUID that can be used to download the file.
       parameters:
         - name: limit
