@@ -24,7 +24,8 @@ from .mcp_client import create_mcp_client, MCPExcelClient
 
 # Configuration from environment
 MCP_SERVER_URL = os.getenv("MCP_EXCEL_SERVER_URL", "")
-LLM_API_URL = os.getenv("GIGACHAT_API_URL", "https://ollama.ai-gateway.ru/v1")
+LLM_API_URL = os.getenv("GIGACHAT_BASE_URL", "https://ollama.ai-gateway.ru/v1")
+LLM_API_KEY = os.getenv("GIGACHAT_API_KEY", "none")
 LLM_MODEL_NAME = os.getenv("GIGACHAT_MODEL_NAME", "gpt-oss")
 LLM_TEMPERATURE = float(os.getenv("GIGACHAT_TEMPERATURE", "0.7"))
 MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "50"))
@@ -59,7 +60,7 @@ class MCPExecutor:
             self._llm = ChatOpenAI(
                 model=LLM_MODEL_NAME,
                 temperature=LLM_TEMPERATURE,
-                api_key="none",  # API key not required for internal LLM
+                api_key=LLM_API_KEY,
                 base_url=LLM_API_URL
             )
             logger.info(f"LLM client created: {LLM_MODEL_NAME} @ {LLM_API_URL}")
