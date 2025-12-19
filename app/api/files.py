@@ -38,7 +38,7 @@ async def upload_file(
         file: Excel file to upload
         
     Returns:
-        FileUploadResponse with file_id, filename, size, and upload_time
+        FileUploadResponse with file_id, filename, target_filename, size, and upload_time
         
     Raises:
         HTTPException 400: If file validation fails
@@ -64,7 +64,7 @@ async def upload_file(
         
         # Save file using storage manager
         try:
-            file_id, original_filename, file_size, upload_time = await file_storage_manager.save_file(file)
+            file_id, original_filename, storage_filename, file_size, upload_time = await file_storage_manager.save_file(file)
         except ValueError as e:
             # Validation error
             logger.info(f"File validation failed: {e}")
@@ -106,7 +106,8 @@ async def upload_file(
         return FileUploadResponse(
             success=True,
             file_id=file_id,
-            filename=original_filename,
+            original_filename=original_filename,
+            assigned_filename=storage_filename,
             size=file_size,
             upload_time=upload_time
         )
