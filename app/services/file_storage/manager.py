@@ -118,7 +118,7 @@ class FileStorageManager:
             
             logger.info(f"File uploaded successfully: {file_id} ({original_filename}, {file_size} bytes)")
             
-            return file_id, original_filename, file_size, upload_time
+            return file_id, original_filename, storage_filename, file_size, upload_time
             
         except Exception as e:
             logger.error(f"Failed to save file {file_id}: {e}")

@@ -9,7 +9,8 @@ class FileUploadResponse(BaseModel):
     """Response model for successful file upload"""
     success: bool = Field(True, description="Always true for successful upload")
     file_id: str = Field(..., description="Generated UUID identifier")
-    filename: str = Field(..., description="Original uploaded filename")
+    original_filename: str = Field(..., description="Original uploaded filename")
+    assigned_filename = Field(..., description="Target filename assigned on backend side")
     size: int = Field(..., description="File size in bytes", ge=0)
     upload_time: datetime = Field(..., description="ISO 8601 timestamp of upload")
 
