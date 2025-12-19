@@ -7,9 +7,44 @@ import asyncio
 import os
 from typing import Any, Dict, Optional, Callable
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 from loguru import logger
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
+
+
+def _run_async_in_sync_context(coro):
+    """
+    Execute async coroutine in synchronous context
+    
+    This utility function bridges the async/sync gap by managing event loop context.
+    It detects if an event loop is already running and handles execution accordingly.
+    
+    Args:
+        coro: Coroutine to execute
+        
+    Returns:
+        Result of coroutine execution
+        
+    Raises:
+        Exception: Any exception raised by the coroutine
+    """
+    try:
+        # Try to get the current event loop
+        loop = asyncio.get_event_loop()
+        
+        # Check if loop is already running
+        if loop.is_running():
+            # Loop is running - execute in new thread with new event loop
+            with ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, coro)
+                return future.result()
+        else:
+            # No loop running - use existing loop
+            return loop.run_until_complete(coro)
+    except RuntimeError:
+        # No event loop exists - create and run
+        return asyncio.run(coro)
 
 
 class MCPExcelClient:
@@ -121,20 +156,27 @@ class MCPExcelClient:
             args_schema: Argument schema (optional)
             
         Returns:
-            Async function that can be used as LangChain tool
+            Synchronous function that can be used as LangChain tool
         """
-        async def tool_func(**kwargs) -> str:
-            """LangChain tool wrapper"""
+        # Inner async function that performs the actual MCP call
+        async def async_tool_func(**kwargs) -> str:
+            """Async LangChain tool wrapper"""
             try:
                 result = await self.call_tool(tool_name, kwargs)
                 return str(result)
             except Exception as e:
                 return f"Error: {str(e)}"
         
-        tool_func.__name__ = tool_name
-        tool_func.__doc__ = description
+        # Outer synchronous wrapper that bridges async/sync gap
+        def sync_tool_func(**kwargs) -> str:
+            """Synchronous LangChain tool wrapper"""
+            return _run_async_in_sync_context(async_tool_func(**kwargs))
         
-        return tool_func
+        # Set function metadata for LangChain
+        sync_tool_func.__name__ = tool_name
+        sync_tool_func.__doc__ = description
+        
+        return sync_tool_func
     
     def get_standard_tools(self) -> Dict[str, Callable]:
         """
