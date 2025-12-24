@@ -28,9 +28,9 @@ MCP_SERVER_URL = os.getenv("MCP_EXCEL_SERVER_URL", "")
 LLM_API_URL = os.getenv("GIGACHAT_BASE_URL", "https://ollama.ai-gateway.ru/v1")
 LLM_API_KEY = os.getenv("GIGACHAT_API_KEY", "none")
 LLM_MODEL_NAME = os.getenv("GIGACHAT_MODEL_NAME", "gpt-oss")
-LLM_TEMPERATURE = float(os.getenv("GIGACHAT_TEMPERATURE", "0.2"))  # Reduced from 0.7 to reduce hallucination
-MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "30"))  # Reduced from 50 to limit hallucination accumulation
-TASK_EXECUTION_TIMEOUT = int(os.getenv("TASK_EXECUTION_TIMEOUT", "300"))
+LLM_TEMPERATURE = float(os.getenv("GIGACHAT_TEMPERATURE", "0.7"))  # Reduced from 0.7 to reduce hallucination
+MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "50"))  # Reduced from 50 to limit hallucination accumulation
+TASK_EXECUTION_TIMEOUT = int(os.getenv("TASK_EXECUTION_TIMEOUT", "600"))
 
 
 class MCPExecutor:
