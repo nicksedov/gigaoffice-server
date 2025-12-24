@@ -265,21 +265,3 @@ def create_mcp_client(
     client = MCPExcelClient(base_url=base_url, debug=debug)
     client.set_filepath(filepath)
     return client
-    filepath: str,
-    base_url: Optional[str] = None,
-    debug: bool = False
-) -> MCPExcelClient:
-    """
-    Factory function to create and configure MCP client
-    
-    Args:
-        filepath: Resolved absolute path to Excel file
-        base_url: MCP server URL (optional)
-        debug: Enable debug logging
-        
-    Returns:
-        Configured MCP Excel client
-    """
-    client = MCPExcelClient(base_url=base_url, debug=debug)
-    client.set_filepath(filepath)
-    return client
