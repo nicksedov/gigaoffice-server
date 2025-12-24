@@ -20,6 +20,7 @@ from app.services.file_storage import file_storage_manager
 from .models import TaskState, TaskStatus, ResultData, ErrorData, ErrorType
 from .task_tracker import task_tracker
 from .mcp_client import create_mcp_client, MCPExcelClient
+from .tool_schemas import get_tools_list_for_prompt
 
 
 # Configuration from environment
@@ -27,8 +28,8 @@ MCP_SERVER_URL = os.getenv("MCP_EXCEL_SERVER_URL", "")
 LLM_API_URL = os.getenv("GIGACHAT_BASE_URL", "https://ollama.ai-gateway.ru/v1")
 LLM_API_KEY = os.getenv("GIGACHAT_API_KEY", "none")
 LLM_MODEL_NAME = os.getenv("GIGACHAT_MODEL_NAME", "gpt-oss")
-LLM_TEMPERATURE = float(os.getenv("GIGACHAT_TEMPERATURE", "0.7"))
-MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "50"))
+LLM_TEMPERATURE = float(os.getenv("GIGACHAT_TEMPERATURE", "0.2"))  # Reduced from 0.7 to reduce hallucination
+MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "30"))  # Reduced from 50 to limit hallucination accumulation
 TASK_EXECUTION_TIMEOUT = int(os.getenv("TASK_EXECUTION_TIMEOUT", "300"))
 
 
@@ -73,7 +74,10 @@ class MCPExecutor:
         Returns:
             ChatPromptTemplate for agent
         """
-        system_prompt = """You are a helpful assistant that executes Excel spreadsheet tasks.
+        # Generate the complete tool list
+        tools_list = get_tools_list_for_prompt()
+        
+        system_prompt = f"""You are a helpful assistant that executes Excel spreadsheet tasks.
 Your task is to methodically execute the user's request step-by-step:
 
 1. Analyze the task requirements carefully
@@ -105,9 +109,7 @@ IMPORTANT NOTES ABOUT TOOL USAGE:
   * Include all required parameters
   * Optional parameters can be omitted or explicitly set
 
-Available MCP Excel Tools:
-All tools have complete parameter schemas attached. Review each tool's schema before use.
-The tools are automatically loaded with their full parameter specifications.
+{tools_list}
 
 Execute the task systematically and report your progress."""
 
@@ -233,11 +235,34 @@ Execute the task systematically and report your progress."""
         except TimeoutError as e:
             self._handle_error(task_id, str(e), "Task execution", ErrorType.TIMEOUT_ERROR)
         except ValueError as e:
-            self._handle_error(task_id, str(e), "File validation", ErrorType.FILE_NOT_FOUND_ERROR)
+            # ValueError can be from file validation or tool name validation
+            error_str = str(e)
+            if "Invalid tool name" in error_str or "Did you mean" in error_str:
+                # Tool validation error with helpful suggestions
+                self._handle_error(
+                    task_id, 
+                    error_str, 
+                    "Tool name validation", 
+                    ErrorType.MCP_TOOL_ERROR
+                )
+            else:
+                # File validation error
+                self._handle_error(task_id, error_str, "File validation", ErrorType.FILE_NOT_FOUND_ERROR)
         except Exception as e:
             error_trace = traceback.format_exc()
             logger.error(f"Task {task_id} failed: {e}\n{error_trace}")
-            self._handle_error(task_id, str(e), "Task execution", ErrorType.MCP_TOOL_ERROR)
+            
+            # Check if it's a tool-related error
+            error_str = str(e)
+            if "not a valid tool" in error_str or "tool" in error_str.lower():
+                # Enhanced error message for tool issues
+                enhanced_msg = f"{error_str}\n\nThis may be due to:\n"
+                enhanced_msg += "- Using incorrect tool name (check spelling)\n"
+                enhanced_msg += "- Adding invalid prefix like 'excel.' to tool name\n"
+                enhanced_msg += "- Tool not available in current configuration\n"
+                self._handle_error(task_id, enhanced_msg, "Tool invocation", ErrorType.MCP_TOOL_ERROR)
+            else:
+                self._handle_error(task_id, error_str, "Task execution", ErrorType.MCP_TOOL_ERROR)
         finally:
             # Cleanup MCP client
             if self._mcp_client:

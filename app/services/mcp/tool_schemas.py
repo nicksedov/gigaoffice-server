@@ -9,6 +9,7 @@ Version: 2024-12-24
 from typing import Dict, Any, Type, Optional, List
 from pydantic import BaseModel, Field, create_model
 from loguru import logger
+import difflib
 
 
 # ============================================================================
@@ -885,6 +886,149 @@ def list_available_tools() -> List[str]:
         List of tool names
     """
     return list(MCP_TOOL_SCHEMAS.keys())
+
+
+def get_tools_list_for_prompt() -> str:
+    """
+    Generate formatted tool list for system prompt
+    
+    Returns:
+        Formatted string with categorized tool list
+    """
+    tools_by_category = {
+        "Workbook Operations": [
+            "create_workbook",
+            "create_worksheet",
+            "get_workbook_metadata",
+            "copy_worksheet",
+            "delete_worksheet",
+            "rename_worksheet"
+        ],
+        "Data Operations": [
+            "write_data_to_excel",
+            "read_data_from_excel"
+        ],
+        "Formatting Operations": [
+            "format_range"
+        ],
+        "Formula Operations": [
+            "apply_formula",
+            "validate_formula_syntax"
+        ],
+        "Chart & Visualization": [
+            "create_chart",
+            "create_pivot_table",
+            "create_table"
+        ],
+        "Cell Operations": [
+            "merge_cells",
+            "unmerge_cells",
+            "get_merged_cells"
+        ],
+        "Range Operations": [
+            "copy_range",
+            "delete_range",
+            "validate_excel_range"
+        ],
+        "Row & Column Operations": [
+            "insert_rows",
+            "insert_columns",
+            "delete_sheet_rows",
+            "delete_sheet_columns"
+        ],
+        "Data Validation": [
+            "get_data_validation_info"
+        ]
+    }
+    
+    lines = []
+    lines.append("AVAILABLE TOOLS (use exact names, NO prefixes):")
+    lines.append("")
+    
+    for category, tools in tools_by_category.items():
+        lines.append(f"{category}:")
+        for tool in tools:
+            # Get description from schema
+            schema = MCP_TOOL_SCHEMAS.get(tool, {})
+            desc = schema.get("description", "")
+            lines.append(f"  - {tool}: {desc}")
+        lines.append("")
+    
+    lines.append("CRITICAL: Tool names are exact - do NOT add 'excel.' or any other prefix!")
+    lines.append("Example: Use 'get_workbook_metadata', NOT 'excel.get_workbook_metadata'")
+    
+    return "\n".join(lines)
+
+
+def validate_tool_name(tool_name: str) -> Dict[str, Any]:
+    """
+    Validate tool name and suggest corrections if invalid
+    
+    Args:
+        tool_name: Tool name to validate
+        
+    Returns:
+        Dictionary with validation result:
+        {
+            "valid": bool,
+            "original_name": str,
+            "suggestions": List[str],
+            "error_message": str (if invalid)
+        }
+    """
+    # Strip common prefixes that might be hallucinated
+    clean_name = tool_name
+    for prefix in ["excel.", "mcp.", "spreadsheet."]:
+        if tool_name.startswith(prefix):
+            clean_name = tool_name[len(prefix):]
+            logger.warning(f"Detected invalid tool prefix in '{tool_name}', stripped to '{clean_name}'")
+    
+    # Check if cleaned name is valid
+    available_tools = list_available_tools()
+    
+    if clean_name in available_tools:
+        if clean_name != tool_name:
+            return {
+                "valid": True,
+                "original_name": tool_name,
+                "corrected_name": clean_name,
+                "suggestions": [],
+                "error_message": f"Tool name '{tool_name}' corrected to '{clean_name}' (removed invalid prefix)"
+            }
+        return {
+            "valid": True,
+            "original_name": tool_name,
+            "corrected_name": None,
+            "suggestions": [],
+            "error_message": None
+        }
+    
+    # Tool not found - perform fuzzy matching
+    close_matches = difflib.get_close_matches(clean_name, available_tools, n=3, cutoff=0.6)
+    
+    error_parts = [
+        f"Invalid tool name: '{tool_name}'",
+    ]
+    
+    if close_matches:
+        error_parts.append(f"Did you mean one of these?")
+        for match in close_matches:
+            schema = MCP_TOOL_SCHEMAS.get(match, {})
+            desc = schema.get("description", "")
+            error_parts.append(f"  - {match}: {desc}")
+    else:
+        error_parts.append(f"No similar tools found. Available tools: {', '.join(available_tools[:5])}...")
+    
+    error_parts.append("")
+    error_parts.append("Remember: Use exact tool names WITHOUT 'excel.' or any other prefix!")
+    
+    return {
+        "valid": False,
+        "original_name": tool_name,
+        "corrected_name": clean_name if clean_name != tool_name else None,
+        "suggestions": close_matches,
+        "error_message": "\n".join(error_parts)
+    }
 
 
 def validate_schema_completeness() -> Dict[str, Any]:

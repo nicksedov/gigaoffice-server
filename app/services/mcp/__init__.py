@@ -9,6 +9,8 @@ from .tool_schemas import (
     create_pydantic_schema,
     generate_enhanced_docstring,
     list_available_tools,
+    get_tools_list_for_prompt,
+    validate_tool_name,
     MCP_TOOL_SCHEMAS
 )
 from .schema_validator import schema_validator, validate_schemas_on_startup
@@ -19,6 +21,6 @@ __all__ = [
     "MCPExecutor", "mcp_executor",
     "MCPExcelClient", "create_mcp_client",
     "get_tool_schema", "create_pydantic_schema", "generate_enhanced_docstring",
-    "list_available_tools", "MCP_TOOL_SCHEMAS",
+    "list_available_tools", "get_tools_list_for_prompt", "validate_tool_name", "MCP_TOOL_SCHEMAS",
     "schema_validator", "validate_schemas_on_startup"
 ]

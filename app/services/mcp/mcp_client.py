@@ -17,7 +17,8 @@ from .tool_schemas import (
     get_tool_schema,
     create_pydantic_schema,
     generate_enhanced_docstring,
-    list_available_tools
+    list_available_tools,
+    validate_tool_name
 )
 
 
@@ -114,7 +115,7 @@ class MCPExcelClient:
     
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
         """
-        Call MCP Excel server tool
+        Call MCP Excel server tool with validation
         
         Args:
             tool_name: Name of the MCP tool to call
@@ -124,27 +125,45 @@ class MCPExcelClient:
             Tool result
             
         Raises:
-            Exception: If tool invocation fails
+            Exception: If tool invocation fails or tool name is invalid
         """
         try:
+            # Validate tool name and get suggestions if invalid
+            validation = validate_tool_name(tool_name)
+            
+            if not validation["valid"]:
+                error_msg = validation["error_message"]
+                logger.error(f"Invalid tool name: {tool_name}")
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+            
+            # Use corrected name if prefix was stripped
+            actual_tool_name = validation.get("corrected_name") or tool_name
+            
+            if validation.get("corrected_name"):
+                logger.info(f"Auto-corrected tool name: '{tool_name}' -> '{actual_tool_name}'")
+            
             await self.initialize()
             
             # Inject resolved filepath if tool requires it
             if "filepath" in arguments and self._filepath:
                 arguments["filepath"] = self._filepath
             
-            self._log_debug(f"Calling MCP tool: {tool_name}")
+            self._log_debug(f"Calling MCP tool: {actual_tool_name}")
             self._log_debug(f"Arguments: {arguments}")
             
             async with self.client:
                 result = await self.client.call_tool(
-                    name=tool_name,
+                    name=actual_tool_name,
                     arguments=arguments
                 )
                 
                 self._log_debug(f"Tool result: {result}")
                 return result
         
+        except ValueError as e:
+            # Re-raise validation errors with helpful message
+            raise e
         except Exception as e:
             logger.error(f"Error calling MCP tool {tool_name}: {e}")
             raise Exception(f"MCP tool {tool_name} failed: {str(e)}")
@@ -228,6 +247,24 @@ class MCPExcelClient:
 
 
 def create_mcp_client(
+    filepath: str,
+    base_url: Optional[str] = None,
+    debug: bool = False
+) -> MCPExcelClient:
+    """
+    Factory function to create and configure MCP client
+    
+    Args:
+        filepath: Resolved absolute path to Excel file
+        base_url: MCP server URL (optional)
+        debug: Enable debug logging
+        
+    Returns:
+        Configured MCP Excel client
+    """
+    client = MCPExcelClient(base_url=base_url, debug=debug)
+    client.set_filepath(filepath)
+    return client
     filepath: str,
     base_url: Optional[str] = None,
     debug: bool = False
