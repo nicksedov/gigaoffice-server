@@ -11,6 +11,14 @@ from concurrent.futures import ThreadPoolExecutor
 from loguru import logger
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
+from langchain.tools import tool
+
+from .tool_schemas import (
+    get_tool_schema,
+    create_pydantic_schema,
+    generate_enhanced_docstring,
+    list_available_tools
+)
 
 
 def _run_async_in_sync_context(coro):
@@ -143,21 +151,29 @@ class MCPExcelClient:
     
     def create_langchain_tool(
         self,
-        tool_name: str,
-        description: str,
-        args_schema: Optional[Dict] = None
+        tool_name: str
     ) -> Callable:
         """
-        Create a LangChain-compatible tool function
+        Create a LangChain-compatible tool function with full schema
         
         Args:
             tool_name: MCP tool name
-            description: Tool description
-            args_schema: Argument schema (optional)
             
         Returns:
-            Synchronous function that can be used as LangChain tool
+            LangChain tool with complete parameter schema
         """
+        # Retrieve schema from registry
+        schema = get_tool_schema(tool_name)
+        if not schema:
+            logger.error(f"No schema found for tool: {tool_name}")
+            raise ValueError(f"Tool schema not found: {tool_name}")
+        
+        # Generate Pydantic model for args_schema
+        pydantic_model = create_pydantic_schema(tool_name, schema)
+        
+        # Generate enhanced docstring
+        enhanced_docstring = generate_enhanced_docstring(tool_name, schema)
+        
         # Inner async function that performs the actual MCP call
         async def async_tool_func(**kwargs) -> str:
             """Async LangChain tool wrapper"""
@@ -174,142 +190,32 @@ class MCPExcelClient:
         
         # Set function metadata for LangChain
         sync_tool_func.__name__ = tool_name
-        sync_tool_func.__doc__ = description
+        sync_tool_func.__doc__ = enhanced_docstring
         
-        return sync_tool_func
+        # Apply @tool decorator with args_schema
+        decorated_tool = tool(sync_tool_func, args_schema=pydantic_model)
+        
+        logger.debug(f"Created LangChain tool with schema: {tool_name}")
+        return decorated_tool
     
     def get_standard_tools(self) -> Dict[str, Callable]:
         """
-        Get standard MCP Excel tools for LangChain
+        Get standard MCP Excel tools for LangChain with complete schemas
         
         Returns:
             Dictionary of tool name to function mappings
         """
-        tools = {
-            # Workbook Operations
-            "create_workbook": self.create_langchain_tool(
-                "create_workbook",
-                "Create a new Excel workbook"
-            ),
-            "create_worksheet": self.create_langchain_tool(
-                "create_worksheet",
-                "Create a new worksheet in the Excel file"
-            ),
-            "get_workbook_metadata": self.create_langchain_tool(
-                "get_workbook_metadata",
-                "Get metadata about workbook including sheets and ranges"
-            ),
-            
-            # Data Operations
-            "write_data_to_excel": self.create_langchain_tool(
-                "write_data_to_excel",
-                "Write data to Excel worksheet"
-            ),
-            "read_data_from_excel": self.create_langchain_tool(
-                "read_data_from_excel",
-                "Read data from Excel worksheet"
-            ),
-            
-            # Formatting Operations
-            "format_range": self.create_langchain_tool(
-                "format_range",
-                "Apply formatting to a range of cells"
-            ),
-            
-            # Formula Operations
-            "apply_formula": self.create_langchain_tool(
-                "apply_formula",
-                "Apply Excel formula to a cell"
-            ),
-            "validate_formula_syntax": self.create_langchain_tool(
-                "validate_formula_syntax",
-                "Validate Excel formula syntax without applying it"
-            ),
-            
-            # Chart Operations
-            "create_chart": self.create_langchain_tool(
-                "create_chart",
-                "Create a chart in the worksheet"
-            ),
-            
-            # Pivot & Table Operations
-            "create_pivot_table": self.create_langchain_tool(
-                "create_pivot_table",
-                "Create pivot table in worksheet"
-            ),
-            "create_table": self.create_langchain_tool(
-                "create_table",
-                "Create a native Excel table from a specified range of data"
-            ),
-            
-            # Cell Operations
-            "merge_cells": self.create_langchain_tool(
-                "merge_cells",
-                "Merge a range of cells"
-            ),
-            "unmerge_cells": self.create_langchain_tool(
-                "unmerge_cells",
-                "Unmerge a previously merged range of cells"
-            ),
-            "get_merged_cells": self.create_langchain_tool(
-                "get_merged_cells",
-                "Get merged cells in a worksheet"
-            ),
-            
-            # Worksheet Operations
-            "copy_worksheet": self.create_langchain_tool(
-                "copy_worksheet",
-                "Copy worksheet within workbook"
-            ),
-            "delete_worksheet": self.create_langchain_tool(
-                "delete_worksheet",
-                "Delete worksheet from workbook"
-            ),
-            "rename_worksheet": self.create_langchain_tool(
-                "rename_worksheet",
-                "Rename worksheet in workbook"
-            ),
-            
-            # Range Operations
-            "copy_range": self.create_langchain_tool(
-                "copy_range",
-                "Copy a range of cells to another location"
-            ),
-            "delete_range": self.create_langchain_tool(
-                "delete_range",
-                "Delete a range of cells and shift remaining cells"
-            ),
-            "validate_excel_range": self.create_langchain_tool(
-                "validate_excel_range",
-                "Validate if a range exists and is properly formatted"
-            ),
-            
-            # Row & Column Operations
-            "insert_rows": self.create_langchain_tool(
-                "insert_rows",
-                "Insert one or more rows starting at the specified row"
-            ),
-            "insert_columns": self.create_langchain_tool(
-                "insert_columns",
-                "Insert one or more columns starting at the specified column"
-            ),
-            "delete_sheet_rows": self.create_langchain_tool(
-                "delete_sheet_rows",
-                "Delete one or more rows starting at the specified row"
-            ),
-            "delete_sheet_columns": self.create_langchain_tool(
-                "delete_sheet_columns",
-                "Delete one or more columns starting at the specified column"
-            ),
-            
-            # Data Validation
-            "get_data_validation_info": self.create_langchain_tool(
-                "get_data_validation_info",
-                "Get data validation rules and metadata for a worksheet"
-            ),
-        }
+        tools = {}
+        available_tool_names = list_available_tools()
         
-        logger.info(f"Created {len(tools)} LangChain tools from MCP server")
+        for tool_name in available_tool_names:
+            try:
+                tool_func = self.create_langchain_tool(tool_name)
+                tools[tool_name] = tool_func
+            except Exception as e:
+                logger.error(f"Failed to create tool {tool_name}: {e}")
+        
+        logger.info(f"Created {len(tools)} LangChain tools with complete schemas from MCP server")
         return tools
     
     async def cleanup(self):

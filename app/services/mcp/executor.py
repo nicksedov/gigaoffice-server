@@ -82,56 +82,32 @@ Your task is to methodically execute the user's request step-by-step:
 4. Report progress clearly at each stage
 5. Handle errors gracefully and provide informative messages
 
-Available tools:
-Workbook Operations:
-- create_workbook: Create a new Excel workbook
-- create_worksheet: Create a new worksheet
-- get_workbook_metadata: Get metadata about workbook including sheets and ranges
+IMPORTANT NOTES ABOUT TOOL USAGE:
 
-Data Operations:
-- write_data_to_excel: Write data to cells
-- read_data_from_excel: Read data from cells
+- Each tool has detailed parameter schemas that specify:
+  * Required vs optional parameters
+  * Parameter types and descriptions
+  * Default values for optional parameters
 
-Formatting Operations:
-- format_range: Apply formatting to cells
+- The 'filepath' parameter is AUTOMATICALLY resolved from the file_id and injected by the system
+  * DO NOT attempt to provide or specify the 'filepath' parameter in your tool calls
+  * The system handles file path resolution internally
+  * Focus on providing the other required parameters for each tool
 
-Formula Operations:
-- apply_formula: Apply Excel formulas
-- validate_formula_syntax: Validate formula syntax without applying
+- Consult each tool's parameter schema to understand:
+  * Which parameters are required (must be provided)
+  * Which parameters are optional (can be omitted, have defaults)
+  * What each parameter expects (data types, format)
 
-Chart Operations:
-- create_chart: Create charts
+- When calling tools, provide parameters according to their schemas:
+  * Use exact parameter names as specified
+  * Provide values of the correct type
+  * Include all required parameters
+  * Optional parameters can be omitted or explicitly set
 
-Pivot & Table Operations:
-- create_pivot_table: Create pivot table from data range
-- create_table: Create native Excel table from range
-
-Cell Operations:
-- merge_cells: Merge cell ranges
-- unmerge_cells: Unmerge previously merged cells
-- get_merged_cells: Get list of merged cell ranges
-
-Worksheet Operations:
-- copy_worksheet: Copy worksheet within workbook
-- delete_worksheet: Delete worksheet from workbook
-- rename_worksheet: Rename existing worksheet
-
-Range Operations:
-- copy_range: Copy cell range to another location
-- delete_range: Delete range and shift cells
-- validate_excel_range: Validate range existence and format
-
-Row & Column Operations:
-- insert_rows: Insert rows at position
-- insert_columns: Insert columns at position
-- delete_sheet_rows: Delete rows starting at position
-- delete_sheet_columns: Delete columns starting at position
-
-Data Validation:
-- get_data_validation_info: Get data validation rules and metadata
-
-Important: The filepath parameter is automatically set for all tools. 
-Do not specify filepath in your tool calls.
+Available MCP Excel Tools:
+All tools have complete parameter schemas attached. Review each tool's schema before use.
+The tools are automatically loaded with their full parameter specifications.
 
 Execute the task systematically and report your progress."""
 
@@ -153,13 +129,11 @@ Execute the task systematically and report your progress."""
         """
         tools_dict = mcp_client.get_standard_tools()
         
-        # Wrap each tool with @tool decorator for LangChain
-        langchain_tools = []
-        for tool_name, tool_func in tools_dict.items():
-            # Create tool with decorator
-            decorated_tool = tool(tool_func)
-            langchain_tools.append(decorated_tool)
+        # Tools are already decorated with @tool and have schemas attached
+        # Convert dict to list
+        langchain_tools = list(tools_dict.values())
         
+        logger.info(f"Loaded {len(langchain_tools)} MCP tools with complete parameter schemas")
         return langchain_tools
     
     async def execute_task(self, task_id: str):
