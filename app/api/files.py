@@ -6,7 +6,7 @@ Router for Excel file upload and download operations
 import time
 from typing import Optional
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from loguru import logger
 from slowapi import Limiter
@@ -126,8 +126,26 @@ async def upload_file(
         )
 
 
+def _delete_file_background(file_id: str) -> None:
+    """Background task to delete file after download
+    
+    Args:
+        file_id: UUID of the file to delete
+    """
+    logger.info(f"Executing scheduled file deletion: {file_id}")
+    deletion_success = file_storage_manager.delete_file(file_id)
+    if deletion_success:
+        logger.info(f"File deleted after download: {file_id}")
+    else:
+        logger.error(f"Failed to delete file after download {file_id}")
+
+
 @files_router.get("/download/{file_id}")
-async def download_file(file_id: str, delete_after_download: bool = False):
+async def download_file(
+    file_id: str,
+    background_tasks: BackgroundTasks,
+    delete_after_download: bool = False
+):
     """Download an Excel file by UUID
     
     Retrieves the file with the specified UUID and returns it as a download.
@@ -135,6 +153,7 @@ async def download_file(file_id: str, delete_after_download: bool = False):
     
     Args:
         file_id: UUID of the file to download
+        background_tasks: FastAPI background tasks for post-response cleanup
         delete_after_download: If True, deletes the file from storage after download (default: False)
         
     Returns:
@@ -176,13 +195,10 @@ async def download_file(file_id: str, delete_after_download: bool = False):
             }
         )
         
-        # Delete file after download if requested
+        # Schedule file deletion as background task if requested
         if delete_after_download:
-            deletion_success = file_storage_manager.delete_file(file_id)
-            if deletion_success:
-                logger.info(f"File deleted after download: {file_id}")
-            else:
-                logger.error(f"Failed to delete file after download {file_id}")
+            background_tasks.add_task(_delete_file_background, file_id)
+            logger.info(f"File scheduled for deletion after download: {file_id}")
         
         return response
         
