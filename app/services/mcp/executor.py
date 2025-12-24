@@ -109,6 +109,14 @@ IMPORTANT NOTES ABOUT TOOL USAGE:
   * Include all required parameters
   * Optional parameters can be omitted or explicitly set
 
+TASK COMPLETION CHECKLIST:
+- Before finishing, re-read the original user request carefully
+- List all operations explicitly or implicitly required by the request
+- Verify each operation has been executed successfully
+- Only provide final answer when ALL operations are complete
+- If uncertain whether task is complete, continue with the next logical step
+- Multi-step tasks (e.g., "create and populate") require multiple tool calls
+
 {tools_list}
 
 Execute the task systematically and report your progress."""
@@ -193,7 +201,9 @@ Execute the task systematically and report your progress."""
                 tools=tools,
                 verbose=True,
                 max_iterations=MAX_AGENT_ITERATIONS,
-                handle_parsing_errors=True
+                handle_parsing_errors=True,
+                return_intermediate_steps=True,
+                early_stopping_method="generate"
             )
             task_tracker.update_progress(task_id, 4, 10, "Agent created")
             
@@ -204,6 +214,7 @@ Execute the task systematically and report your progress."""
             task_tracker.update_progress(task_id, 5, 10, "Executing agent")
             
             # Step 6: Execute agent with timeout
+            logger.info(f"Task {task_id}: Starting agent execution with intermediate steps enabled")
             try:
                 result = await asyncio.wait_for(
                     asyncio.to_thread(agent_executor.invoke, task_input),
@@ -211,6 +222,13 @@ Execute the task systematically and report your progress."""
                 )
             except asyncio.TimeoutError:
                 raise TimeoutError(f"Task execution exceeded {TASK_EXECUTION_TIMEOUT}s timeout")
+            
+            # Log agent execution details
+            num_intermediate_steps = len(result.get("intermediate_steps", []))
+            logger.info(
+                f"Task {task_id}: Agent completed with {num_intermediate_steps} intermediate steps, "
+                f"{result.get('agent_iterations', 0)} total iterations"
+            )
             
             task_tracker.update_progress(task_id, 9, 10, "Agent completed")
             
@@ -312,6 +330,12 @@ Execute the task systematically and report your progress."""
                     action = step[0]
                     if hasattr(action, "tool"):
                         operations.append(action.tool)
+        
+        # Log extracted operations for debugging
+        if operations:
+            logger.debug(f"Extracted {len(operations)} operations: {operations}")
+        else:
+            logger.warning("No operations extracted from agent result")
         
         return operations if operations else ["task_completed"]
     
