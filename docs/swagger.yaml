@@ -648,6 +648,21 @@ components:
           description: Ending cell reference (e.g., 'D10')
       description: Source data range specification
 
+    ClarificationResponseItem:
+      type: object
+      required:
+        - clarification_id
+        - answer
+      properties:
+        clarification_id:
+          type: string
+          description: Unique question identifier
+        answer:
+          type: string
+          minLength: 1
+          description: User's answer to the clarification question
+      description: Single clarification response
+
     MCPTaskExecuteRequest:
       type: object
       required:
@@ -780,6 +795,10 @@ components:
           type: string
           enum: [queued, running, completed, failed]
           description: Current status
+        current_phase:
+          type: string
+          nullable: true
+          description: Current workflow phase (e.g., analyzing, planning, executing, awaiting_clarification)
         progress:
           $ref: '#/components/schemas/ProgressInfo'
           nullable: true
@@ -792,6 +811,22 @@ components:
           $ref: '#/components/schemas/ExecutionError'
           nullable: true
           description: Error information (only when failed)
+        clarifications:
+          type: object
+          nullable: true
+          description: Pending clarification questions with structure containing question list
+        plan_summary:
+          type: object
+          nullable: true
+          description: Execution plan details if planning phase is completed
+        analysis_result:
+          type: object
+          nullable: true
+          description: Analysis phase results if available
+        verification_result:
+          type: object
+          nullable: true
+          description: Verification phase results if task completed validation
         created_at:
           type: string
           format: date-time
@@ -801,6 +836,63 @@ components:
           format: date-time
           description: Last update timestamp
       description: Response model for task progress retrieval
+
+    MCPTaskClarifyRequest:
+      type: object
+      required:
+        - responses
+      properties:
+        responses:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ClarificationResponseItem'
+          description: List of clarification responses
+      description: Request model for submitting clarification responses
+
+    MCPTaskClarifyResponse:
+      type: object
+      required:
+        - task_id
+        - status
+        - accepted_count
+        - updated_at
+      properties:
+        task_id:
+          type: string
+          description: Task identifier
+        status:
+          type: string
+          description: Updated task status (typically analyzing)
+        accepted_count:
+          type: integer
+          minimum: 0
+          description: Number of responses accepted
+        updated_at:
+          type: string
+          format: date-time
+          description: Status update timestamp
+      description: Response model for clarification submission
+
+    MCPTaskCancelResponse:
+      type: object
+      required:
+        - task_id
+        - status
+        - cancelled_at
+      properties:
+        task_id:
+          type: string
+          description: Task identifier
+        status:
+          type: string
+          default: cancelled
+          description: Task status after cancellation
+        cancelled_at:
+          type: string
+          format: date-time
+          description: Cancellation timestamp
+      description: Response model for task cancellation
 
 paths:
   /api/ping:
@@ -1310,6 +1402,100 @@ paths:
                 $ref: '#/components/schemas/MCPTaskProgressResponse'
         '400':
           description: Invalid task_id format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/spreadsheets/mcp/clarify/{task_id}:
+    post:
+      tags:
+        - MCP Task Execution
+      summary: Submit clarification responses
+      description: |
+        Позволяет клиенту предоставить ответы на вопросы уточнения, запрошенные агентом анализатора.
+        
+        Allows client to provide answers to clarification questions requested
+        by the Analyzer agent during task analysis.
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Task identifier UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MCPTaskClarifyRequest'
+      responses:
+        '200':
+          description: Clarifications accepted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPTaskClarifyResponse'
+        '400':
+          description: Invalid task ID, task not awaiting clarification, or invalid clarification IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/spreadsheets/mcp/cancel/{task_id}:
+    delete:
+      tags:
+        - MCP Task Execution
+      summary: Cancel MCP task
+      description: |
+        Отменяет выполнение задачи и выполняет очистку. Разрешено только для задач, которые еще не завершены или не провалились.
+        
+        Cancels task execution and performs cleanup. Only allowed for tasks
+        that are not yet completed or failed.
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Task identifier UUID
+      responses:
+        '200':
+          description: Task cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPTaskCancelResponse'
+        '400':
+          description: Invalid task ID or task cannot be cancelled
           content:
             application/json:
               schema:

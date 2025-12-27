@@ -15,6 +15,9 @@ from app.models.api.mcp_task import (
     MCPTaskExecuteRequest,
     MCPTaskExecuteResponse,
     MCPTaskProgressResponse,
+    MCPTaskClarifyRequest,
+    MCPTaskClarifyResponse,
+    MCPTaskCancelResponse,
     ProgressInfo,
     ExecutionResult,
     ExecutionError
@@ -207,6 +210,215 @@ async def get_task_progress(task_id: str):
             detail={
                 "error": "internal_error",
                 "message": "Failed to retrieve task progress",
+                "details": {"internal_error": str(e)}
+            }
+        )
+
+
+@mcp_router.post("/clarify/{task_id}", response_model=MCPTaskClarifyResponse)
+async def submit_clarifications(
+    task_id: str,
+    request: MCPTaskClarifyRequest
+):
+    """
+    Submit clarification responses to pending questions
+    
+    Allows client to provide answers to clarification questions requested
+    by the Analyzer agent during task analysis.
+    
+    Args:
+        task_id: Task identifier UUID
+        request: Clarification responses
+        
+    Returns:
+        Clarification submission response
+        
+    Raises:
+        HTTPException 400: Invalid task ID or task not awaiting clarification
+        HTTPException 404: Task not found
+        HTTPException 500: Internal server error
+    """
+    try:
+        logger.info(f"Clarification submission for task: {task_id}")
+        
+        # Validate UUID format
+        try:
+            uuid.UUID(task_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "invalid_task_id",
+                    "message": "Task ID must be a valid UUID",
+                    "details": None
+                }
+            )
+        
+        # Get task state
+        task = task_tracker.get_task(task_id)
+        if not task:
+            logger.warning(f"Task not found: {task_id}")
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "error": "task_not_found",
+                    "message": f"Task with ID {task_id} not found",
+                    "details": None
+                }
+            )
+        
+        # Check task is awaiting clarification
+        from app.services.mcp.multi_agent_models import PhaseEnum
+        if task.current_phase != PhaseEnum.AWAITING_CLARIFICATION:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "invalid_state",
+                    "message": f"Task is not awaiting clarification (current phase: {task.current_phase.value})",
+                    "details": None
+                }
+            )
+        
+        # Validate clarification IDs match pending questions
+        if task.clarification_data:
+            pending_ids = {q.clarification_id for q in task.clarification_data.questions}
+            provided_ids = {r.clarification_id for r in request.responses}
+            
+            invalid_ids = provided_ids - pending_ids
+            if invalid_ids:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "invalid_clarification_ids",
+                        "message": "Some clarification IDs do not match pending questions",
+                        "details": {"invalid_ids": list(invalid_ids)}
+                    }
+                )
+        
+        # Add responses to clarification queue
+        from app.services.mcp.multi_agent_models import ClarificationResponse
+        for response_item in request.responses:
+            clarification_response = ClarificationResponse(
+                clarification_id=response_item.clarification_id,
+                answer=response_item.answer
+            )
+            if task.clarification_data:
+                task.clarification_data.responses.append(clarification_response)
+        
+        # Update task status back to analyzing
+        task.current_phase = PhaseEnum.ANALYZING
+        task.updated_at = datetime.now()
+        task_tracker.update_task(task_id, task)
+        
+        # TODO: Resume workflow execution in background
+        # This would involve calling the orchestrator to resume from clarification_wait node
+        
+        logger.info(f"Accepted {len(request.responses)} clarifications for task {task_id}")
+        
+        return MCPTaskClarifyResponse(
+            task_id=task_id,
+            status="analyzing",
+            accepted_count=len(request.responses),
+            updated_at=task.updated_at
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing clarifications: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "internal_error",
+                "message": "Failed to process clarifications",
+                "details": {"internal_error": str(e)}
+            }
+        )
+
+
+@mcp_router.delete("/cancel/{task_id}", response_model=MCPTaskCancelResponse)
+async def cancel_task(task_id: str):
+    """
+    Cancel a pending or running task
+    
+    Cancels task execution and performs cleanup. Only allowed for tasks
+    that are not yet completed or failed.
+    
+    Args:
+        task_id: Task identifier UUID
+        
+    Returns:
+        Cancellation confirmation
+        
+    Raises:
+        HTTPException 400: Invalid task ID or task cannot be cancelled
+        HTTPException 404: Task not found
+        HTTPException 500: Internal server error
+    """
+    try:
+        logger.info(f"Cancel request for task: {task_id}")
+        
+        # Validate UUID format
+        try:
+            uuid.UUID(task_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "invalid_task_id",
+                    "message": "Task ID must be a valid UUID",
+                    "details": None
+                }
+            )
+        
+        # Get task state
+        task = task_tracker.get_task(task_id)
+        if not task:
+            logger.warning(f"Task not found: {task_id}")
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "error": "task_not_found",
+                    "message": f"Task with ID {task_id} not found",
+                    "details": None
+                }
+            )
+        
+        # Check task can be cancelled
+        from app.services.mcp.multi_agent_models import PhaseEnum
+        if task.current_phase in [PhaseEnum.COMPLETED, PhaseEnum.FAILED, PhaseEnum.CANCELLED]:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "invalid_state",
+                    "message": f"Task cannot be cancelled (current phase: {task.current_phase.value})",
+                    "details": None
+                }
+            )
+        
+        # Update task to cancelled
+        task.current_phase = PhaseEnum.CANCELLED
+        task.status = TaskStatus.FAILED  # Use FAILED status for backwards compatibility
+        task.updated_at = datetime.now()
+        task_tracker.update_task(task_id, task)
+        
+        logger.info(f"Task {task_id} cancelled successfully")
+        
+        return MCPTaskCancelResponse(
+            task_id=task_id,
+            status="cancelled",
+            cancelled_at=task.updated_at
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling task: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "internal_error",
+                "message": "Failed to cancel task",
                 "details": {"internal_error": str(e)}
             }
         )

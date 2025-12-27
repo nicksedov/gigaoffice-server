@@ -4,7 +4,7 @@ Data models for MCP-based spreadsheet task execution requests and responses
 """
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
@@ -68,8 +68,43 @@ class MCPTaskProgressResponse(BaseModel):
     """Response model for task progress retrieval"""
     task_id: str = Field(..., description="Task identifier")
     status: str = Field(..., description="Current status: queued, running, completed, failed")
+    current_phase: Optional[str] = Field(None, description="Current workflow phase")
     progress: Optional[ProgressInfo] = Field(None, description="Progress information")
     result: Optional[ExecutionResult] = Field(None, description="Task result (only when completed)")
     error: Optional[ExecutionError] = Field(None, description="Error information (only when failed)")
+    clarifications: Optional[Dict] = Field(None, description="Pending clarification questions")
+    plan_summary: Optional[Dict] = Field(None, description="Execution plan (if available)")
+    analysis_result: Optional[Dict] = Field(None, description="Analysis results (if available)")
+    verification_result: Optional[Dict] = Field(None, description="Verification results (if available)")
     created_at: datetime = Field(..., description="Task creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
+
+
+class ClarificationResponseItem(BaseModel):
+    """Single clarification response"""
+    clarification_id: str = Field(..., description="Unique question identifier")
+    answer: str = Field(..., min_length=1, description="User's answer")
+
+
+class MCPTaskClarifyRequest(BaseModel):
+    """Request model for submitting clarification responses"""
+    responses: List[ClarificationResponseItem] = Field(
+        ..., 
+        min_length=1,
+        description="List of clarification responses"
+    )
+
+
+class MCPTaskClarifyResponse(BaseModel):
+    """Response model for clarification submission"""
+    task_id: str = Field(..., description="Task identifier")
+    status: str = Field(..., description="Updated task status")
+    accepted_count: int = Field(..., ge=0, description="Number of responses accepted")
+    updated_at: datetime = Field(..., description="Status update timestamp")
+
+
+class MCPTaskCancelResponse(BaseModel):
+    """Response model for task cancellation"""
+    task_id: str = Field(..., description="Task identifier")
+    status: str = Field("cancelled", description="Task status after cancellation")
+    cancelled_at: datetime = Field(..., description="Cancellation timestamp")

@@ -21,6 +21,7 @@ gigachat
 langchain
 langchain-community
 langchain-openai
+langgraph
 fastmcp
 sentence-transformers
 

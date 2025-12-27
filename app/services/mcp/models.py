@@ -9,6 +9,15 @@ from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 from uuid import UUID
 
+from .multi_agent_models import (
+    PhaseEnum,
+    AnalysisResult,
+    ClarificationQueue,
+    ExecutionPlan,
+    VerificationResult,
+    PhaseTransition
+)
+
 
 class TaskStatus(str, Enum):
     """Task execution status"""
@@ -97,6 +106,14 @@ class TaskState:
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
     priority: int = 0
+    
+    # Multi-agent workflow fields
+    current_phase: PhaseEnum = PhaseEnum.RECEIVED
+    analysis_data: Optional[AnalysisResult] = None
+    clarification_data: Optional[ClarificationQueue] = None
+    plan_data: Optional[ExecutionPlan] = None
+    verification_data: Optional[VerificationResult] = None
+    phase_history: List[PhaseTransition] = field(default_factory=list)
 
     def update_progress(self, current_step: int, total_steps: int, description: str):
         """Update task progress"""
@@ -135,6 +152,7 @@ class TaskState:
         data = {
             "task_id": self.task_id,
             "status": self.status.value,
+            "current_phase": self.current_phase.value,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat()
         }
@@ -150,5 +168,18 @@ class TaskState:
         # Add error if failed
         if self.status == TaskStatus.FAILED and self.error_data:
             data["error"] = self.error_data.to_dict()
+        
+        # Add multi-agent data
+        if self.analysis_data:
+            data["analysis_result"] = self.analysis_data.to_dict()
+        
+        if self.clarification_data:
+            data["clarifications"] = self.clarification_data.to_dict()
+        
+        if self.plan_data:
+            data["plan_summary"] = self.plan_data.to_dict()
+        
+        if self.verification_data:
+            data["verification_result"] = self.verification_data.to_dict()
 
         return data
